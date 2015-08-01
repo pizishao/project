@@ -1,0 +1,10 @@
+Debug/TcpServer.ilk
+*.tlog
+*.obj
+*.log
+*.user
+*.filters
+*.pdb
+*.idb
+*.lastbuildstate
+*.sdf
