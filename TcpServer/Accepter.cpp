@@ -35,7 +35,8 @@ bool Accepter::PostPendAccept()
     DWORD   dwLen=0;
     char    buffer[POST_SIZE]={0};
 
-    if (!AcceptEx(m_listenSocket, m_receiveSocket, m_szBuffer, 0, sizeof(SOCKADDR_IN)+16, sizeof(SOCKADDR_IN)+16,                           &dwLen, (LPOVERLAPPED)&m_acceptOpContext))
+    if (!AcceptEx(m_listenSocket, m_receiveSocket, m_szBuffer, 0, sizeof(SOCKADDR_IN)+16, 
+        sizeof(SOCKADDR_IN)+16, &dwLen, (LPOVERLAPPED)&m_acceptOpContext))
     {
         if (WSAGetLastError() != ERROR_IO_PENDING)
         {

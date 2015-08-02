@@ -92,7 +92,7 @@ void IocpLoop::UserSendData(int64_t llClientHandle)
     {			
         if (!pConn->IsSending() && !pConn->IsClosing())
         {
-            if (!pConn->PostSend()) // ·¢ËÍÊý¾Ý
+            if (!pConn->PostSend()) 
             {
                 TryReleaseConn(pConn);
             }
@@ -106,6 +106,8 @@ void IocpLoop::UserCloseClient(int64_t llClientHandle)
 
     if (pConn)
     {				
+        pConn->Close();	
+
         if (pConn->IsSendOver())
         {
             TryReleaseConn(pConn);
@@ -292,11 +294,7 @@ void IocpLoop::SendMessage(int64_t llClientHandle, const void *pData ,int32_t iL
         }
 
         pConn->AppendMessage(pData, iLen);
-
-        if (!pConn->IsSending())
-        {
-            PostUserOperation(llClientHandle, UserOperation::en_SendData);
-        }        
+        PostUserOperation(llClientHandle, UserOperation::en_SendData);      
     }
     else
     {
@@ -309,9 +307,7 @@ void IocpLoop::CloseClient(int64_t llClientHandle)
     std::lock_guard<std::mutex> lockGuard(m_mapConnLock);
     auto pConn = GetConnByHandle(llClientHandle);
     if (pConn)
-    {
-        pConn->Close();	
-
+    {        
         PostUserOperation(llClientHandle, UserOperation::en_Close);
     }
 }
@@ -357,7 +353,8 @@ void IocpLoop::WaitLoop()
         ULONG_PTR uComKey = NULL;
         LPOVERLAPPED pOverlapped = NULL;
 
-        BOOL bRet = GetQueuedCompletionStatus(m_hIocp, &dwTranceCount, &uComKey, &pOverlapped, INFINITE);
+        BOOL bRet = GetQueuedCompletionStatus(m_hIocp, &dwTranceCount, &uComKey, 
+            &pOverlapped, INFINITE);
 
         if (!bRet)
         {

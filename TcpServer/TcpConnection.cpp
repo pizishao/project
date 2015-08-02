@@ -76,7 +76,8 @@ bool TcpConnection::PostSend()
         m_SendOpContext.wsaBuffer.len = len;
 
         DWORD dwFlag = 0;
-        if (WSASend(m_socket, &m_SendOpContext.wsaBuffer, 1, &dwFlag, 0, (LPWSAOVERLAPPED)&m_SendOpContext, NULL) != 0)
+        if (WSASend(m_socket, &m_SendOpContext.wsaBuffer, 1, 
+            &dwFlag, 0, (LPWSAOVERLAPPED)&m_SendOpContext, NULL) != 0)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
             {
