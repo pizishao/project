@@ -63,13 +63,13 @@ public:
     bool IsUserClose();
     bool IsSendOver();	
 
-    void SetIsRecving(bool value);
+    void MarkRecving(bool value);
     bool IsRecving();
-    void SetIsSending(bool value);
+    void MarkSending(bool value);
     bool IsSending();
 
     bool IsClosing();
-    void SetIsClosing(bool value);
+    void MarkClosing(bool value);
 
 private:	
     SOCKET			 m_socket;

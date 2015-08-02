@@ -8,3 +8,6 @@ Debug/TcpServer.ilk
 *.idb
 *.lastbuildstate
 *.sdf
+*.suo
+*.opensdf
+*.exe

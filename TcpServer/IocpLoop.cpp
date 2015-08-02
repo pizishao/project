@@ -150,7 +150,7 @@ bool IocpLoop::ProcessWakeUp()
 
 void IocpLoop::ProcessNotifySend(TcpConnection *pConn, int iTranceCount)
 {
-    pConn->SetIsSending(false);
+    pConn->MarkSending(false);
 
     if (iTranceCount == 0)
     {
@@ -181,7 +181,7 @@ void IocpLoop::ProcessNotifySend(TcpConnection *pConn, int iTranceCount)
 
 void IocpLoop::ProcessNotifyRecv(TcpConnection *pConn, int iTranceCount)
 {
-    pConn->SetIsRecving(false);
+    pConn->MarkRecving(false);
 
     if (iTranceCount == 0)
     {
@@ -318,7 +318,7 @@ void IocpLoop::CloseClient(int64_t llClientHandle)
 
 void IocpLoop::TryReleaseConn(TcpConnection *pConn)
 {
-    pConn->SetIsClosing(true);
+    pConn->MarkClosing(true);
 
     if (pConn->IsRecving() || pConn->IsSending())
     {
@@ -372,12 +372,12 @@ void IocpLoop::WaitLoop()
 
                 if (ioType == OP_Send)
                 {
-                    pConn->SetIsSending(false);
+                    pConn->MarkSending(false);
                     TryReleaseConn(pConn);
                 }
                 else if (ioType == OP_Recv)
                 {
-                    pConn->SetIsRecving(false);
+                    pConn->MarkRecving(false);
                     TryReleaseConn(pConn);
                 }
                 else

@@ -190,7 +190,7 @@ bool TcpConnection::IsSendOver()
     return m_bSendOver;
 }
 
-void TcpConnection::SetIsRecving(bool value)
+void TcpConnection::MarkRecving(bool value)
 {
     m_isRecving=value;
 }
@@ -200,7 +200,7 @@ bool TcpConnection::IsRecving()
     return m_isRecving;
 }
 
-void TcpConnection::SetIsSending(bool value)
+void TcpConnection::MarkSending(bool value)
 {
     m_isSending=value;
 }
@@ -215,7 +215,7 @@ bool TcpConnection::IsClosing()
     return m_isClosing;
 }
 
-void TcpConnection::SetIsClosing(bool value)
+void TcpConnection::MarkClosing(bool value)
 {
     m_isClosing = value;
 }
