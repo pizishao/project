@@ -65,6 +65,10 @@ struct NetEvent
     std::shared_ptr<Packet> m_pkt;
     int64_t m_llClientHandle;
     Type m_eventType;
+
+	MessageCallback		m_msgFunctor;
+	ConnectionCallback	m_connFunctor;
+	CloseCallback		m_closeFunctor;
 };
 
 class OperateContext: public WSAOVERLAPPED

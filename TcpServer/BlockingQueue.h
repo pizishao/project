@@ -14,7 +14,7 @@ public:
 		m_bQuit = false;
 	}
 
-	void put(T &t)
+	void put(const T &t)
 	{
 		std::lock_guard<std::mutex> lockGuard(m_Lock);
 		m_queue.push_back(t);

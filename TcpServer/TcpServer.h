@@ -5,13 +5,14 @@
 
 #include "IocpLoop.h"
 #include "BlockingQueue.h"
+#include "NetEventDispatcher.h"
 
 typedef std::shared_ptr<IocpLoop> IocpLoopPtr;
 
 class TcpServer
 {	
 public:
-    TcpServer();
+    TcpServer(NetEventDispatcher &dispatcher);
     ~TcpServer();
 
     friend class IocpLoop;
@@ -27,6 +28,7 @@ private:
     ConnectionCallback m_ConnCallbackFunctor;
     MessageCallback	m_MsgCallbackFunctor;
     CloseCallback m_CloseCallbackFunctor;
+	NetEventDispatcher &m_EventDispatcher;
 
 private:
     void AddCloseNetEvent(int64_t llClientHandle);
@@ -40,7 +42,6 @@ public:
 
     void SetListenAddr(const InetAddress &inetAddress);
     bool Start();	
-    void Dispatch();
     void Stop();
     void SendMessage(int64_t llClientHandle, const void *pData ,int32_t iLen);
     void CloseClient(int64_t llClientHandle);

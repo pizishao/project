@@ -5,7 +5,8 @@
 #include "TcpServer.h"
 #include <stdio.h>
 
-TcpServer srv;
+NetEventDispatcher dispatcher;
+TcpServer srv(dispatcher);
 
 void OnMessage(int64_t llClientHandle, void *pData, int32_t iLen)
 {
@@ -38,7 +39,7 @@ int _tmain(int argc, _TCHAR* argv[])
     
     srv.SetListenAddr(addr);
     srv.Start();
-    srv.Dispatch();
+	dispatcher.Dispatch();
 
     getchar();
 

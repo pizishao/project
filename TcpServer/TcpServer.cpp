@@ -1,6 +1,7 @@
 #include "TcpServer.h"
 
-TcpServer::TcpServer()
+TcpServer::TcpServer(NetEventDispatcher &dispatcher) :
+	m_EventDispatcher(dispatcher)
 {
     m_bQuit = false;
 }
@@ -15,8 +16,10 @@ void TcpServer::AddCloseNetEvent(int64_t llClientHandle)
     NetEvent netEvent;
     netEvent.m_eventType = NetEvent::en_Close;
     netEvent.m_llClientHandle=llClientHandle;
+	netEvent.m_closeFunctor = m_CloseCallbackFunctor;
 
-    m_NetEventQueue.put(netEvent);
+    m_EventDispatcher.AddEvent(netEvent);
+
 }
 
 void TcpServer::AddMsgNetEvent(int64_t llClientHandle, std::shared_ptr<Packet> &pkt)
@@ -25,8 +28,9 @@ void TcpServer::AddMsgNetEvent(int64_t llClientHandle, std::shared_ptr<Packet> &
     netEvent.m_eventType = NetEvent::en_Msg;
     netEvent.m_llClientHandle=llClientHandle;
     netEvent.m_pkt=pkt;
+	netEvent.m_msgFunctor=m_MsgCallbackFunctor;
 
-    m_NetEventQueue.put(netEvent);
+    m_EventDispatcher.AddEvent(netEvent);
 }
 
 void TcpServer::AddConnNetEvent(int64_t llClientHandle)
@@ -34,53 +38,9 @@ void TcpServer::AddConnNetEvent(int64_t llClientHandle)
     NetEvent netEvent;
     netEvent.m_eventType = NetEvent::en_Connect;
     netEvent.m_llClientHandle=llClientHandle;
+	netEvent.m_connFunctor=m_ConnCallbackFunctor;
 
-    m_NetEventQueue.put(netEvent);
-}
-
-void TcpServer::Dispatch()
-{
-    while (!m_bQuit)
-    {
-        std::deque<NetEvent> netEventQueue;
-
-        m_NetEventQueue.take(netEventQueue); //»á×èÈû
-
-        if (m_bQuit)
-        {
-            return;
-        }
-
-        for (auto & eventEntry : netEventQueue)
-        {
-            if (eventEntry.m_eventType == NetEvent::en_Connect)
-            {
-                if (m_ConnCallbackFunctor)
-                {
-                    m_ConnCallbackFunctor(eventEntry.m_llClientHandle);
-                }
-            }
-            else if (eventEntry.m_eventType == NetEvent::en_Msg)
-            {
-                if (m_MsgCallbackFunctor)
-                {
-                    Packet &pkg = *eventEntry.m_pkt;
-
-                    if (pkg.size() > 0)
-                    {
-                        m_MsgCallbackFunctor(eventEntry.m_llClientHandle, &pkg[0], pkg.size());
-                    }					
-                }
-            }
-            else if (eventEntry.m_eventType == NetEvent::en_Close)
-            {
-                if (m_CloseCallbackFunctor)
-                {
-                    m_CloseCallbackFunctor(eventEntry.m_llClientHandle);
-                }
-            }
-        }
-    }
+    m_EventDispatcher.AddEvent(netEvent);
 }
 
 void TcpServer::SetConnectionCallback(ConnectionCallback connCallbackFunctor)
