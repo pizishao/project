@@ -19,7 +19,7 @@ typedef std::function<void(int64_t llClientHandle)> CloseCallback;
 
 typedef std::vector<char> Packet;
 
-enum IOCP_OPERATION
+enum IocpOperation
 {
     OP_Accept,
     OP_Send,
@@ -79,6 +79,6 @@ public:
         memset(this, 0, sizeof (WSAOVERLAPPED));
     }
 public:
-    IOCP_OPERATION m_IoType;
-    WSABUF  wsaBuffer;
+    IocpOperation m_IoType;
+    WSABUF  m_wsaBuffer;
 };

@@ -11,6 +11,7 @@ Accepter::Accepter()
     m_acceptOpContext.m_IoType = OP_Accept;
     m_receiveSocket=INVALID_SOCKET;
     memset(m_szBuffer, 0, POST_SIZE);
+	m_bClosed = false;
 }
 
 void Accepter::SetAttachIocpFunctor(AttachIocpFunc func)
@@ -33,7 +34,6 @@ bool Accepter::PostPendAccept()
     }    
 
     DWORD   dwLen=0;
-    char    buffer[POST_SIZE]={0};
 
     if (!AcceptEx(m_listenSocket, m_receiveSocket, m_szBuffer, 0, sizeof(SOCKADDR_IN)+16, 
         sizeof(SOCKADDR_IN)+16, &dwLen, (LPOVERLAPPED)&m_acceptOpContext))
@@ -101,10 +101,19 @@ void Accepter::NotifyAccept(bool bSuccess)
     if (!bSuccess)
     {
         Sock::CloseFd(m_receiveSocket);
-        PostPendAccept();
+		if (!m_bClosed)
+		{
+			PostPendAccept();
+		}        
 
         return;
     }
+
+	if (m_bClosed)
+	{
+		Sock::CloseFd(m_receiveSocket);
+		return;
+	}
 
     BOOL bOptValue = 1;
     if (setsockopt(m_receiveSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&bOptValue, 
@@ -139,5 +148,6 @@ void Accepter::Close()
 {
     Sock::CloseFd(m_receiveSocket);
     Sock::CloseFd(m_listenSocket);
+	m_bClosed = true;
 }
 

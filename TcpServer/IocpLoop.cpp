@@ -13,7 +13,7 @@ IocpLoop::IocpLoop(TcpServer &srv)
     : m_TcpSrv(srv)
 {
     m_hIocp = nullptr;
-    m_bQuit = false;
+    m_bClosing = false;
     memset(m_szRecvBuf, 0, POST_SIZE);
     m_recvLen = 0;
 }
@@ -117,13 +117,13 @@ void IocpLoop::UserCloseClient(int64_t llClientHandle)
 
 void IocpLoop::UserQuit()
 {
-    ReleaseAllConn();
+    TryReleaseAllConn();
     m_accepter.Close();
 
-    m_bQuit=true;
+    m_bClosing=true;
 }
 
-bool IocpLoop::ProcessWakeUp()
+void IocpLoop::ProcessWakeUp()
 {
     std::vector<UserOperation> vecOp;
 
@@ -146,8 +146,6 @@ bool IocpLoop::ProcessWakeUp()
             UserQuit();
         }
     }
-
-    return true;
 }
 
 void IocpLoop::ProcessNotifySend(TcpConnection *pConn, int iTranceCount)
@@ -333,21 +331,32 @@ void IocpLoop::TryReleaseConn(TcpConnection *pConn)
     delete pConn;
 }
 
-void IocpLoop::ReleaseAllConn()
+void IocpLoop::TryReleaseAllConn()
 {
     std::lock_guard<std::mutex> lockGuard(m_mapConnLock);
 
     for (auto &pos:m_mapConnection)
     {
-        delete pos.second;
+        TcpConnection *pConn = pos.second;
+		TryReleaseConn(pConn);
     }
+}
 
-    m_mapConnection.clear();
+bool IocpLoop::CanQuit()
+{
+	if (m_bClosing && m_mapConnection.empty())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void IocpLoop::WaitLoop()
 {
-    while (!m_bQuit)
+    while (true)
     {
         DWORD dwTranceCount = 0;
         ULONG_PTR uComKey = NULL;
@@ -355,6 +364,11 @@ void IocpLoop::WaitLoop()
 
         BOOL bRet = GetQueuedCompletionStatus(m_hIocp, &dwTranceCount, &uComKey, 
             &pOverlapped, INFINITE);
+
+		if (CanQuit())
+		{
+			return;
+		}
 
         if (!bRet)
         {
@@ -364,7 +378,7 @@ void IocpLoop::WaitLoop()
             }
             else
             {
-                IOCP_OPERATION ioType = ((OperateContext*)pOverlapped)->m_IoType;
+                IocpOperation ioType = ((OperateContext*)pOverlapped)->m_IoType;
                 TcpConnection *pConn = (TcpConnection *)uComKey;
 
                 if (ioType == OP_Send)
@@ -395,7 +409,7 @@ void IocpLoop::WaitLoop()
         assert(pOverlapped);
 
         //! 处理来自网络的通知
-        IOCP_OPERATION ioType = ((OperateContext*)pOverlapped)->m_IoType;
+        IocpOperation ioType = ((OperateContext*)pOverlapped)->m_IoType;
         switch (ioType)
         {
         case OP_Accept:

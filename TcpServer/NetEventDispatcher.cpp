@@ -1,5 +1,10 @@
 #include "NetEventDispatcher.h"
 
+NetEventDispatcher::NetEventDispatcher()
+{
+	m_bQuit = false;
+}
+
 void NetEventDispatcher::AddEvent( const NetEvent &event )
 {
 	m_NetEventQueue.put(event);
@@ -7,16 +12,16 @@ void NetEventDispatcher::AddEvent( const NetEvent &event )
 
 void NetEventDispatcher::Dispatch()
 {
-	while (true)
+	while (!m_bQuit)
 	{
 		std::deque<NetEvent> netEventQueue;
 
 		m_NetEventQueue.take(netEventQueue); //»á×èÈû
 
-		/*if (m_bQuit)
+		if (m_bQuit)
 		{
 			return;
-		}*/
+		}
 
 		for (auto & eventEntry : netEventQueue)
 		{
@@ -48,5 +53,10 @@ void NetEventDispatcher::Dispatch()
 			}
 		}
 	}
+}
+
+void NetEventDispatcher::Stop()
+{
+	m_bQuit = true;
 }
 

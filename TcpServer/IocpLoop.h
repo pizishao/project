@@ -39,7 +39,7 @@ private:
     void UserSendData(int64_t llClientHandle);
     void UserCloseClient(int64_t llClientHandle);
     void UserQuit();
-    bool ProcessWakeUp();
+    void ProcessWakeUp();
     void ProcessNotifySend(TcpConnection *pConn, int iTranceCount);
     void ProcessNotifyRecv(TcpConnection *pConn, int iTranceCount);
 
@@ -48,13 +48,13 @@ private:
     void UnInit();
     void WaitLoop();
 
-    //void ReleaseConn(int64_t llClientHandle);
     void TryReleaseConn(TcpConnection *pConn);	
-    void ReleaseAllConn();
+    void TryReleaseAllConn();
+	bool CanQuit();
 
 private:
     HANDLE m_hIocp;
-    bool   m_bQuit;
+    bool   m_bClosing;
 
     InetAddress m_listenAddr;
     char        m_szRecvBuf[POST_SIZE];

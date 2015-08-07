@@ -72,11 +72,11 @@ bool TcpConnection::PostSend()
     {
         int len = min(POST_SIZE, m_vecSendBuffer.size());
 
-        m_SendOpContext.wsaBuffer.buf = m_vecSendBuffer.data();        
-        m_SendOpContext.wsaBuffer.len = len;
+        m_SendOpContext.m_wsaBuffer.buf = m_vecSendBuffer.data();        
+        m_SendOpContext.m_wsaBuffer.len = len;
 
         DWORD dwFlag = 0;
-        if (WSASend(m_socket, &m_SendOpContext.wsaBuffer, 1, 
+        if (WSASend(m_socket, &m_SendOpContext.m_wsaBuffer, 1, 
             &dwFlag, 0, (LPWSAOVERLAPPED)&m_SendOpContext, NULL) != 0)
         {
             if (WSAGetLastError() != WSA_IO_PENDING)
@@ -109,12 +109,12 @@ void TcpConnection::NotifySendHowMuchBytes(int iTranceCount)
 
 bool TcpConnection::PostRead()
 {
-    m_RecvOpContext.wsaBuffer.buf = m_tmpRecvBuffer;
-    m_RecvOpContext.wsaBuffer.len = POST_SIZE;
+    m_RecvOpContext.m_wsaBuffer.buf = m_tmpRecvBuffer;
+    m_RecvOpContext.m_wsaBuffer.len = POST_SIZE;
 
     DWORD dwRecv = 0;
     DWORD dwFlag = 0;
-    if (WSARecv(m_socket, &m_RecvOpContext.wsaBuffer, 1, &dwRecv, &dwFlag, 
+    if (WSARecv(m_socket, &m_RecvOpContext.m_wsaBuffer, 1, &dwRecv, &dwFlag, 
         (LPWSAOVERLAPPED)&m_RecvOpContext, NULL) != 0)
     {
         if (WSAGetLastError() != WSA_IO_PENDING)

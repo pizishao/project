@@ -30,5 +30,7 @@ private:
 
     OperateContext      m_acceptOpContext;
     AttachIocpFunc      m_attachIocpFunctor;
-    AddConnFunc         m_addConnFunctor;    
+    AddConnFunc         m_addConnFunctor;
+
+	bool				m_bClosed;
 };
