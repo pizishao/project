@@ -16,14 +16,14 @@ public:
 
 	void put(const T &t)
 	{
-		std::lock_guard<std::mutex> lockGuard(m_Lock);
+		std::lock_guard<std::mutex> lockGuard(m_lock);
 		m_queue.push_back(t);
-		m_Cond.notify_one();
+		m_cond.notify_one();
 	}
 
 	T take()
 	{
-		std::unique_lock <std::mutex> uniqueLock(m_Lock);
+		std::unique_lock <std::mutex> uniqueLock(m_lock);
 
 		if (m_bQuit)
 		{
@@ -32,7 +32,7 @@ public:
 
 		while (m_queue.empty())
 		{
-			m_Cond.wait(uniqueLock);
+			m_cond.wait(uniqueLock);
 
 			if (m_bQuit)
 			{
@@ -50,11 +50,11 @@ public:
 
 	void take(std::deque<T> &queue)
 	{
-		std::unique_lock <std::mutex> uniqueLock(m_Lock);
+		std::unique_lock <std::mutex> uniqueLock(m_lock);
 
 		while (m_queue.empty())
 		{
-			m_Cond.wait(uniqueLock);
+			m_cond.wait(uniqueLock);
 
 			if (m_bQuit)
 			{
@@ -69,19 +69,19 @@ public:
 
 	size_t size() const
 	{
-		std::lock_guard<std::mutex> lockGuard(m_Lock);
+		std::lock_guard<std::mutex> lockGuard(m_lock);
 		return m_queue.size();
 	}
 
 	void Quit()
 	{
 		m_bQuit = true;
-		m_Cond.notify_one();
+		m_cond.notify_one();
 	}
 
 private:
-	std::mutex					  m_Lock;	
-	std::condition_variable       m_Cond;
+	std::mutex					  m_lock;	
+	std::condition_variable       m_cond;
 	std::deque<T>				  m_queue;
 
 	bool						  m_bQuit;

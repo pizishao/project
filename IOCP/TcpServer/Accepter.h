@@ -22,7 +22,7 @@ public:
 
 private:   
 
-    char    m_szBuffer[POST_SIZE];
+    char                m_szBuffer[POST_SIZE];
 
 private:
     SOCKET              m_listenSocket;

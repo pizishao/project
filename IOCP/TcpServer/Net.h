@@ -16,8 +16,11 @@
 typedef std::function<void(int64_t llClientHandle, void *pData, int32_t iLen)> MessageCallback;
 typedef std::function<void(int64_t llClientHandle)> ConnectionCallback;
 typedef std::function<void(int64_t llClientHandle)> CloseCallback;
+typedef std::function<void()> TimerCallback;
 
 typedef std::vector<char> Packet;
+typedef std::shared_ptr<Packet> PacketPtr;
+typedef std::vector<PacketPtr> PacketPtrList;
 
 enum IocpOperation
 {
@@ -27,6 +30,27 @@ enum IocpOperation
     OP_Post,
 };
 
+struct PostOperation
+{
+    enum OpType
+    {
+        UserSendData,
+        UserClose,
+        UserQuit,
+        Timer,
+    };
+
+    PostOperation()
+    {
+        llClientHandle = 0;
+        type = UserSendData;
+    }
+
+    int64_t llClientHandle;
+    OpType  type;
+};
+
+/*
 struct UserOperation
 {
     enum OpType
@@ -45,7 +69,7 @@ struct UserOperation
 
     int64_t llClientHandle;
     OpType  type;
-};
+};*/
 
 struct NetEvent
 {
@@ -54,6 +78,7 @@ struct NetEvent
         en_Connect,
         en_Msg,
         en_Close,
+        en_Timer,
     };
 
     NetEvent()
@@ -62,13 +87,14 @@ struct NetEvent
         m_eventType = en_Msg;
     }
 
-    std::shared_ptr<Packet> m_pkt;
+    PacketPtr m_pktPtr;
     int64_t m_llClientHandle;
     Type m_eventType;
 
 	MessageCallback		m_msgFunctor;
 	ConnectionCallback	m_connFunctor;
 	CloseCallback		m_closeFunctor;
+    TimerCallback       m_timerCallbackFunctor;
 };
 
 class OperateContext: public WSAOVERLAPPED

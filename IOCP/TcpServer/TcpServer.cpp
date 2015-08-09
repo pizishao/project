@@ -1,7 +1,7 @@
 #include "TcpServer.h"
 
 TcpServer::TcpServer(NetEventDispatcher &dispatcher) :
-	m_EventDispatcher(dispatcher)
+	m_eventDispatcher(dispatcher)
 {
     m_bQuit = false;
 }
@@ -16,21 +16,21 @@ void TcpServer::AddCloseNetEvent(int64_t llClientHandle)
     NetEvent netEvent;
     netEvent.m_eventType = NetEvent::en_Close;
     netEvent.m_llClientHandle=llClientHandle;
-	netEvent.m_closeFunctor = m_CloseCallbackFunctor;
+	netEvent.m_closeFunctor = m_closeCallbackFunctor;
 
-    m_EventDispatcher.AddEvent(netEvent);
+    m_eventDispatcher.AddEvent(netEvent);
 
 }
 
-void TcpServer::AddMsgNetEvent(int64_t llClientHandle, std::shared_ptr<Packet> &pkt)
+void TcpServer::AddMsgNetEvent(int64_t llClientHandle, PacketPtr &pktPtr)
 {
     NetEvent netEvent;
     netEvent.m_eventType = NetEvent::en_Msg;
     netEvent.m_llClientHandle=llClientHandle;
-    netEvent.m_pkt=pkt;
-	netEvent.m_msgFunctor=m_MsgCallbackFunctor;
+    netEvent.m_pktPtr=pktPtr;
+	netEvent.m_msgFunctor=m_msgCallbackFunctor;
 
-    m_EventDispatcher.AddEvent(netEvent);
+    m_eventDispatcher.AddEvent(netEvent);
 }
 
 void TcpServer::AddConnNetEvent(int64_t llClientHandle)
@@ -38,42 +38,56 @@ void TcpServer::AddConnNetEvent(int64_t llClientHandle)
     NetEvent netEvent;
     netEvent.m_eventType = NetEvent::en_Connect;
     netEvent.m_llClientHandle=llClientHandle;
-	netEvent.m_connFunctor=m_ConnCallbackFunctor;
+	netEvent.m_connFunctor=m_connCallbackFunctor;
 
-    m_EventDispatcher.AddEvent(netEvent);
+    m_eventDispatcher.AddEvent(netEvent);
+}
+
+void TcpServer::AddTimerEvent()
+{
+    NetEvent netEvent;
+    netEvent.m_eventType = NetEvent::en_Timer;
+    netEvent.m_timerCallbackFunctor = m_timerCallbackFunctor;
+
+    m_eventDispatcher.AddEvent(netEvent);
 }
 
 void TcpServer::SetConnectionCallback(ConnectionCallback connCallbackFunctor)
 {
-    m_ConnCallbackFunctor = connCallbackFunctor;
+    m_connCallbackFunctor = connCallbackFunctor;
 }
 
 void TcpServer::SetMessageCallback(MessageCallback msgCallbackFunctor)
 {
-    m_MsgCallbackFunctor = msgCallbackFunctor;
+    m_msgCallbackFunctor = msgCallbackFunctor;
 }
 
 void TcpServer::SetCloseCallback(CloseCallback closeCallbackFunctor)
 {
-    m_CloseCallbackFunctor = closeCallbackFunctor;
+    m_closeCallbackFunctor = closeCallbackFunctor;
+}
+
+void TcpServer::SetTimerCallback(TimerCallback timerCallbackFunctor)
+{
+    m_timerCallbackFunctor = timerCallbackFunctor;
 }
 
 void TcpServer::SetListenAddr(const InetAddress &inetAddress)
 {
-    m_ListenAddr = inetAddress;
+    m_listenAddr = inetAddress;
 }
 
 bool TcpServer::Start()
 {
-    if (m_IocpLoopPtr)
+    if (m_iocpLoopPtr)
     {
         return true;
     }
 
     m_bQuit = false;	
-    m_IocpLoopPtr = std::make_shared<IocpLoop>(*this);
+    m_iocpLoopPtr = std::make_shared<IocpLoop>(*this);
 
-    if (!m_IocpLoopPtr->Start(m_ListenAddr))
+    if (!m_iocpLoopPtr->Start(m_listenAddr))
     {
         return false;
     }
@@ -83,36 +97,36 @@ bool TcpServer::Start()
 
 void TcpServer::Stop()
 {
-    if (!m_IocpLoopPtr)
+    if (!m_iocpLoopPtr)
     {
         return;
     }
 
     m_bQuit = true;
 
-    m_NetEventQueue.Quit();
-    m_IocpLoopPtr->Stop();
+    m_netEventQueue.Quit();
+    m_iocpLoopPtr->Stop();
 
-    m_IocpLoopPtr.reset();
+    m_iocpLoopPtr.reset();
 }
 
 void TcpServer::SendMessage(int64_t llClientHandle, const void *pData ,int32_t iLen)
 {
-    if (!pData || iLen <= 0 || !m_IocpLoopPtr)
+    if (!pData || iLen <= 0 || !m_iocpLoopPtr)
     {
         return;
     }
 
-    m_IocpLoopPtr->SendMessage(llClientHandle, pData, iLen);
+    m_iocpLoopPtr->SendMessage(llClientHandle, pData, iLen);
 }
 
 void TcpServer::CloseClient(int64_t llClientHandle)
 {
-    if (!m_IocpLoopPtr)
+    if (!m_iocpLoopPtr)
     {
         return;
     }
 
-    m_IocpLoopPtr->CloseClient(llClientHandle);
+    m_iocpLoopPtr->CloseClient(llClientHandle);
 }
 

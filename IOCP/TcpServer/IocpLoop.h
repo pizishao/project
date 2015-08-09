@@ -9,8 +9,11 @@
 #include "InetAddress.h"
 #include "TcpConnection.h"
 #include "Accepter.h"
+#include "Timer.h"
 
 typedef std::shared_ptr<TcpConnection> ConnectionPtr;
+typedef std::unordered_map<int64_t, TcpConnection *> MapConnection;
+typedef std::vector<PostOperation>  UserOperationList;
 
 class TcpServer;
 
@@ -34,7 +37,8 @@ private:
 
     TcpConnection* GetConnByHandle(int64_t llClientHandle);
 
-    void PostUserOperation(int64_t llClientHandle, UserOperation::OpType iOpCode);
+    void Post(int64_t llClientHandle, PostOperation::OpType iOpCode);
+    void Post(PostOperation::OpType iOpCode);
 
     void UserSendData(int64_t llClientHandle);
     void UserCloseClient(int64_t llClientHandle);
@@ -53,21 +57,22 @@ private:
 	bool CanQuit();
 
 private:
-    HANDLE m_hIocp;
-    bool   m_bClosing;
+    HANDLE      m_hIocp;
+    bool        m_bClosing;
 
     InetAddress m_listenAddr;
     char        m_szRecvBuf[POST_SIZE];
     DWORD       m_recvLen;
 
-    std::unordered_map<int64_t, TcpConnection *>	m_mapConnection;
-    std::mutex						                m_mapConnLock;
+    MapConnection	    m_mapConnection;
+    std::mutex          m_mapConnLock;    
 
-    std::vector<UserOperation>	m_vecOp;
-    std::mutex					m_vecOpLock;
+    UserOperationList	m_OpList;
+    std::mutex			m_OpListLock;
 
     std::shared_ptr<std::thread> m_iocpWaitThreadPtr;
 
     Accepter  m_accepter;
+    Timer     m_timer;
     TcpServer &m_TcpSrv;	
 };

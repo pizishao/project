@@ -32,13 +32,13 @@ struct IdleConnection
     }
 
     int64_t				m_llClientHandle;
-    TimeOutCallback m_onTimeOutFunctor;
+    TimeOutCallback     m_onTimeOutFunctor;
 };
 
 typedef std::shared_ptr<IdleConnection>	IdleConnPtr;
 typedef std::weak_ptr<IdleConnection>	IdleConnWeakPtr;
 typedef std::set<IdleConnPtr>			Bucket;
-typedef std::vector <Bucket>				TimerWheelBuckets;
+typedef std::vector <Bucket>			TimerWheelBuckets;
 
 class TcpConnection
 {
@@ -49,17 +49,17 @@ public:
     SOCKET  GetFd();
     void    DestroySocket();
 
-    void SetHandle(int64_t llClientHandle);
-    int64_t  GetHandle();
+    void    SetHandle(int64_t llClientHandle);
+    int64_t GetHandle();
 
-    void AppendMessage(const void *data, int iLen);
-    void Close();
+    void    AppendMessage(const void *data, int iLen);
+    void    Close();
 
     bool PostSend();
     void NotifySendHowMuchBytes(int iTranceCount);
     bool PostRead();
-    bool NotifyReadHowMuchBytes(int iTranceCount);
-    bool UnPack(std::vector<std::shared_ptr<Packet>> &vecPacket);
+    void NotifyReadHowMuchBytes(int iTranceCount);
+    bool UnPack(PacketPtrList &pktPtrList);
     bool IsUserClose();
     bool IsSendOver();	
 
@@ -75,7 +75,7 @@ private:
     SOCKET			 m_socket;
     int64_t			 m_llClientHandle;			
 
-    std::mutex		  m_SendBufferlock;
+    std::mutex		  m_sendBufferlock;
     std::vector<char> m_vecSendBuffer;
     std::vector<char> m_vecTmpSendBuffer;
     bool		      m_bSendOver;
@@ -87,8 +87,8 @@ private:
 
     bool m_isClosing;
 
-    OperateContext m_SendOpContext;
-    OperateContext m_RecvOpContext;
+    OperateContext m_sendOpContext;
+    OperateContext m_recvOpContext;
 
-    bool		 m_bCloseByUser;
+    bool		   m_bCloseByUser;
 };

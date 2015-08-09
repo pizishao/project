@@ -15,6 +15,6 @@ public:
 	void Stop();
 
 private:
-	BlockingQueue<NetEvent> m_NetEventQueue;
+	BlockingQueue<NetEvent> m_netEventQueue;
 	bool m_bQuit;
 };

@@ -73,14 +73,24 @@ TcpConnection* IocpLoop::GetConnByHandle(int64_t llClientHandle)
     return nullptr;
 }
 
-void IocpLoop::PostUserOperation(int64_t llClientHandle, UserOperation::OpType iOpCode)
+void IocpLoop::Post(int64_t llClientHandle, PostOperation::OpType iOpCode)
 {
-    UserOperation op;
+    PostOperation op;
     op.llClientHandle = llClientHandle;
     op.type = iOpCode;
 
-    std::lock_guard<std::mutex> lockGuard(m_vecOpLock);
-    m_vecOp.push_back(op);
+    std::lock_guard<std::mutex> lockGuard(m_OpListLock);
+    m_OpList.push_back(op);
+    PostQueuedCompletionStatus(m_hIocp, 0, OP_Post, nullptr);
+}
+
+void IocpLoop::Post(PostOperation::OpType iOpCode)
+{
+    PostOperation op;
+    op.type = iOpCode;
+
+    std::lock_guard<std::mutex> lockGuard(m_OpListLock);
+    m_OpList.push_back(op);
     PostQueuedCompletionStatus(m_hIocp, 0, OP_Post, nullptr);
 }
 
@@ -125,23 +135,23 @@ void IocpLoop::UserQuit()
 
 void IocpLoop::ProcessWakeUp()
 {
-    std::vector<UserOperation> vecOp;
+    UserOperationList tmpOpList;
 
-    m_vecOpLock.lock();
-    vecOp.swap(m_vecOp);
-    m_vecOpLock.unlock();
+    m_OpListLock.lock();
+    tmpOpList.swap(m_OpList);
+    m_OpListLock.unlock();
 
-    for (auto &pos:vecOp)
+    for (auto &eachOp:tmpOpList)
     {
-        if (pos.type == UserOperation::en_SendData)
+        if (eachOp.type == PostOperation::UserSendData)
         {
-            UserSendData(pos.llClientHandle);
+            UserSendData(eachOp.llClientHandle);
         }
-        else if (pos.type == UserOperation::en_Close)
+        else if (eachOp.type == PostOperation::UserClose)
         {
-            UserCloseClient(pos.llClientHandle);
+            UserCloseClient(eachOp.llClientHandle);
         }
-        else if (pos.type == UserOperation::en_Quit)
+        else if (eachOp.type == PostOperation::UserQuit)
         {
             UserQuit();
         }
@@ -189,23 +199,19 @@ void IocpLoop::ProcessNotifyRecv(TcpConnection *pConn, int iTranceCount)
         return;
     }
 
-    if (!pConn->NotifyReadHowMuchBytes(iTranceCount))
-    {
-        TryReleaseConn(pConn);
-        return;
-    }
+    pConn->NotifyReadHowMuchBytes(iTranceCount);
 
-    std::vector<std::shared_ptr<Packet>> vecPacket;
-    if (!pConn->UnPack(vecPacket)) // 尝试解包
+    PacketPtrList pktPtrList;
+    if (!pConn->UnPack(pktPtrList)) // 尝试解包
     {
         TryReleaseConn(pConn);
         return;
     }
     else
     {
-        for (auto &pos:vecPacket)
+        for (auto &eachPktPtr:pktPtrList)
         {
-            m_TcpSrv.AddMsgNetEvent(pConn->GetHandle(), pos);
+            m_TcpSrv.AddMsgNetEvent(pConn->GetHandle(), eachPktPtr);
         }
     }
 
@@ -267,14 +273,17 @@ bool IocpLoop::Start(const InetAddress &inetAddress)
     }
 
     m_iocpWaitThreadPtr = make_shared<std::thread>(&IocpLoop::WaitLoop, this);
+    m_timer.Start();
 
     return true;
 }
 
 void IocpLoop::Stop()
 {
+    m_timer.Stop();
+    Post(PostOperation::UserQuit);
     m_iocpWaitThreadPtr->join();	
-    m_iocpWaitThreadPtr.reset();
+    m_iocpWaitThreadPtr.reset();    
 
     UnInit();
 }
@@ -292,7 +301,7 @@ void IocpLoop::SendMessage(int64_t llClientHandle, const void *pData ,int32_t iL
         }
 
         pConn->AppendMessage(pData, iLen);
-        PostUserOperation(llClientHandle, UserOperation::en_SendData);      
+        Post(llClientHandle, PostOperation::UserSendData);      
     }
     else
     {
@@ -306,7 +315,7 @@ void IocpLoop::CloseClient(int64_t llClientHandle)
     auto pConn = GetConnByHandle(llClientHandle);
     if (pConn)
     {        
-        PostUserOperation(llClientHandle, UserOperation::en_Close);
+        Post(llClientHandle, PostOperation::UserClose);
     }
 }
 
@@ -335,9 +344,9 @@ void IocpLoop::TryReleaseAllConn()
 {
     std::lock_guard<std::mutex> lockGuard(m_mapConnLock);
 
-    for (auto &pos:m_mapConnection)
+    for (auto &connPair:m_mapConnection)
     {
-        TcpConnection *pConn = pos.second;
+        TcpConnection *pConn = connPair.second;
 		TryReleaseConn(pConn);
     }
 }
