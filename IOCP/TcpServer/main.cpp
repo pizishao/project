@@ -35,6 +35,7 @@ int _tmain(int argc, _TCHAR* argv[])
     srv.SetCloseCallback(OnClose);
     srv.SetConnectionCallback(OnConnect);
     srv.SetMessageCallback(OnMessage);
+
     InetAddress addr("192.168.1.101", 8000);
     
     srv.SetListenAddr(addr);

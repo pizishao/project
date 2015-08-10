@@ -73,20 +73,10 @@ TcpConnection* IocpLoop::GetConnByHandle(int64_t llClientHandle)
     return nullptr;
 }
 
-void IocpLoop::Post(int64_t llClientHandle, PostOperation::OpType iOpCode)
+void IocpLoop::Post(PostOperation::OpType iOpCode, int64_t llClientHandle /*= 0*/)
 {
     PostOperation op;
     op.llClientHandle = llClientHandle;
-    op.type = iOpCode;
-
-    std::lock_guard<std::mutex> lockGuard(m_OpListLock);
-    m_OpList.push_back(op);
-    PostQueuedCompletionStatus(m_hIocp, 0, OP_Post, nullptr);
-}
-
-void IocpLoop::Post(PostOperation::OpType iOpCode)
-{
-    PostOperation op;
     op.type = iOpCode;
 
     std::lock_guard<std::mutex> lockGuard(m_OpListLock);
@@ -263,7 +253,7 @@ void IocpLoop::UnInit()
     SAFE_CLOSE_HANDLE(m_hIocp);
 }
 
-bool IocpLoop::Start(const InetAddress &inetAddress)
+bool IocpLoop::Start(const InetAddress &inetAddress, int32_t iInterval)
 {
     m_listenAddr=inetAddress;
 
@@ -273,7 +263,9 @@ bool IocpLoop::Start(const InetAddress &inetAddress)
     }
 
     m_iocpWaitThreadPtr = make_shared<std::thread>(&IocpLoop::WaitLoop, this);
-    m_timer.Start();
+	m_timer.SetPostFunctor(std::bind(&IocpLoop::Post, this, std::placeholders::_1,
+		std::placeholders::_2));	
+    m_timer.Start(iInterval);
 
     return true;
 }
@@ -301,7 +293,7 @@ void IocpLoop::SendMessage(int64_t llClientHandle, const void *pData ,int32_t iL
         }
 
         pConn->AppendMessage(pData, iLen);
-        Post(llClientHandle, PostOperation::UserSendData);      
+        Post(PostOperation::UserSendData, llClientHandle);      
     }
     else
     {
@@ -315,7 +307,7 @@ void IocpLoop::CloseClient(int64_t llClientHandle)
     auto pConn = GetConnByHandle(llClientHandle);
     if (pConn)
     {        
-        Post(llClientHandle, PostOperation::UserClose);
+        Post(PostOperation::UserClose, llClientHandle);
     }
 }
 

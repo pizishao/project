@@ -24,7 +24,7 @@ public:
     ~IocpLoop();
 
 public:
-    bool Start(const InetAddress &inetAddress);
+    bool Start(const InetAddress &inetAddress, int32_t iInterval);
     void Stop();
 
     void SendMessage(int64_t llClientHandle, const void *pData ,int32_t iLen);
@@ -37,8 +37,7 @@ private:
 
     TcpConnection* GetConnByHandle(int64_t llClientHandle);
 
-    void Post(int64_t llClientHandle, PostOperation::OpType iOpCode);
-    void Post(PostOperation::OpType iOpCode);
+    void Post(PostOperation::OpType iOpCode, int64_t llClientHandle = 0);
 
     void UserSendData(int64_t llClientHandle);
     void UserCloseClient(int64_t llClientHandle);
