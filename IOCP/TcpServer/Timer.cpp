@@ -2,11 +2,6 @@
 
 #include <assert.h>
 
-Timer::Timer()
-{
-	m_iInterval = 0;
-}
-
 void Timer::SetPostFunctor(PostFunc func)
 {
     m_postFunctor=func;
@@ -14,7 +9,6 @@ void Timer::SetPostFunctor(PostFunc func)
 
 void Timer::Start(int32_t iInterval)
 {
-	assert(m_iInterval > 0);
     m_hTimerHandle = CreateWaitableTimer(0, FALSE, 0);
 
 	LARGE_INTEGER dueTime;  

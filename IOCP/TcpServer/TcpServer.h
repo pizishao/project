@@ -4,7 +4,6 @@
 #include <deque>
 
 #include "IocpLoop.h"
-#include "BlockingQueue.h"
 #include "NetEventDispatcher.h"
 
 typedef std::shared_ptr<IocpLoop> IocpLoopPtr;
@@ -24,7 +23,6 @@ private:
     InetAddress             m_listenAddr;
 
     IocpLoopPtr             m_iocpLoopPtr;
-    BlockingQueue<NetEvent> m_netEventQueue;
 
     ConnectionCallback  m_connCallbackFunctor;
     MessageCallback	    m_msgCallbackFunctor;

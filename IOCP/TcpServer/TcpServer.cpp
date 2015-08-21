@@ -106,7 +106,6 @@ void TcpServer::Stop()
 
     m_bQuit = true;
 
-    m_netEventQueue.Quit();
     m_iocpLoopPtr->Stop();
 
     m_iocpLoopPtr.reset();
