@@ -24,6 +24,11 @@ void OnClose(int64_t llClientHandle)
     printf("client[%lld] closed!\n", llClientHandle);
 }
 
+void OnTimer()
+{
+	printf("OnTimer!\n");
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
     WORD wVersionRequested;
@@ -35,14 +40,18 @@ int _tmain(int argc, _TCHAR* argv[])
     srv.SetCloseCallback(OnClose);
     srv.SetConnectionCallback(OnConnect);
     srv.SetMessageCallback(OnMessage);
+	srv.SetTimer(1000, OnTimer);
 
-    InetAddress addr("192.168.1.101", 8000);
+    InetAddress addr("192.168.0.21", 8000);
     
     srv.SetListenAddr(addr);
     srv.Start();
 	dispatcher.Dispatch();
 
     getchar();
+
+	srv.Stop();
+	dispatcher.Stop();
 
 	return 0;
 }

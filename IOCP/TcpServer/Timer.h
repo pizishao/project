@@ -12,7 +12,7 @@ class Timer
 {
 public:
     void SetPostFunctor(PostFunc func);
-    void Start(int32_t iInterval);
+    void Start(int32_t iMilliseconds);
     void Stop();	
 
 private:
@@ -21,6 +21,7 @@ private:
 private:
     HANDLE m_hTimerHandle;
     std::shared_ptr<std::thread> m_timerWaitThreadPtr;
+	int32_t m_iMilliseconds;
     PostFunc m_postFunctor;
     bool m_bQuit;
 };

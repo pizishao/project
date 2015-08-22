@@ -4,7 +4,7 @@ TcpServer::TcpServer(NetEventDispatcher &dispatcher) :
 	m_eventDispatcher(dispatcher)
 {
     m_bQuit = false;
-	m_iInterval = 0;
+	m_iTimerMilliseconds = 0;
 }
 
 TcpServer::~TcpServer()
@@ -68,9 +68,9 @@ void TcpServer::SetCloseCallback(CloseCallback closeCallbackFunctor)
     m_closeCallbackFunctor = closeCallbackFunctor;
 }
 
-void TcpServer::SetTimer(int32_t iInterval, TimerCallback timerCallbackFunctor)
+void TcpServer::SetTimer(int32_t iTimerMilliseconds, TimerCallback timerCallbackFunctor)
 {
-	m_iInterval=iInterval;
+	m_iTimerMilliseconds=iTimerMilliseconds;
     m_timerCallbackFunctor = timerCallbackFunctor;
 }
 
@@ -89,7 +89,7 @@ bool TcpServer::Start()
     m_bQuit = false;	
     m_iocpLoopPtr = std::make_shared<IocpLoop>(*this);
 
-    if (!m_iocpLoopPtr->Start(m_listenAddr, m_iInterval))
+    if (!m_iocpLoopPtr->Start(m_listenAddr, m_iTimerMilliseconds))
     {
         return false;
     }

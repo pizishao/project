@@ -18,7 +18,7 @@ public:
 
 private:
     bool					m_bQuit;
-	int32_t					m_iInterval;
+	int32_t					m_iTimerMilliseconds;
 
     InetAddress             m_listenAddr;
 
@@ -41,7 +41,7 @@ public:
     void SetConnectionCallback(ConnectionCallback connCallbackFunctor);
     void SetMessageCallback(MessageCallback msgCallbackFunctor);
     void SetCloseCallback(CloseCallback closeCallbackFunctor);
-    void SetTimer(int32_t iInterval, TimerCallback timerCallbackFunctor);
+    void SetTimer(int32_t iTimerMilliseconds, TimerCallback timerCallbackFunctor);
 
     void SetListenAddr(const InetAddress &inetAddress);
     bool Start();	

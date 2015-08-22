@@ -59,7 +59,7 @@ public:
     void NotifySendHowMuchBytes(int iTranceCount);
     bool PostRead();
     void NotifyReadHowMuchBytes(int iTranceCount);
-    bool UnPack(PacketPtrList &pktPtrList);
+    bool GetPackets(PacketPtrList &pktPtrList);
     bool IsUserClose();
     bool IsSendOver();	
 

@@ -24,7 +24,7 @@ public:
     ~IocpLoop();
 
 public:
-    bool Start(const InetAddress &inetAddress, int32_t iInterval);
+    bool Start(const InetAddress &inetAddress, int32_t iTimerMilliseconds);
     void Stop();
 
     void SendMessage(int64_t llClientHandle, const void *pData ,int32_t iLen);
@@ -43,8 +43,8 @@ private:
     void UserCloseClient(int64_t llClientHandle);
     void UserQuit();
     void ProcessWakeUp();
-    void ProcessNotifySend(TcpConnection *pConn, int iTranceCount);
-    void ProcessNotifyRecv(TcpConnection *pConn, int iTranceCount);
+    void ProcessNotifySend(TcpConnection *pConn, int iTransferBytes);
+    void ProcessNotifyRecv(TcpConnection *pConn, int iTransferBytes);
 
     int64_t	AllocateClientHandle();
     bool Init();

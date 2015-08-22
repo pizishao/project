@@ -145,20 +145,28 @@ void IocpLoop::ProcessWakeUp()
         {
             UserQuit();
         }
+		else if (eachOp.type == PostOperation::Timer)
+		{
+			m_TcpSrv.AddTimerEvent();
+		}
+		else
+		{
+			assert(!"invalid PostOperation type");
+		}
     }
 }
 
-void IocpLoop::ProcessNotifySend(TcpConnection *pConn, int iTranceCount)
+void IocpLoop::ProcessNotifySend(TcpConnection *pConn, int iTransferBytes)
 {
     pConn->MarkSending(false);
 
-    if (iTranceCount == 0)
+    if (iTransferBytes == 0)
     {
         TryReleaseConn(pConn);
         return;
     }
 
-    pConn->NotifySendHowMuchBytes(iTranceCount);
+    pConn->NotifySendHowMuchBytes(iTransferBytes);
     if (pConn->IsSendOver() && pConn->IsUserClose())
     {
         TryReleaseConn(pConn);
@@ -179,20 +187,20 @@ void IocpLoop::ProcessNotifySend(TcpConnection *pConn, int iTranceCount)
     }
 }
 
-void IocpLoop::ProcessNotifyRecv(TcpConnection *pConn, int iTranceCount)
+void IocpLoop::ProcessNotifyRecv(TcpConnection *pConn, int iTransferBytes)
 {
     pConn->MarkRecving(false);
 
-    if (iTranceCount == 0)
+    if (iTransferBytes == 0)
     {
         TryReleaseConn(pConn);
         return;
     }
 
-    pConn->NotifyReadHowMuchBytes(iTranceCount);
+    pConn->NotifyReadHowMuchBytes(iTransferBytes);
 
     PacketPtrList pktPtrList;
-    if (!pConn->UnPack(pktPtrList)) // 尝试解包
+    if (!pConn->GetPackets(pktPtrList)) // 尝试解包
     {
         TryReleaseConn(pConn);
         return;
@@ -253,7 +261,7 @@ void IocpLoop::UnInit()
     SAFE_CLOSE_HANDLE(m_hIocp);
 }
 
-bool IocpLoop::Start(const InetAddress &inetAddress, int32_t iInterval)
+bool IocpLoop::Start(const InetAddress &inetAddress, int32_t iTimerMilliseconds)
 {
     m_listenAddr=inetAddress;
 
@@ -264,8 +272,12 @@ bool IocpLoop::Start(const InetAddress &inetAddress, int32_t iInterval)
 
     m_iocpWaitThreadPtr = make_shared<std::thread>(&IocpLoop::WaitLoop, this);
 	m_timer.SetPostFunctor(std::bind(&IocpLoop::Post, this, std::placeholders::_1,
-		std::placeholders::_2));	
-    m_timer.Start(iInterval);
+		std::placeholders::_2));
+
+	if (iTimerMilliseconds != 0)
+	{
+		m_timer.Start(iTimerMilliseconds);
+	}    
 
     return true;
 }
@@ -359,11 +371,11 @@ void IocpLoop::WaitLoop()
 {
     while (true)
     {
-        DWORD dwTranceCount = 0;
+        DWORD dwTransferBytes = 0;
         ULONG_PTR uComKey = NULL;
         LPOVERLAPPED pOverlapped = NULL;
 
-        BOOL bRet = GetQueuedCompletionStatus(m_hIocp, &dwTranceCount, &uComKey, 
+        BOOL bRet = GetQueuedCompletionStatus(m_hIocp, &dwTransferBytes, &uComKey, 
             &pOverlapped, INFINITE);
 
 		if (CanQuit())
@@ -422,14 +434,14 @@ void IocpLoop::WaitLoop()
         case OP_Send:
             {
                 TcpConnection *pConn = (TcpConnection *)uComKey;
-                ProcessNotifySend(pConn, dwTranceCount);
+                ProcessNotifySend(pConn, dwTransferBytes);
             }
             break;
 
         case OP_Recv:
             {
                 TcpConnection *pConn = (TcpConnection *)uComKey;
-                ProcessNotifyRecv(pConn, dwTranceCount);
+                ProcessNotifyRecv(pConn, dwTransferBytes);
             }            
             break;
         }

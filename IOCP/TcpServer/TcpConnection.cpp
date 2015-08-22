@@ -134,7 +134,7 @@ void TcpConnection::NotifyReadHowMuchBytes(int iTranceCount)
     m_vecRecvBuffer.insert(m_vecRecvBuffer.end(), m_tmpRecvBuffer, m_tmpRecvBuffer + iTranceCount);
 }
 
-bool TcpConnection::UnPack(PacketPtrList &pktPtrList)
+bool TcpConnection::GetPackets(PacketPtrList &pktPtrList)
 {
     if (m_vecRecvBuffer.size() == 0)
     {

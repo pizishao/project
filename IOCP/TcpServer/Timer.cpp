@@ -7,16 +7,17 @@ void Timer::SetPostFunctor(PostFunc func)
     m_postFunctor=func;
 }
 
-void Timer::Start(int32_t iInterval)
+void Timer::Start(int32_t iMilliseconds)
 {
     m_hTimerHandle = CreateWaitableTimer(0, FALSE, 0);
+	m_iMilliseconds = iMilliseconds;
 
 	LARGE_INTEGER dueTime;  
-	dueTime.QuadPart=-iInterval * 1000 * 10;   
-	SetWaitableTimer(m_hTimerHandle, &dueTime, 0, NULL, NULL, FALSE);
+	dueTime.QuadPart=-m_iMilliseconds * 1000 * 10;   
+	assert(SetWaitableTimer(m_hTimerHandle, &dueTime, 0, NULL, NULL, FALSE));
 	
-    m_timerWaitThreadPtr = std::make_shared<std::thread>(&Timer::WaitLoop, this);
-    m_bQuit = false;
+	m_bQuit = false;
+    m_timerWaitThreadPtr = std::make_shared<std::thread>(&Timer::WaitLoop, this);    
 }
 
 void Timer::Stop()
@@ -36,6 +37,10 @@ void Timer::WaitLoop()
         if (::WaitForSingleObject(m_hTimerHandle, INFINITE) == WAIT_OBJECT_0)
         {
             m_postFunctor(PostOperation::Timer, 0);
+
+			LARGE_INTEGER dueTime;  
+			dueTime.QuadPart=-m_iMilliseconds * 1000 * 10; 
+			assert(SetWaitableTimer(m_hTimerHandle, &dueTime, 0, NULL, NULL, FALSE));
         }
     }    
 }
