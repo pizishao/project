@@ -109,6 +109,8 @@ void TcpServer::Stop()
     m_iocpLoopPtr->Stop();
 
     m_iocpLoopPtr.reset();
+
+	m_eventDispatcher.Stop();
 }
 
 void TcpServer::SendMessage(int64_t llClientHandle, const void *pData ,int32_t iLen)

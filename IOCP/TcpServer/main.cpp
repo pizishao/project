@@ -51,7 +51,6 @@ int _tmain(int argc, _TCHAR* argv[])
     getchar();
 
 	srv.Stop();
-	dispatcher.Stop();
 
 	return 0;
 }

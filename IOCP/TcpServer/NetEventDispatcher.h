@@ -5,13 +5,17 @@
 
 class NetEventDispatcher
 {
+	friend class TcpServer;
+
 public:
 	NetEventDispatcher();
 	~NetEventDispatcher(){}
 
-public:
+public:	
+	void Dispatch();	
+
+private:
 	void AddEvent(const NetEvent &event);
-	void Dispatch();
 	void Stop();
 
 private:
