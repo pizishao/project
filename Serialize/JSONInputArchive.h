@@ -359,10 +359,6 @@ public:
 
                 EndObject(&arrayValue[i]);
             }
-            else
-            {
-                ;
-            }
         }        
     }
 
@@ -409,10 +405,6 @@ public:
                 mp.insert({ key, value });
 
                 EndObject(&arrayValue[i]);
-            }
-            else
-            {
-                ;
             }
         }       
     }

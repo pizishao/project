@@ -121,8 +121,8 @@ public:
         for (int i = 0; i < N; i++)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, array[i]);
         }
 
@@ -137,8 +137,8 @@ public:
         for (int i = 0; i < N1; i++)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, array[i]);
         }
 
@@ -153,8 +153,8 @@ public:
         for (int i = 0; i < N1; i++)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, array[i]);
         }
 
@@ -179,8 +179,8 @@ public:
         for (auto &pos : vec)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             Serialize(buffer, pos);
         }
 
@@ -196,8 +196,8 @@ public:
         for (auto &pos : ls)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             Serialize(buffer, pos);
         }
 
@@ -221,8 +221,8 @@ public:
         while (!tmpStack.empty())
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             Serialize(buffer, tmpStack.top());
             st.emplace(tmpStack.top());
             tmpStack.pop();
@@ -248,8 +248,8 @@ public:
         while (!tmpDeq.empty())
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             Serialize(buffer, tmpDeq.front());
             deq.emplace_back(tmpDeq.front());
             tmpDeq.pop_front();
@@ -267,8 +267,8 @@ public:
         for (auto &pos : mp)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             StartObject(buffer);
 
             Serialize("key", pos.first);
@@ -289,8 +289,8 @@ public:
         for (auto &pos : set)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             Serialize(buffer, (T &)pos);
         }
 
@@ -306,8 +306,8 @@ public:
         for (auto &pos : mp)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             StartObject(buffer);
 
             Serialize("key", pos.first);
@@ -328,8 +328,8 @@ public:
         for (auto &pos : set)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i++);
 
+            sprintf(buffer, "item%d", i++);
             Serialize(buffer, (T &)pos);
         }
 

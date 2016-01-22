@@ -62,8 +62,8 @@ private:
             return 0;
         }
 
-        for (TiXmlElement *itemElem = elem->FirstChildElement(); itemElem != nullptr;
-            itemElem = itemElem->NextSiblingElement())
+        for (TiXmlElement *itemElem = elem->FirstChildElement(); 
+            itemElem != nullptr; itemElem = itemElem->NextSiblingElement())
         {
             count++;
         }
@@ -201,8 +201,8 @@ public:
         for (int i = 0; i < childCount && i < N; i++)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, array[i]);
         }
 
@@ -220,8 +220,8 @@ public:
         for (int i = 0; i < childCount && i < N1; i++)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, array[i]);
         }
 
@@ -239,8 +239,8 @@ public:
         for (int i = 0; i < childCount && i < N1; i++)
         {
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, array[i]);
         }
 
@@ -270,8 +270,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             vec[i] = obj;
         }
@@ -291,8 +291,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             vec.emplace_back(obj);
         }
@@ -312,8 +312,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             ls.emplace_back(obj);
         }
@@ -333,8 +333,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             st.emplace(obj);
         }
@@ -354,8 +354,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             deq.emplace_back(obj);
         }          
@@ -383,7 +383,6 @@ public:
 
                 Serialize("key", key);
                 Serialize("value", value);
-
                 mp.insert({ key, value });
 
                 EndObject(itemElem);
@@ -403,8 +402,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             set.insert(obj);
         }
@@ -432,7 +431,6 @@ public:
 
                 Serialize("key", key);
                 Serialize("value", value);
-
                 mp.insert({ key, value });
 
                 EndObject(itemElem);
@@ -452,8 +450,8 @@ public:
         {
             T obj;
             char buffer[50] = { 0 };
-            sprintf(buffer, "item%d", i);
 
+            sprintf(buffer, "item%d", i);
             Serialize(buffer, obj);
             set.insert(obj);
         }
