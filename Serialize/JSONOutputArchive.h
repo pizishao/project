@@ -95,9 +95,7 @@ public:
         for (int i = 0; i < N; i++)
         {
             writer.StartObject();
-
             Serialize("item", array[i]);
-
             writer.EndObject();
         }
 
@@ -114,9 +112,7 @@ public:
         for (int i = 0; i < N1; i++)
         {
             writer.StartObject();
-
             Serialize("item", array[i]);
-
             writer.EndObject();
         }
 
@@ -133,9 +129,7 @@ public:
         for (int i = 0; i < N1; i++)
         {
             writer.StartObject();
-
             Serialize("item", array[i]);
-
             writer.EndObject();
         }
 
@@ -149,9 +143,7 @@ public:
         writer.String(tag);
 
         writer.StartObject();
-
         obj.Serialize(*this);
-
         writer.EndObject();
     }    
 
@@ -165,9 +157,7 @@ public:
         for (auto &pos : vec)
         {
             writer.StartObject();
-
             Serialize("item", pos);
-
             writer.EndObject();
         }
 
@@ -184,9 +174,7 @@ public:
         for (auto &pos : ls)
         {
             writer.StartObject();
-
             Serialize("item", pos);
-
             writer.EndObject();
         }
 
@@ -279,9 +267,7 @@ public:
         for (auto &pos : set)
         {
             writer.StartObject();
-
             Serialize("item", (T &)pos);
-
             writer.EndObject();
         }
 
@@ -318,9 +304,7 @@ public:
         for (auto &pos : set)
         {
             writer.StartObject();
-
             Serialize("item", (T &)pos);
-
             writer.EndObject();
         }
 
@@ -331,9 +315,7 @@ public:
     void operator << (T &obj)
     {
         writer.StartObject();
-
         obj.Serialize(*this);
-
         writer.EndObject();
     }
 

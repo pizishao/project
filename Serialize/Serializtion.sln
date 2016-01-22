@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Serializtion", "Serializtion.vcxproj", "{C4BB7BC3-6E9B-4778-B3D7-5F218ABDE262}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C4BB7BC3-6E9B-4778-B3D7-5F218ABDE262}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C4BB7BC3-6E9B-4778-B3D7-5F218ABDE262}.Debug|Win32.Build.0 = Debug|Win32
+		{C4BB7BC3-6E9B-4778-B3D7-5F218ABDE262}.Release|Win32.ActiveCfg = Release|Win32
+		{C4BB7BC3-6E9B-4778-B3D7-5F218ABDE262}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

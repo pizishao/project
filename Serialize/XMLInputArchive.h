@@ -80,7 +80,6 @@ private:
         }
 
         TiXmlElement &parent = *m_stack.top();
-
         TiXmlElement *elem = parent.FirstChildElement(tag);
 
         return elem;
@@ -255,51 +254,50 @@ public:
         GET_TAG_ELEM_OR_RET(tag)
 
         StartObject(elem);
-
         obj.Serialize(*this);
-
         EndObject(elem);
     }
 
     template <typename T>
-    void Serialize(const char *tag, std::vector<T> &vec, bool bAppend = true)
+    void SerializeArrayVector(const char *tag, std::vector<T> &vec)
     {
         GET_TAG_ELEM_OR_RET(tag)
 
-        if (!bAppend)
-        {   
-            StartArray(elem);
+        StartArray(elem);
 
-            int childCount = GetElemChildCount(elem);
-            for (int i = 0; i < childCount && i < (int)vec.size(); i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i);
-
-                Serialize(buffer, obj);
-                vec[i] = obj;
-            }        
-
-            EndArray(elem);
-        }
-        else
+        int childCount = GetElemChildCount(elem);
+        for (int i = 0; i < childCount && i < (int)vec.size(); i++)
         {
-            StartArray(elem);
+            T obj;
+            char buffer[50] = { 0 };
+            sprintf(buffer, "item%d", i);
 
-            int childCount = GetElemChildCount(elem);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i);
+            Serialize(buffer, obj);
+            vec[i] = obj;
+        }
 
-                Serialize(buffer, obj);
-                vec.emplace_back(obj);
-            }
+        EndArray(elem);
+    }
 
-            EndArray(elem);
-        }       
+    template <typename T>
+    void Serialize(const char *tag, std::vector<T> &vec)
+    {
+        GET_TAG_ELEM_OR_RET(tag)
+
+        StartArray(elem);
+
+        int childCount = GetElemChildCount(elem);
+        for (int i = 0; i < childCount; i++)
+        {
+            T obj;
+            char buffer[50] = { 0 };
+            sprintf(buffer, "item%d", i);
+
+            Serialize(buffer, obj);
+            vec.emplace_back(obj);
+        }
+
+        EndArray(elem);
     }
 
     template <typename T>
@@ -390,10 +388,6 @@ public:
 
                 EndObject(itemElem);
             }
-            else
-            {
-                ;
-            }
         }           
     }
 
@@ -442,10 +436,6 @@ public:
                 mp.insert({ key, value });
 
                 EndObject(itemElem);
-            }
-            else
-            {
-                ;
             }
         }
     }

@@ -166,9 +166,7 @@ public:
         Serialize(const char *tag, T &obj)
     {
         StartObject(tag);
-
         obj.Serialize(*this);
-
         EndObject(tag);
     }
 

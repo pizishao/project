@@ -181,9 +181,7 @@ public:
         for (int i = 0; i < size; i++)
         {
             StartObject(&arrayValue[i]);
-
             Serialize("item", array[i]);
-
             EndObject(&arrayValue[i]);
         }
     }
@@ -200,9 +198,7 @@ public:
         for (int i = 0; i < size; i++)
         {
             StartObject(&arrayValue[i]);
-
             Serialize("item", array[i]);
-
             EndObject(&arrayValue[i]);
         }
     }
@@ -219,9 +215,7 @@ public:
         for (int i = 0; i < size; i++)
         {
             StartObject(&arrayValue[i]);
-
             Serialize("item", array[i]);
-
             EndObject(&arrayValue[i]);
         }
     }    
@@ -233,10 +227,14 @@ public:
         GET_JVALUE_OR_RET(tag)
 
         StartObject(jVal);
-
         obj.Serialize(*this);
-
         EndObject(jVal);
+    }
+
+    template <typename T>
+    void SerializeArrayVector(const char *tag, std::vector<T> &vec)
+    {
+
     }
 
     template <typename T>
