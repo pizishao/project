@@ -11,10 +11,10 @@
 
 class XmlOutPutArchive
 {
-public:
-    XmlOutPutArchive()
+public:    
+    XmlOutPutArchive(SerialEncodeType type)
     {
-        TiXmlDeclaration xmlDeclaration("1.0", "utf-8", "");
+        TiXmlDeclaration xmlDeclaration("1.0", type == SerialEncodeType::GB2312 ? "gb2312" : "utf-8", "");
         m_doc.InsertEndChild(xmlDeclaration);
 
         TiXmlElement rootElem("Object");
@@ -353,6 +353,6 @@ public:
     }
 
 private:
-    TiXmlDocument m_doc;
+    TiXmlDocument               m_doc;
     std::stack<TiXmlElement *>  m_stack;
 };

@@ -19,3 +19,9 @@
 #include <unordered_set>
 
 #include <algorithm>
+
+enum SerialEncodeType
+{
+    GB2312,
+    UTF8,
+};

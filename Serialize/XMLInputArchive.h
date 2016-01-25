@@ -462,6 +462,6 @@ public:
 #undef GET_TAG_ELEM_OR_RET
 
 private:
-    TiXmlDocument m_doc;
+    TiXmlDocument               m_doc;
     std::stack<TiXmlElement *>  m_stack;
 };
