@@ -81,6 +81,12 @@ void TcpServer::SetListenAddr(const InetAddress &inetAddress)
 
 bool TcpServer::Start()
 {
+    WORD wVersionRequested;
+    WSADATA wsaData;
+
+    wVersionRequested = MAKEWORD(2, 2);
+    WSAStartup(wVersionRequested, &wsaData);
+
     if (m_iocpLoopPtr)
     {
         return true;
@@ -111,6 +117,8 @@ void TcpServer::Stop()
     m_iocpLoopPtr.reset();
 
 	m_eventDispatcher.Stop();
+
+    WSACleanup();
 }
 
 void TcpServer::SendMessage(int64_t llClientHandle, const void *pData ,int32_t iLen)

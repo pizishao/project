@@ -5,44 +5,32 @@
 #include "TcpServer.h"
 #include <stdio.h>
 
-NetEventDispatcher dispatcher;
-TcpServer srv(dispatcher);
-
-void OnMessage(int64_t llClientHandle, void *pData, int32_t iLen)
-{
-    //printf("client[%lld]:msg[len=%d]:%s\n", llClientHandle, iLen, pData);
-    srv.SendMessage(llClientHandle, pData, iLen);
-}
-
-void OnConnect(int64_t llClientHandle)
-{
-    printf("client[%lld] connected!\n", llClientHandle);
-}
-
-void OnClose(int64_t llClientHandle)
-{
-    printf("client[%lld] closed!\n", llClientHandle);
-}
-
-void OnTimer()
-{
-	printf("OnTimer!\n");
-}
-
 int _tmain(int argc, _TCHAR* argv[])
-{
-    WORD wVersionRequested;
-    WSADATA wsaData;
+{    
+    NetEventDispatcher dispatcher;
+    TcpServer srv(dispatcher);
 
-    wVersionRequested = MAKEWORD( 2, 2 );
-    WSAStartup( wVersionRequested, &wsaData );
-    
-    srv.SetCloseCallback(OnClose);
-    srv.SetConnectionCallback(OnConnect);
-    srv.SetMessageCallback(OnMessage);
-	srv.SetTimer(1000, OnTimer);
+    srv.SetCloseCallback([=](int64_t llClientHandle)
+    {
+        printf("client[%lld] closed!\n", llClientHandle);
+    });
 
-    InetAddress addr("192.168.0.21", 8000);
+    srv.SetConnectionCallback([=](int64_t llClientHandle)
+    {
+        printf("client[%lld] connected!\n", llClientHandle);
+    });
+
+    srv.SetMessageCallback([&srv](int64_t llClientHandle, void *pData, int32_t iLen)
+    {
+        srv.SendMessage(llClientHandle, pData, iLen);
+    });
+
+    srv.SetTimer(1000, []()
+    {
+        printf("OnTimer!\n");
+    });
+
+    InetAddress addr("192.168.0.2", 8000);
     
     srv.SetListenAddr(addr);
     srv.Start();
