@@ -1,13 +1,14 @@
 ﻿// Serializtion.cpp : Defines the entry point for the console application.
 //
 
-#pragma execution_character_set("utf-8")
+//#pragma execution_character_set("utf-8")
 
 #include "stdafx.h"
 
 #include <stdio.h>
 #include <tuple>
 #include <ctime>
+#include <wtypes.h>
 
 #include "JSONInputArchive.h"
 #include "JSONOutputArchive.h"
@@ -127,6 +128,27 @@ struct Foo
     }
 };
 
+std::string GBToUTF8(const char* str)
+{
+    std::string result;
+    WCHAR *strSrc;
+    char *szRes;
+
+    int i = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+    strSrc = new WCHAR[i + 1];
+    MultiByteToWideChar(CP_ACP, 0, str, -1, strSrc, i);
+
+    i = WideCharToMultiByte(CP_UTF8, 0, strSrc, -1, nullptr, 0, nullptr, nullptr);
+    szRes = new char[i + 1];
+    int j = WideCharToMultiByte(CP_UTF8, 0, strSrc, -1, szRes, i, nullptr, nullptr);
+
+    result = szRes;
+    delete[]strSrc;
+    delete[]szRes;
+
+    return result;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
     Foo foo;
@@ -135,15 +157,15 @@ int _tmain(int argc, _TCHAR* argv[])
     Student st2;
     Student st3;
 
-    st1.sName = "辉辉";
+    st1.sName = GBToUTF8("辉辉");
     st1.age = 25;
     st1.score = 24;
 
-    st2.sName = "老K";
+    st2.sName = GBToUTF8("老K");
     st2.age = 26;
     st2.score = 25;
 
-    st3.sName = "将军";
+    st3.sName = GBToUTF8("将军");
     st3.age = 27;
     st3.score = 26;
 
@@ -182,7 +204,7 @@ int _tmain(int argc, _TCHAR* argv[])
     foo.un_set.insert(st3);
 
     //JsonOutPutArchive oAchive;
-    XmlOutPutArchive oAchive;    
+    XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
     oAchive << foo;
 
     std::string s = oAchive.GetXmlText();
@@ -192,6 +214,7 @@ int _tmain(int argc, _TCHAR* argv[])
     //JsonInPutArchive iAchive;
     XmlInPutArchive iAchive;
     iAchive.Load(s);
+    //iAchive.LoadFromFile("test.txt");
     iAchive >> foo;
 
      getchar();

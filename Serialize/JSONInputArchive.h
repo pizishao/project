@@ -433,6 +433,6 @@ public:
 #undef GET_JVALUE_OR_RET
 
 private:
-    std::stack<rapidjson::Value *> m_stack;
-    rapidjson::Document m_doc;
+    std::stack<rapidjson::Value *>  m_stack;
+    rapidjson::Document             m_doc;
 };

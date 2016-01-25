@@ -325,6 +325,6 @@ public:
     }
 
 private:
-    rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer;
+    rapidjson::StringBuffer                     s;
+    rapidjson::Writer<rapidjson::StringBuffer>  writer;
 };
