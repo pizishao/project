@@ -21,7 +21,7 @@ public:
 
     /// Polls the I/O events.
     /// Must be called in the loop thread.
-    virtual void poll(int timeoutMs, ChannelList* activeChannels) = 0;
+    virtual Timestamp poll(int timeoutMs, ChannelList* activeChannels) = 0;
 
     /// Changes the interested I/O events.
     /// Must be called in the loop thread.

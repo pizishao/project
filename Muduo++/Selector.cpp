@@ -69,9 +69,12 @@ void Selector::updateChannel(Channel* channel)
 void Selector::removeChannel(Channel* channel)
 {
     Poller::assertInLoopThread();
+
     int fd = channel->fd();
-    assert(channels_.find(fd) != channels_.end());
-    assert(channels_[fd] == channel);
+    auto found = channels_.find(fd);
+    assert(found != channels_.end());
+    assert(found->second == channel);
+
     channels_.erase(fd);
 }
 
