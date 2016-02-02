@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <string>
 
-#include "base/LinuxWin.hpp"
+#include "base/Platform.hpp"
 #include "base/StringPiece.h"
 #include "base/Copyable.h"
 

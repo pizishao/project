@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include <time.h>
-
 #ifdef WIN32
 #include <winsock2.h>
 #include <windows.h>
@@ -14,6 +11,9 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #endif
+
+#include <stdio.h>
+#include <time.h>
 
 #ifdef WIN32
 

@@ -1,9 +1,5 @@
-#include <stdio.h>
-#include <time.h>
-#include <windows.h>
-
 #include "Timestamp.h"
-#include "LinuxWin.hpp"
+#include "Platform.hpp"
 
 using namespace std;
 using namespace MuduoPlus;

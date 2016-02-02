@@ -83,7 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\Copyable.h" />
-    <ClInclude Include="base\LinuxWin.hpp" />
+    <ClInclude Include="base\Platform.hpp" />
     <ClInclude Include="base\StringPiece.h" />
     <ClInclude Include="base\Timestamp.h" />
     <ClInclude Include="net\Acceptor.h" />
