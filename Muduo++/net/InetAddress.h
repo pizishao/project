@@ -1,78 +1,44 @@
-// Copyright 2010, Shuo Chen.  All rights reserved.
-// http://code.google.com/p/muduo/
-//
-// Use of this source code is governed by a BSD-style license
-// that can be found in the License file.
+﻿#pragma once
 
-// Author: Shuo Chen (chenshuo at chenshuo dot com)
-//
-// This is a public header file, it must only include public header files.
-
-#pragma once
-
-#include <stdint.h>
 #include <string>
+#include <stdint.h>
 
-#include "base/Platform.hpp"
-#include "base/StringPiece.h"
-#include "base/Copyable.h"
+#include "base/LinuxWin.h"
 
 namespace MuduoPlus
 {
-    namespace sockets
-    {
-        const struct sockaddr* sockaddr_cast(const struct sockaddr_in6* addr);
-    }
 
-    ///
-    /// Wrapper of sockaddr_in.
-    ///
-    /// This is an POD interface class.
-    class InetAddress : public Copyable
+    class InetAddress
     {
     public:
-        /// Constructs an endpoint with given port number.
-        /// Mostly used in TcpServer listening.
-        explicit InetAddress(uint16_t port = 0, bool loopbackOnly = false, bool ipv6 = false);
+        InetAddress(){}
 
-        /// Constructs an endpoint with given ip and port.
-        /// @c ip should be "1.2.3.4"
-        InetAddress(StringArg ip, uint16_t port, bool ipv6 = false);
+        InetAddress(std::string ip, uint16_t port)
+        {
+            memset(&addr_, 0, sizeof(addr_));
 
-        /// Constructs an endpoint with given struct @c sockaddr_in
-        /// Mostly used when accepting new connections
-        explicit InetAddress(const struct sockaddr_in& addr)
+            addr_.sin_family = AF_INET;
+            addr_.sin_addr.s_addr = inet_addr(ip.c_str());
+            addr_.sin_port = htons(port);
+        }
+
+        InetAddress(const struct sockaddr_in& addr)
             : addr_(addr)
-        { }
+        {
 
-        explicit InetAddress(const struct sockaddr_in6& addr)
-            : addr6_(addr)
-        { }
+        }
 
-        sa_family_t family() const { return addr_.sin_family; }
-        std::string toIp() const;
-        std::string toIpPort() const;
-        uint16_t toPort() const;
+    public:
+        struct sockaddr_in& GetSockAddr() { return addr_; }
+        void                SetSockAddr(const struct sockaddr_in& addr) { addr_ = addr; }
 
-        // default copy/assignment are Okay
+        uint32_t            IpNetEndian() const { return addr_.sin_addr.s_addr; }
+        uint16_t            PortNetEndian() const { return addr_.sin_port; }
 
-        const struct sockaddr* getSockAddr() const { return sockets::sockaddr_cast(&addr6_); }
-        void setSockAddrInet6(const struct sockaddr_in6& addr6) { addr6_ = addr6; }
-
-        uint32_t ipNetEndian() const;
-        uint16_t portNetEndian() const { return addr_.sin_port; }
-
-        // resolve hostname to IP address, not changing port or sin_family
-        // return true on success.
-        // thread safe
-        static bool resolve(StringArg hostname, InetAddress* result);
-        // static std::vector<InetAddress> resolveAll(const char* hostname, uint16_t port = 0);
+        std::string	        IpString() const { std::string s(inet_ntoa(addr_.sin_addr)); return s; }
+        uint16_t            PortHostEndian() const { return  ntohs(addr_.sin_port); }
 
     private:
-        union
-        {
-            struct sockaddr_in addr_;
-            struct sockaddr_in6 addr6_;
-        };
+        struct sockaddr_in addr_;
     };
 }

@@ -19,21 +19,18 @@ namespace MuduoPlus
     {
     }
 
-    Timestamp Selector::poll(int timeoutMs, ChannelList* activeChannels)
+    void Selector::poll(int timeoutMs, ChannelList* activeChannels)
     {
-        Timestamp st;
         resetFDSet();
 
         int iRet = select(0, &readSet, &writeSet, &exceptSet, nullptr);
 
         if (iRet <= 0)
         {
-            return st;
+            return;
         }
 
         fillActiveChannels(activeChannels);
-
-        return st;
     }
 
     void Selector::fillActiveChannels(ChannelList* activeChannels) const

@@ -83,9 +83,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="base\Copyable.h" />
-    <ClInclude Include="base\Platform.hpp" />
+    <ClInclude Include="base\LinuxWin.h" />
     <ClInclude Include="base\StringPiece.h" />
-    <ClInclude Include="base\Timestamp.h" />
+    <ClInclude Include="base\Type.h" />
     <ClInclude Include="net\Acceptor.h" />
     <ClInclude Include="net\Channel.h" />
     <ClInclude Include="net\Connector.h" />
@@ -99,13 +99,12 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="base\Timestamp.cpp" />
+    <ClCompile Include="base\LinuxWin.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="net\Acceptor.cpp" />
     <ClCompile Include="net\Channel.cpp" />
     <ClCompile Include="net\Connector.cpp" />
     <ClCompile Include="net\EventLoop.cpp" />
-    <ClCompile Include="net\InetAddress.cpp" />
     <ClCompile Include="net\Poller.cpp" />
     <ClCompile Include="net\Selector.cpp" />
     <ClCompile Include="net\TcpConnection.cpp" />

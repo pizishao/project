@@ -1,25 +1,12 @@
 #pragma once
 
-#ifdef WIN32
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netinet/in6.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#endif
-
 #include <stdio.h>
 #include <time.h>
+#include <string>
+
+#include "Type.h"
 
 #ifdef WIN32
-
-#define snprintf _snprintf
-typedef ADDRESS_FAMILY  sa_family_t;
-
 inline int gettimeofday(struct timeval *tp, void *tzp)
 {
     time_t clock;
@@ -38,15 +25,17 @@ inline int gettimeofday(struct timeval *tp, void *tzp)
     tp->tv_usec = wtm.wMilliseconds * 1000;
     return (0);
 }
-
-inline void bzero(void *s, size_t n)
-{
-    if (!s || n == 0)
-    {
-        return;
-    }
-
-    memset(&s, 0, n);
-}
-
 #endif
+
+int         GetErrorCode();
+std::string GetErrorText();
+
+socket_t    CreateSocket();
+void        CloseSocket(socket_t fd);
+bool        Connect(socket_t fd, const struct sockaddr *sa);
+bool        BindSocket(socket_t fd, const struct sockaddr *sa);
+bool        Listen(socket_t fd);
+socket_t    Accept(socket_t fd, struct sockaddr *addr);
+bool        SetSocketNoneBlocking(socket_t fd);
+int         ReuseListenSocket(socket_t fd);
+

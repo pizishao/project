@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Poller.h"
-#include "base/Timestamp.h"
 
 namespace MuduoPlus
 {
@@ -11,14 +10,13 @@ namespace MuduoPlus
         Selector(EventLoop* loop);
         virtual ~Selector();
 
-        virtual Timestamp poll(int timeoutMs, ChannelList* activeChannels);
+        virtual void poll(int timeoutMs, ChannelList* activeChannels);
         virtual void updateChannel(Channel* channel);
         virtual void removeChannel(Channel* channel);
 
     private:
         static const int kInitEventListSize = 16;
 
-        //static const char* operationToString(int op);
         void resetFDSet();
         void fillActiveChannels(ChannelList* activeChannels) const;
 

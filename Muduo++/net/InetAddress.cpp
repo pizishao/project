@@ -7,6 +7,7 @@
 // Author: Shuo Chen (chenshuo at chenshuo dot com)
 
 #include <stddef.h>
+#include <thread>
 
 #include "base/Platform.hpp"
 #include "net/InetAddress.h"
@@ -17,10 +18,11 @@
 #include <muduo/net/SocketsOps.h>*/
 
 // INADDR_ANY use (type)value casting.
+/*
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 static const in_addr_t kInaddrAny = INADDR_ANY;
 static const in_addr_t kInaddrLoopback = INADDR_LOOPBACK;
-#pragma GCC diagnostic error "-Wold-style-cast"
+#pragma GCC diagnostic error "-Wold-style-cast"*/
 
 //     /* Structure describing an Internet socket address.  */
 //     struct sockaddr_in {
@@ -45,17 +47,8 @@ static const in_addr_t kInaddrLoopback = INADDR_LOOPBACK;
 
 namespace MuduoPlus
 {
-
-    static_assert(sizeof(InetAddress) == sizeof(struct sockaddr_in6), "");
-    static_assert(offsetof(sockaddr_in, sin_family) == 0, "");
-    static_assert(offsetof(sockaddr_in6, sin6_family) == 0, "");
-    static_assert(offsetof(sockaddr_in, sin_port) == 2, "");
-    static_assert(offsetof(sockaddr_in6, sin6_port) == 2, "");
-
     InetAddress::InetAddress(uint16_t port, bool loopbackOnly, bool ipv6)
     {
-        BOOST_STATIC_ASSERT(offsetof(InetAddress, addr6_) == 0);
-        BOOST_STATIC_ASSERT(offsetof(InetAddress, addr_) == 0);
         if (ipv6)
         {
             bzero(&addr6_, sizeof addr6_);
@@ -113,7 +106,7 @@ namespace MuduoPlus
         return sockets::networkToHost16(portNetEndian());
     }
 
-    static __thread char t_resolveBuffer[64 * 1024];
+    /*static thread_local char t_resolveBuffer[64 * 1024];
 
     bool InetAddress::resolve(StringArg hostname, InetAddress* out)
     {
@@ -138,5 +131,5 @@ namespace MuduoPlus
             }
             return false;
         }
-    }
+    }*/
 }
