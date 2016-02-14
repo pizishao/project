@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include "base/Type.h"
+#include "base/Platform.h"
 #include "Channel.h"
 #include "InetAddress.h"
 
@@ -16,27 +16,27 @@ namespace MuduoPlus
     {
     public:
         typedef std::function < void(int sockfd,
-            const InetAddress&) > NewConnectionCallback;
+            const InetAddress&) > NewConnCallback;
 
         Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reuseport);
         ~Acceptor();
 
-        void setNewConnectionCallback(const NewConnectionCallback& cb)
+        void SetNewConnCallBack(const NewConnCallback& cb)
         {
             m_NewConnCallBack = cb;
         }
 
-        bool listen();
+        bool Listen();
 
     private:
-        void handleRead();
+        void HandleRead();
 
         bool                        m_bReuseport;
         InetAddress                 m_ListenAddr;
 
-        EventLoop*                  m_EventLoop;
+        EventLoop*                  m_pEventLoop;
         socket_t                    m_ListenFd;
         std::shared_ptr<Channel>    m_AcceptChannelPtr;
-        NewConnectionCallback       m_NewConnCallBack;
+        NewConnCallback             m_NewConnCallBack;
     };
 }

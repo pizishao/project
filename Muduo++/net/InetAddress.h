@@ -11,7 +11,10 @@ namespace MuduoPlus
     class InetAddress
     {
     public:
-        InetAddress(){}
+        InetAddress()
+        {
+            memset(&addr_, 0, sizeof(addr_));
+        }
 
         InetAddress(std::string ip, uint16_t port)
         {

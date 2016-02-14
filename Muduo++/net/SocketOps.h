@@ -1,41 +1,16 @@
-﻿#pragma once
+#pragma once
 
-#include <stdint.h>
+#include "base/Platform.h"
 
-#include "base/Platform.hpp"
-
-namespace MuduoPlus
+namespace SocketOps
 {
-
-    class InetAddress;
-
-    struct SockException
-    {
-        SockException()
-        {
-            error_code = 0;
-        }
-
-        int error_code;
-    };
-
-    namespace Sock
-    {
-        uint32_t HostToNetwork32(std::string sIp);
-        uint16_t HostToNetwork16(uint16_t port);
-
-        socket_t    CreateSocket(bool exception = false);
-        void        CloseFd(socket_t &fd);
-        bool Bind(socket_t fd, const InetAddress &inetAddress);
-        bool Listen(socket_t fd);
-        bool Connect(socket_t fd, const InetAddress &inetAddress);
-        //int  Accept(socket_t fd, InetAddress &inetAddress);
-        //ssize_t	Send(int fd, const void *buf, size_t len);
-        //ssize_t Recv(int fd, void *buf, size_t len);
-        bool SetSockopt(socket_t fd, int optname, const char *optval, int optlen);
-        //bool SetSockNoneBlock(int fd);
-        void GetPeerAddr(socket_t fd, InetAddress &inetAddress);
-        int  GetErrCode();
-        std::string GetErrText();
-    }
+    socket_t    CreateSocket();
+    void        CloseSocket(socket_t fd);
+    int         Connect(socket_t fd, const struct sockaddr *sa);
+    bool        BindSocket(socket_t fd, const struct sockaddr *sa);
+    bool        Listen(socket_t fd);
+    socket_t    Accept(socket_t fd, struct sockaddr *addr);
+    bool        SetSocketNoneBlocking(socket_t fd);
+    int         ReuseListenSocket(socket_t fd);
+    int         CreateSocketPair(socket_t fdPair[2]);
 }

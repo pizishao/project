@@ -29,86 +29,36 @@ std::string GetErrorText(int errcode)
 #endif    
 }
 
-socket_t    CreateSocket()
+#ifdef WIN32
+int gettimeofday(struct timeval *tp, void *tzp)
 {
-    socket_t fd = socket(AF_INET, SOCK_STREAM, 0);
+    time_t clock;
+    struct tm tm;
+    SYSTEMTIME wtm;
 
-    return  fd;
+    GetLocalTime(&wtm);
+
+    tm.tm_year  = wtm.wYear - 1900;
+    tm.tm_mon   = wtm.wMonth - 1;
+    tm.tm_mday  = wtm.wDay;
+    tm.tm_hour  = wtm.wHour;
+    tm.tm_min   = wtm.wMinute;
+    tm.tm_sec   = wtm.wSecond;
+    tm.tm_isdst = -1;
+    clock       = mktime(&tm);
+
+    tp->tv_sec  = clock;
+    tp->tv_usec = wtm.wMilliseconds * 1000;
+
+    return (0);
 }
-
-void CloseSocket(socket_t fd)
-{
-#ifndef WIN32
-    close(fd);
-#else
-    closesocket(fd);
 #endif
-}
 
-bool Connect(socket_t fd, const struct sockaddr *sa)
-{
-    return false;
-}
-
-bool BindSocket(socket_t fd, const struct sockaddr *sa)
-{
-    if (bind(fd, sa, sizeof(*sa)) < 0) 
-    {
-        return false;
-    }
-
-    return true;
-}
-
-bool Listen(socket_t fd)
-{
-    if (listen(fd, SOMAXCONN) < 0)
-    {
-        return false;
-    }
-
-    return true;
-}
-
-socket_t Accept(socket_t fd, struct sockaddr *addr)
-{
-    socklen_t   socklen = sizeof(*addr);
-    socket_t    newFd = accept(fd, addr, &socklen);
-
-    return      newFd;
-}
-
-bool SetSocketNoneBlocking(socket_t fd)
+int GetCurThreadID()
 {
 #ifdef WIN32
-    {
-        u_long nonblocking = 1;
-        if (ioctlsocket(fd, FIONBIO, &nonblocking) == SOCKET_ERROR) {
-            return false;
-        }
-    }
+    return GetCurrentThreadId();
 #else
-    {
-        int flags;
-        if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
-            return false;
-        }
-        if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-            return false;
-        }
-    }
-#endif
-    
-    return true;
-}
-
-int ReuseListenSocket(socket_t fd)
-{
-#ifndef WIN32
-    int one = 1;
-    return setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&one,
-        (socklen_t)sizeof(one));
-#else
-    return 0;
+    return static_cast<pid_t>(::syscall(SYS_gettid));;
 #endif
 }
