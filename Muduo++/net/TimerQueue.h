@@ -34,14 +34,12 @@ namespace MuduoPlus
 
         void                addTimerInLoop(Timer* timer);
         void                cancelInLoop(TimerId timerId);
-        void                handleRead();
+        void                TimeOut();
         std::vector<Entry>  getExpired(Timestamp now);
         void                reset(const std::vector<Entry>& expired, Timestamp now);
         bool                insert(Timer* timer);
 
         EventLoop*      loop_;
-        const int       timerfd_;
-        Channel         timerfdChannel_;
         TimerList       timers_;
 
         ActiveTimerSet  activeTimers_;

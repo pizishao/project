@@ -1,25 +1,17 @@
 #include "TimerQueue.h"
+#include "EventLoop.h"
 
 namespace MuduoPlus
 {
     TimerQueue::TimerQueue(EventLoop* loop)
         : loop_(loop),
-        timerfd_(createTimerfd()),
-        timerfdChannel_(loop, timerfd_),
         timers_(),
         callingExpiredTimers_(false)
     {
-        timerfdChannel_.setReadCallback(
-            std::bind(&TimerQueue::handleRead, this));
-        // we are always reading the timerfd, we disarm it with timerfd_settime.
-        timerfdChannel_.enableReading();
     }
 
     TimerQueue::~TimerQueue()
     {
-        timerfdChannel_.disableAll();
-        timerfdChannel_.remove();
-        ::close(timerfd_);
         // do not remove channel, since we're in EventLoop::dtor();
         for (TimerList::iterator it = timers_.begin();
             it != timers_.end(); ++it)
@@ -51,7 +43,7 @@ namespace MuduoPlus
 
         if (earliestChanged)
         {
-            resetTimerfd(timerfd_, timer->expiration());
+            //resetTimerfd(timerfd_, timer->expiration());
         }
     }
 
@@ -75,11 +67,10 @@ namespace MuduoPlus
         assert(timers_.size() == activeTimers_.size());
     }
 
-    void TimerQueue::handleRead()
+    void TimerQueue::TimeOut()
     {
         loop_->assertInLoopThread();
         Timestamp now(Timestamp::now());
-        readTimerfd(timerfd_, now);
 
         std::vector<Entry> expired = getExpired(now);
 
@@ -146,7 +137,8 @@ namespace MuduoPlus
 
         if (nextExpire.valid())
         {
-            resetTimerfd(timerfd_, nextExpire);
+            loop_->runInLoop();
+            //resetTimerfd(timerfd_, nextExpire);
         }
     }
 
@@ -161,16 +153,18 @@ namespace MuduoPlus
         {
             earliestChanged = true;
         }
-  {
-      std::pair<TimerList::iterator, bool> result
-          = timers_.insert(Entry(when, timer));
-      assert(result.second); (void)result;
-  }
-  {
-      std::pair<ActiveTimerSet::iterator, bool> result
-          = activeTimers_.insert(ActiveTimer(timer, timer->sequence()));
-      assert(result.second); (void)result;
-  }
+
+        {
+            std::pair<TimerList::iterator, bool> result
+                = timers_.insert(Entry(when, timer));
+            assert(result.second); (void)result;
+        }
+
+        {
+            std::pair<ActiveTimerSet::iterator, bool> result
+                = activeTimers_.insert(ActiveTimer(timer, timer->sequence()));
+            assert(result.second); (void)result;
+        }
 
         assert(timers_.size() == activeTimers_.size());
         return earliestChanged;

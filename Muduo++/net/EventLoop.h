@@ -70,8 +70,6 @@ namespace MuduoPlus
             return &context_;
         }
 
-        static EventLoop* getEventLoopOfCurrentThread();
-
     private:
         void abortNotInLoopThread();
         void handleRead();
@@ -87,6 +85,8 @@ namespace MuduoPlus
         bool                        callingPendingFunctors_; 
         int64_t                     iteration_;
         const int                   threadId_;
+        int                         m_PollTimeOutMs;
+        int                         m_AccumulateTimedOutMs;
         Timestamp                   pollReturnTime_;
         std::shared_ptr<Poller>     poller_;
         std::shared_ptr<TimerQueue> timerQueue_;
