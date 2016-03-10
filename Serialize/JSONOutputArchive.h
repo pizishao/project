@@ -3,15 +3,6 @@
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
 
-#include "rapidjson/document.h"
-#include "rapidjson/rapidjson.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-
-#ifdef  WIN32
-#pragma warning(disable:4146)
-#endif //  WIN32
-
 class JsonOutPutArchive
 {
 public:

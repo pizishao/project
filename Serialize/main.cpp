@@ -157,15 +157,15 @@ int _tmain(int argc, _TCHAR* argv[])
     Student st2;
     Student st3;
 
-    st1.sName = GBToUTF8("辉辉");
+    st1.sName = "辉辉";
     st1.age = 25;
     st1.score = 24;
 
-    st2.sName = GBToUTF8("老K");
+    st2.sName = "老K";
     st2.age = 26;
     st2.score = 25;
 
-    st3.sName = GBToUTF8("将军");
+    st3.sName = "叶枫";
     st3.age = 27;
     st3.score = 26;
 

@@ -3,45 +3,54 @@
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
 
-#include "TinyXML/tinyxml.h"
-
-#ifdef  WIN32
-#pragma warning(disable:4146)
-#endif //  WIN32
+#include "rapidxml/rapidxml.hpp"  
+#include "rapidxml/rapidxml_utils.hpp"  
+#include "rapidxml/rapidxml_print.hpp"
 
 class XmlOutPutArchive
 {
 public:    
     XmlOutPutArchive(SerialEncodeType type)
     {
-        TiXmlDeclaration xmlDeclaration("1.0", type == SerialEncodeType::GB2312 ? "gb2312" : "utf-8", "");
-        m_doc.InsertEndChild(xmlDeclaration);
+        XmlNodePtr declaration = m_doc.allocate_node(rapidxml::node_declaration);;
+        XmlAttributePtr decl_ver = m_doc.allocate_attribute("version", "1.0");
+        XmlAttributePtr decl_encode;
 
-        TiXmlElement rootElem("Object");
-        TiXmlNode *rootNode = m_doc.InsertEndChild(rootElem);
+        if (type == SerialEncodeType::UTF8)
+        {            
+            decl_encode = m_doc.allocate_attribute("encoding", "utf-8");
+        } 
+        else
+        {
+            decl_encode = m_doc.allocate_attribute("encoding", "gb2312");
+        }
 
-        m_stack.push(rootNode->ToElement());
+        declaration->append_attribute(decl_ver);
+        declaration->append_attribute(decl_encode);
+
+        m_doc.append_node(declaration);
+
+        XmlNodePtr root = m_doc.allocate_node(rapidxml::node_element, 
+            m_doc.allocate_string("Object"), nullptr);
+        m_doc.append_node(root);
+
+        m_stack.push(root);
     }
 
     ~XmlOutPutArchive(){}
 
 private:
-    TiXmlElement* WriteValue(const char *tag, std::string value)
+    void WriteValue(const char *tag, std::string value)
     {
         if (m_stack.empty())
         {
             assert(false);
-            return nullptr;
+            return;
         }
 
-        TiXmlElement elem(tag);
-        TiXmlText text(value.c_str());
-
-        elem.InsertEndChild(text);
-        TiXmlElement *parent = m_stack.top();
-        TiXmlElement *pElem = (TiXmlElement *)parent->InsertEndChild(elem);
-
-        return pElem;
+        XmlNodePtr parent = m_stack.top();
+        parent->append_node(m_doc.allocate_node(rapidxml::node_element, m_doc.allocate_string(tag), 
+            m_doc.allocate_string(value.c_str())));
     }
 
     void StartObject(const char *tag)
@@ -52,11 +61,10 @@ private:
             return;
         }
 
-        TiXmlElement elem(tag);
-        TiXmlElement *parent = m_stack.top();
-
-        TiXmlElement *pElem = (TiXmlElement *)parent->InsertEndChild(elem);
-        m_stack.push(pElem);
+        XmlNodePtr parent = m_stack.top();
+        XmlNodePtr node = m_doc.allocate_node(rapidxml::node_element, m_doc.allocate_string(tag), nullptr);
+        parent->append_node(node);
+        m_stack.push(node);
     }
 
     void EndObject(const char *tag)
@@ -67,8 +75,9 @@ private:
             return;
         }
 
-        TiXmlElement *pElem = m_stack.top();
-        if (strcmp(pElem->Value(), tag) != 0)
+        XmlNodePtr node = m_stack.top();
+
+        if (strcmp(node->name(), tag) != 0)
         {
             assert(false);
             return;
@@ -344,15 +353,15 @@ public:
 
     std::string GetXmlText()
     {
-        TiXmlPrinter printer;
-        m_doc.Accept(&printer);
+        std::string text;
 
-        assert(!m_stack.empty() && m_stack.top() == m_doc.RootElement());
+        assert(!m_stack.empty() && m_stack.top() == m_doc.first_node("Object"));
+        rapidxml::print(std::back_inserter(text), m_doc, 0);        
 
-        return printer.CStr();
+        return text;
     }
 
 private:
-    TiXmlDocument               m_doc;
-    std::stack<TiXmlElement *>  m_stack;
+    rapidxml::xml_document<>    m_doc;
+    std::stack<XmlNodePtr>      m_stack;
 };

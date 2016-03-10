@@ -8,8 +8,8 @@
 
 #ifdef WIN32
 
-int     gettimeofday(struct timeval *tp, void *tzp);
 #define snprintf    _snprintf
+int     gettimeofday(struct timeval *tp, void *tzp);
 
 #endif
 

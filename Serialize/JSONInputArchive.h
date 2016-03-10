@@ -6,12 +6,6 @@
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
 
-#include "rapidjson/document.h"
-
-#ifdef  WIN32
-#pragma warning(disable:4146)
-#endif //  WIN32
-
 class JsonInPutArchive
 {
 public:
