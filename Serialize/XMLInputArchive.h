@@ -64,7 +64,8 @@ private:
         }
 
         for (XmlNodePtr subNode = node->first_node();
-            subNode != nullptr; subNode = subNode->next_sibling())
+            subNode != nullptr; 
+            subNode = subNode->next_sibling())
         {
             count++;
         }

@@ -126,13 +126,13 @@ namespace MuduoPlus
 
     TimerId EventLoop::runAfter(double delay, const TimerCallback& cb)
     {
-        Timestamp time(addTime(Timestamp::now(), delay));
+        Timestamp time(addSecondTime(Timestamp::now(), delay));
         return runAt(time, cb);
     }
 
     TimerId EventLoop::runEvery(double interval, const TimerCallback& cb)
     {
-        Timestamp time(addTime(Timestamp::now(), interval));
+        Timestamp time(addSecondTime(Timestamp::now(), interval));
         return timerQueue_->addTimer(cb, time, interval);
     }
 

@@ -8,7 +8,7 @@ namespace MuduoPlus
     {
         if (repeat_)
         {
-            expiration_ = addTime(now, interval_);
+            expiration_ = addSecondTime(now, interval_);
         }
         else
         {

@@ -76,10 +76,20 @@ namespace MuduoPlus
         return static_cast<double>(diff) / Timestamp::kMicroSecondsPerSecond;
     }
 
-    inline Timestamp addTime(Timestamp timestamp, double seconds)
+    inline Timestamp addSecondTime(Timestamp timestamp, double seconds)
     {
         int64_t delta = static_cast<int64_t>(seconds * Timestamp::kMicroSecondsPerSecond);
         return Timestamp(timestamp.microSecondsSinceEpoch() + delta);
+    }
+
+    inline Timestamp addMillionSecondTime(Timestamp timestamp, double millionSeconds)
+    {
+        return Timestamp(timestamp.microSecondsSinceEpoch() + millionSeconds * 1000);
+    }
+
+    inline Timestamp addMicroSecondTime(Timestamp timestamp, double microSeconds)
+    {
+        return Timestamp(timestamp.microSecondsSinceEpoch() + microSeconds);
     }
 }
 
