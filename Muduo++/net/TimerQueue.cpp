@@ -43,7 +43,16 @@ namespace MuduoPlus
 
         if (earliestChanged)
         {
-            //resetTimerfd(timerfd_, timer->expiration());
+            Timestamp stamp = timer->expiration();
+
+            if ((int)stamp.milliSecondFromNow() <= INT_MAX)
+            {
+                loop_->ResetTimer((int)stamp.milliSecondFromNow());
+            }
+            else
+            {
+                loop_->ResetTimer(INT_MAX);
+            }
         }
     }
 
@@ -137,8 +146,14 @@ namespace MuduoPlus
 
         if (nextExpire.valid())
         {
-            loop_->runInLoop();
-            //resetTimerfd(timerfd_, nextExpire);
+            if ((int)nextExpire.milliSecondFromNow() <= INT_MAX)
+            {
+               loop_->ResetTimer((int)nextExpire.milliSecondFromNow());
+            }
+            else
+            {
+                loop_->ResetTimer(INT_MAX);
+            }                       
         }
     }
 

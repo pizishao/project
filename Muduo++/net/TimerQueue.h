@@ -24,6 +24,7 @@ namespace MuduoPlus
 
         TimerId addTimer(const TimerCallback& cb, Timestamp when, double interval);
         void    cancel(TimerId timerId);
+        void    TimeOut();
 
     private:
 
@@ -33,8 +34,7 @@ namespace MuduoPlus
         typedef std::set<ActiveTimer> ActiveTimerSet;
 
         void                addTimerInLoop(Timer* timer);
-        void                cancelInLoop(TimerId timerId);
-        void                TimeOut();
+        void                cancelInLoop(TimerId timerId);        
         std::vector<Entry>  getExpired(Timestamp now);
         void                reset(const std::vector<Entry>& expired, Timestamp now);
         bool                insert(Timer* timer);

@@ -17,7 +17,7 @@ namespace MuduoPlus
         Channel(EventLoop* loop, int fd);
         ~Channel();
 
-        void handleEvent();
+        void handleEvent(Timestamp receiveTime);
         void setReadCallback(const ReadEventCallback& cb)
         {
             readCallback_ = cb;
@@ -35,18 +35,18 @@ namespace MuduoPlus
             errorCallback_ = cb;
         }
 
-        int fd() const { return fd_; }
-        int events() const { return events_; }
-        void set_revents(int revt) { revents_ = revt; } // used by pollers
-        bool isNoneEvent() const { return events_ == kNoneEvent; }
+        int  fd() const { return fd_; }
+        int  interestEvents() const { return interestEvents_; }
+        void setRecvEvents(int revt) { recvEvents_ = revt; } // used by pollers
+        bool isNoneEvent() const { return interestEvents_ == kNoneEvent; }
 
-        void enableReading() { events_ |= kReadEvent; update(); }
-        void disableReading() { events_ &= ~kReadEvent; update(); }
-        void enableWriting() { events_ |= kWriteEvent; update(); }
-        void disableWriting() { events_ &= ~kWriteEvent; update(); }
-        void disableAll() { events_ = kNoneEvent; update(); }
-        bool isWriting() const { return events_ & kWriteEvent; }
-        bool isReading() const { return events_ & kReadEvent; }
+        void enableReading() { interestEvents_ |= kReadEvent; update(); }
+        void disableReading() { interestEvents_ &= ~kReadEvent; update(); }
+        void enableWriting() { interestEvents_ |= kWriteEvent; update(); }
+        void disableWriting() { interestEvents_ &= ~kWriteEvent; update(); }
+        void disableAll() { interestEvents_ = kNoneEvent; update(); }
+        bool isWriting() const { return interestEvents_ & kWriteEvent; }
+        bool isReading() const { return interestEvents_ & kReadEvent; }
 
         // for Poller
         int index() { return index_; }
@@ -59,17 +59,20 @@ namespace MuduoPlus
         static const int kReadEvent;
         static const int kWriteEvent;
         static const int kErrorEvent;
+        static const int kCloseEvent;
 
     private:
 
         void update();
-        void handleEventWithGuard();
+        void handleEventWithGuard(Timestamp receiveTime);
 
         EventLoop* loop_;
         const int  fd_;
-        int        events_;
-        int        revents_; // it's the received event types of epoll or poll
-        int        index_; // used by Poller.
+        int        interestEvents_;
+        int        recvEvents_; // it's the received event types of epoll or select
+        int        index_;      // used by Poller.
+
+        bool addedToLoop_;
 
         ReadEventCallback   readCallback_;
         EventCallback       writeCallback_;

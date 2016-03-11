@@ -19,17 +19,17 @@ namespace MuduoPlus
     {
     }
 
-    void Selector::poll(int timeoutMs, ChannelList* activeChannels)
+    void Selector::poll(int timeoutMS, ChannelList* activeChannels)
     {
         resetFDSet();
 
         timeval tv = {0};
 
-        long sec = timeoutMs / 1000;
-        long odd_msec = timeoutMs - sec * 1000;
+        long sec = timeoutMS / 1000;
+        long msec = timeoutMS - sec * 1000;
 
         tv.tv_sec = sec;
-        tv.tv_usec = odd_msec * 1000;
+        tv.tv_usec = msec * 1000;
 
         int iRet = select(0, &readSet, &writeSet, &exceptSet, &tv);
 
@@ -65,7 +65,7 @@ namespace MuduoPlus
 
             if (events)
             {
-                pChannel->set_revents(events);
+                pChannel->setRecvEvents(events);
                 activeChannels->push_back(pChannel);
             }
         }
@@ -73,7 +73,14 @@ namespace MuduoPlus
 
     void Selector::updateChannel(Channel* channel)
     {
-        // do nothing
+        if (channels_.find(channel->fd()) == channels_.end())
+        {
+            channels_.insert({ channel->fd(), channel });
+        } 
+        else
+        {
+            // do nothing
+        }
     }
 
     void Selector::removeChannel(Channel* channel)
@@ -98,17 +105,17 @@ namespace MuduoPlus
         {
             Channel *pChannel = channelPair.second;
 
-            if (pChannel->events() & Channel::kReadEvent)
+            if (pChannel->interestEvents() & Channel::kReadEvent)
             {
                 FD_SET(pChannel->fd(), &readSet);
             }
 
-            if (pChannel->events() & Channel::kWriteEvent)
+            if (pChannel->interestEvents() & Channel::kWriteEvent)
             {
                 FD_SET(pChannel->fd(), &writeSet);
             }
 
-            if (pChannel->events() & Channel::kErrorEvent)
+            if (pChannel->interestEvents() & Channel::kErrorEvent)
             {
                 FD_SET(pChannel->fd(), &exceptSet);
             }

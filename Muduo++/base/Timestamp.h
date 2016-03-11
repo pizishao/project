@@ -35,10 +35,48 @@ namespace MuduoPlus
         int64_t microSecondsSinceEpoch() const { return microSecondsSinceEpoch_; }
         time_t secondsSinceEpoch() const
         {
-            return static_cast<time_t>(microSecondsSinceEpoch_ / kMicroSecondsPerSecond);
+            return static_cast<time_t>(microSecondsSinceEpoch_ / kMicroSecPerSec);
+        }
+
+        inline Timestamp addSeconds(double seconds)
+        {
+            int64_t delta = static_cast<int64_t>(seconds * Timestamp::kMicroSecPerSec);
+            microSecondsSinceEpoch_ += delta;
+
+            return *this;
+        }
+
+        inline Timestamp addMillionSeconds(double millionSeconds)
+        {
+            microSecondsSinceEpoch_ += static_cast<int64_t>(millionSeconds * kMicroSecPerMilliSec);
+
+            return *this;
+        }
+
+        inline Timestamp addMicroSeconds(double microSeconds)
+        {
+            microSecondsSinceEpoch_ += static_cast<int64_t>(microSeconds);
+
+            return *this;
         }
 
         static Timestamp now();
+
+        double secondFromNow()
+        {
+            return secondDifference(Timestamp::now(), *this);
+        }
+
+        double milliSecondFromNow()
+        {
+            return millisecondDifference(Timestamp::now(), *this);
+        }
+
+        int64_t microSecondFromNow()
+        {
+            return microSecondDifference(Timestamp::now(), *this);
+        }
+
         static Timestamp invalid()
         {
             return Timestamp();
@@ -51,10 +89,11 @@ namespace MuduoPlus
 
         static Timestamp fromUnixTime(time_t t, int microseconds)
         {
-            return Timestamp(static_cast<int64_t>(t)* kMicroSecondsPerSecond + microseconds);
+            return Timestamp(static_cast<int64_t>(t)* kMicroSecPerSec + microseconds);
         }
 
-        static const int kMicroSecondsPerSecond = 1000 * 1000;
+        static const int kMicroSecPerSec        = 1000 * 1000;
+        static const int kMicroSecPerMilliSec   = 1000;
 
     private:
         int64_t microSecondsSinceEpoch_;
@@ -70,26 +109,22 @@ namespace MuduoPlus
         return lhs.microSecondsSinceEpoch() == rhs.microSecondsSinceEpoch();
     }
 
-    inline double timeDifference(Timestamp high, Timestamp low)
+    inline double secondDifference(Timestamp high, Timestamp low)
     {
         int64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
-        return static_cast<double>(diff) / Timestamp::kMicroSecondsPerSecond;
+        return static_cast<double>(diff) / Timestamp::kMicroSecPerSec;
     }
 
-    inline Timestamp addSecondTime(Timestamp timestamp, double seconds)
+    inline double millisecondDifference(Timestamp high, Timestamp low)
     {
-        int64_t delta = static_cast<int64_t>(seconds * Timestamp::kMicroSecondsPerSecond);
-        return Timestamp(timestamp.microSecondsSinceEpoch() + delta);
+        int64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
+        return static_cast<double>(diff) / Timestamp::kMicroSecPerMilliSec;
     }
 
-    inline Timestamp addMillionSecondTime(Timestamp timestamp, double millionSeconds)
+    inline int64_t microSecondDifference(Timestamp high, Timestamp low)
     {
-        return Timestamp(timestamp.microSecondsSinceEpoch() + millionSeconds * 1000);
-    }
-
-    inline Timestamp addMicroSecondTime(Timestamp timestamp, double microSeconds)
-    {
-        return Timestamp(timestamp.microSecondsSinceEpoch() + microSeconds);
-    }
+        int64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
+        return diff;
+    }    
 }
 

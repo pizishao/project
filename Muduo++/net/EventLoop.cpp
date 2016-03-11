@@ -14,12 +14,9 @@ namespace MuduoPlus
         quit_(false),
         eventHandling_(false),
         callingPendingFunctors_(false),
-        iteration_(0),
         threadId_(GetCurThreadID()),        
         timerQueue_(new TimerQueue(this)),        
-        currentActiveChannel_(NULL),
-        m_PollTimeOutMs(0),
-        m_AccumulateTimedOutMs(0)
+        currentActiveChannel_(NULL)        
     {
         /*LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
         if (t_loopInThisThread)
@@ -46,6 +43,8 @@ namespace MuduoPlus
             std::bind(&EventLoop::handleRead, this));
         // we are always reading the wakeupfd
         wakeupChannel_->enableReading();
+
+        m_PollTimeoutMsec = INT_MAX;
     }
 
     EventLoop::~EventLoop()
@@ -69,13 +68,13 @@ namespace MuduoPlus
         while (!quit_)
         {
             activeChannels_.clear();
-            poller_->poll(m_PollTimeOutMs, &activeChannels_);
-            ++iteration_;
+            poller_->poll(m_PollTimeoutMsec, &activeChannels_);
             /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
             }*/
-            // TODO sort channel by priority
+            // TODO sort channel by priority          
+
             eventHandling_ = true;
             for (ChannelList::iterator it = activeChannels_.begin();
                 it != activeChannels_.end(); ++it)
@@ -136,19 +135,25 @@ namespace MuduoPlus
 
     TimerId EventLoop::runAfter(double delay, const TimerCallback& cb)
     {
-        Timestamp time(addSecondTime(Timestamp::now(), delay));
-        return runAt(time, cb);
+        return runAt(Timestamp::now().addSeconds(delay), cb);
     }
 
     TimerId EventLoop::runEvery(double interval, const TimerCallback& cb)
     {
-        Timestamp time(addSecondTime(Timestamp::now(), interval));
-        return timerQueue_->addTimer(cb, time, interval);
+        return timerQueue_->addTimer(cb, Timestamp::now().addSeconds(interval), interval);
     }
 
     void EventLoop::cancel(TimerId timerId)
     {
         return timerQueue_->cancel(timerId);
+    }
+
+    void EventLoop::ResetTimer(int msec)
+    {
+        assert(msec >= 0);
+
+        m_PollTimeoutMsec = msec;
+        m_PrevTimeOutStamp = Timestamp::now();
     }
 
     void EventLoop::updateChannel(Channel* channel)
@@ -205,6 +210,17 @@ namespace MuduoPlus
         if (r < 0 && errno != EAGAIN)
         {
             assert(false);
+        }
+    }
+
+    void EventLoop::CheckTimeOut()
+    {
+        Timestamp nowStamp = Timestamp::now();
+
+        if ((long)millisecondDifference(nowStamp, m_PrevTimeOutStamp) >= m_PollTimeoutMsec)
+        {
+            timerQueue_->TimeOut();
+            m_PrevTimeOutStamp = nowStamp;
         }
     }
 
