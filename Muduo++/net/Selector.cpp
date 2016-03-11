@@ -23,7 +23,15 @@ namespace MuduoPlus
     {
         resetFDSet();
 
-        int iRet = select(0, &readSet, &writeSet, &exceptSet, nullptr);
+        timeval tv = {0};
+
+        long sec = timeoutMs / 1000;
+        long odd_msec = timeoutMs - sec * 1000;
+
+        tv.tv_sec = sec;
+        tv.tv_usec = odd_msec * 1000;
+
+        int iRet = select(0, &readSet, &writeSet, &exceptSet, &tv);
 
         if (iRet <= 0)
         {

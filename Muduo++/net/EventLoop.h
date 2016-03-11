@@ -55,7 +55,7 @@ namespace MuduoPlus
 
         bool eventHandling() const { return eventHandling_; }
 
-        void setContext(const boost::any& context)
+        /*void setContext(const boost::any& context)
         {
             context_ = context;
         }
@@ -68,7 +68,7 @@ namespace MuduoPlus
         boost::any* getMutableContext()
         {
             return &context_;
-        }
+        }*/
 
     private:
         void abortNotInLoopThread();
@@ -90,9 +90,9 @@ namespace MuduoPlus
         Timestamp                   pollReturnTime_;
         std::shared_ptr<Poller>     poller_;
         std::shared_ptr<TimerQueue> timerQueue_;
-        int wakeupFd_;
+        socket_t                    wakeupFd_[2];
         std::shared_ptr<Channel>    wakeupChannel_;
-        boost::any                  context_;
+        //boost::any                  context_;
 
         ChannelList                 activeChannels_;
         Channel*                    currentActiveChannel_;

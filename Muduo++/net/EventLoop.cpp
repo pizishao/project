@@ -3,6 +3,8 @@
 #include "EventLoop.h"
 #include "Channel.h"
 #include "TimerQueue.h"
+#include "SocketOps.h"
+#include "Selector.h"
 
 namespace MuduoPlus
 {
@@ -13,16 +15,13 @@ namespace MuduoPlus
         eventHandling_(false),
         callingPendingFunctors_(false),
         iteration_(0),
-        threadId_(GetCurThreadID()),
-        poller_(Poller::newDefaultPoller(this)),
-        timerQueue_(new TimerQueue(this)),
-        wakeupFd_(createEventfd()),
-        wakeupChannel_(new Channel(this, wakeupFd_)),
+        threadId_(GetCurThreadID()),        
+        timerQueue_(new TimerQueue(this)),        
         currentActiveChannel_(NULL),
         m_PollTimeOutMs(0),
         m_AccumulateTimedOutMs(0)
     {
-        LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
+        /*LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
         if (t_loopInThisThread)
         {
             LOG_FATAL << "Another EventLoop " << t_loopInThisThread
@@ -31,7 +30,18 @@ namespace MuduoPlus
         else
         {
             t_loopInThisThread = this;
-        }
+        }*/
+
+#ifdef WIN32
+        poller_.reset(new Selector(this));
+#else
+        poller_(Poller::newDefaultPoller(this));
+#endif
+
+        memset(wakeupFd_, 0, sizeof(wakeupFd_));
+        SocketOps::CreateSocketPair(wakeupFd_);
+        wakeupChannel_.reset(new Channel(this, wakeupFd_[1]));
+
         wakeupChannel_->setReadCallback(
             std::bind(&EventLoop::handleRead, this));
         // we are always reading the wakeupfd
@@ -40,12 +50,12 @@ namespace MuduoPlus
 
     EventLoop::~EventLoop()
     {
-        LOG_DEBUG << "EventLoop " << this << " of thread " << threadId_
-            << " destructs in thread " << CurrentThread::tid();
+        /*LOG_DEBUG << "EventLoop " << this << " of thread " << threadId_
+            << " destructs in thread " << CurrentThread::tid();*/
         wakeupChannel_->disableAll();
         wakeupChannel_->remove();
-        ::close(wakeupFd_);
-        t_loopInThisThread = NULL;
+        /*::close(wakeupFd_);
+        t_loopInThisThread = NULL;*/
     }
 
     void EventLoop::loop()
@@ -54,17 +64,17 @@ namespace MuduoPlus
         assertInLoopThread();
         looping_ = true;
         quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
-        LOG_TRACE << "EventLoop " << this << " start looping";
+        //LOG_TRACE << "EventLoop " << this << " start looping";
 
         while (!quit_)
         {
             activeChannels_.clear();
-            pollReturnTime_ = poller_->poll(m_PollTimeOutMs, &activeChannels_);
+            poller_->poll(m_PollTimeOutMs, &activeChannels_);
             ++iteration_;
-            if (Logger::logLevel() <= Logger::TRACE)
+            /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
-            }
+            }*/
             // TODO sort channel by priority
             eventHandling_ = true;
             for (ChannelList::iterator it = activeChannels_.begin();
@@ -78,7 +88,7 @@ namespace MuduoPlus
             doPendingFunctors();
         }
 
-        LOG_TRACE << "EventLoop " << this << " stop looping";
+        //LOG_TRACE << "EventLoop " << this << " stop looping";
         looping_ = false;
     }
 
@@ -169,29 +179,45 @@ namespace MuduoPlus
 
     void EventLoop::abortNotInLoopThread()
     {
-        LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop " << this
+        /*LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop " << this
             << " was created in threadId_ = " << threadId_
-            << ", current thread id = " << CurrentThread::tid();
+            << ", current thread id = " << CurrentThread::tid();*/
     }
 
     void EventLoop::wakeup()
     {
-        uint64_t one = 1;
+        /*uint64_t one = 1;
         ssize_t n = sockets::write(wakeupFd_, &one, sizeof one);
         if (n != sizeof one)
         {
             LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
+        }*/
+
+        char buf[1] = { 0 };
+        int r;
+
+#ifdef WIN32
+        r = send(wakeupFd_[0], buf, 1, 0);
+#else
+        r = write(wakeupFd_[0], buf, 1);
+#endif
+
+        if (r < 0 && errno != EAGAIN)
+        {
+            assert(false);
         }
     }
 
     void EventLoop::handleRead()
     {
-        uint64_t one = 1;
-        ssize_t n = sockets::read(wakeupFd_, &one, sizeof one);
-        if (n != sizeof one)
-        {
-            LOG_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
-        }
+        unsigned char buf[1024] = {0};
+#ifdef WIN32
+        while (recv(wakeupFd_[1], (char*)buf, sizeof(buf), 0) > 0)
+            ;
+#else
+        while (read(recv(wakeupFd_[1], (char*)buf, sizeof(buf)) > 0)
+            ;
+#endif
     }
 
     void EventLoop::doPendingFunctors()
@@ -200,7 +226,7 @@ namespace MuduoPlus
         callingPendingFunctors_ = true;
 
         {
-            MutexLockGuard lock(mutex_);
+            std::lock_guard<std::mutex> lock(mutex_);
             functors.swap(pendingFunctors_);
         }
 
@@ -217,7 +243,7 @@ namespace MuduoPlus
             it != activeChannels_.end(); ++it)
         {
             const Channel* ch = *it;
-            LOG_TRACE << "{" << ch->reventsToString() << "} ";
+            //LOG_TRACE << "{" << ch->reventsToString() << "} ";
         }
     }
 }
