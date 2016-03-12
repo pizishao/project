@@ -15,7 +15,7 @@ namespace MuduoPlus
 
     // the data has been read to (buf, len)
     typedef std::function < void(const TcpConnectionPtr&,
-        const char*) > MessageCallback;
+        Buffer*, Timestamp) > MessageCallback;
 
     void defaultConnectionCallback(const TcpConnectionPtr& conn);
     void defaultMessageCallback(const TcpConnectionPtr& conn, const char*);

@@ -55,3 +55,13 @@
 	((e) == WSAECONNREFUSED)
 
 #endif
+
+#define MAX_TO_READ_EVER    (16384)
+#define MAX_TO_WRITE_EVER   (16384)
+
+enum ResultCode
+{
+    success,
+    fail,
+    retry,
+};

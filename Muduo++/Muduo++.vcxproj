@@ -90,6 +90,7 @@
     <ClInclude Include="base\Platform.h" />
     <ClInclude Include="base\Timestamp.h" />
     <ClInclude Include="net\Acceptor.h" />
+    <ClInclude Include="net\Buffer.h" />
     <ClInclude Include="net\CallBack.h" />
     <ClInclude Include="net\Channel.h" />
     <ClInclude Include="net\Connector.h" />
@@ -112,6 +113,7 @@
     <ClCompile Include="base\Timestamp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="net\Acceptor.cpp" />
+    <ClCompile Include="net\Buffer.cpp" />
     <ClCompile Include="net\Channel.cpp" />
     <ClCompile Include="net\Connector.cpp" />
     <ClCompile Include="net\EventLoop.cpp" />

@@ -20,23 +20,25 @@ namespace SocketOps
 #endif
     }
 
-    int Connect(socket_t fd, const struct sockaddr *sa)
+    ResultCode Connect(socket_t fd, const struct sockaddr *sa)
     {
         if (connect(fd, sa, sizeof(*sa)) >= 0)
         {
-            return 1;
+            return ResultCode::success;
         }
 
         int e = GetErrorCode();
         if (ERR_CONNECT_RETRIABLE(e))
         {
-            return 0;
+            return ResultCode::retry;
         }
 
-        if (ERR_CONNECT_REFUSED(e))
+        /*if (ERR_CONNECT_REFUSED(e))
         {
-            return 2;
-        }
+            return ResultCode::fail;
+        }*/
+
+        return ResultCode::fail;
     }
 
     bool BindSocket(socket_t fd, const struct sockaddr *sa)
@@ -65,6 +67,11 @@ namespace SocketOps
         socket_t    newFd = accept(fd, addr, &socklen);
 
         return      newFd;
+    }
+
+    int Recv(socket_t fd, char *buff, size_t count)
+    {
+        return recv(fd, buff, count, 0);
     }
 
     bool SetSocketNoneBlocking(socket_t fd)
