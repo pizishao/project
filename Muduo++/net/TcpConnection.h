@@ -33,14 +33,13 @@ namespace MuduoPlus
         const std::string& name() const { return name_; }
         const InetAddress& localAddress() const { return localAddr_; }
         const InetAddress& peerAddress() const { return peerAddr_; }
-        bool connected() const { return state_ == kConnected; }
-        bool disconnected() const { return state_ == kDisconnected; }
         // return true if success.
         bool getTcpInfo(struct tcp_info*) const;
         std::string getTcpInfoString() const;
 
         // void send(string&& message); // C++11
         void send(const void* message, int len);
+        void send(Buffer* message);  // this one will swap data
         void shutdown(); // NOT thread safe, no simultaneous calling
         // void shutdownAndForceCloseAfter(double seconds); // NOT thread safe, no simultaneous calling
         void forceClose();
@@ -102,14 +101,11 @@ namespace MuduoPlus
         void shutdownInLoop();
         // void shutdownAndForceCloseInLoop(double seconds);
         void forceCloseInLoop();
-        void setState(StateE s) { state_ = s; }
-        const char* stateToString() const;
         void startReadInLoop();
         void stopReadInLoop();
 
         EventLoop* loop_;
         const std::string name_;
-        StateE state_;  // FIXME: use atomic variable
         // we don't expose those classes to client.
         std::shared_ptr<Socket> socket_;
         std::shared_ptr<Channel> channel_;
@@ -124,8 +120,6 @@ namespace MuduoPlus
         Buffer inputBuffer_;
         Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
         bool reading_;
-        // FIXME: creationTime_, lastReceiveTime_
-        //        bytesReceived_, bytesSent_
     };
 
     typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;

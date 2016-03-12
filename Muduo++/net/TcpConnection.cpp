@@ -11,7 +11,6 @@ namespace MuduoPlus
         const InetAddress& peerAddr)
         : loop_(loop),
         name_(nameArg),
-        state_(kConnecting),
         socket_(new Socket(sockfd)),
         channel_(new Channel(loop, sockfd)),
         localAddr_(localAddr),
@@ -33,9 +32,7 @@ namespace MuduoPlus
     TcpConnection::~TcpConnection()
     {
         LOG_DEBUG << "TcpConnection::dtor[" << name_ << "] at " << this
-            << " fd=" << channel_->fd()
-            << " state=" << stateToString();
-        assert(state_ == kDisconnected);
+            << " fd=" << channel_->fd();
     }
 
     bool TcpConnection::getTcpInfo(struct tcp_info* tcpi) const
@@ -45,15 +42,16 @@ namespace MuduoPlus
 
     std::string TcpConnection::getTcpInfoString() const
     {
-        char buf[1024];
-        buf[0] = '\0';
+        char buf[1024] = {0};
         socket_->getTcpInfoString(buf, sizeof buf);
         return buf;
     }
 
     void TcpConnection::send(const void* data, int len)
     {
-        send(StringPiece(static_cast<const char*>(data), len));
+        Buffer buf;
+        buf.append(data, len);
+        send(&buf);
     }
 
     /*void TcpConnection::send(const StringPiece& message)
@@ -78,21 +76,18 @@ namespace MuduoPlus
     // FIXME efficiency!!!
     void TcpConnection::send(Buffer* buf)
     {
-        if (state_ == kConnected)
+        if (loop_->isInLoopThread())
         {
-            if (loop_->isInLoopThread())
-            {
-                sendInLoop(buf->peek(), buf->readableBytes());
-                buf->retrieveAll();
-            }
-            else
-            {
-                loop_->runInLoop(
-                    std::bind(&TcpConnection::sendInLoop,
-                    this,     // FIXME
-                    buf->retrieveAllAsString()));
-                //std::forward<string>(message)));
-            }
+            sendInLoop(buf->peek(), buf->readableBytes());
+            buf->retrieveAll();
+        }
+        else
+        {
+            loop_->runInLoop(
+                std::bind(&TcpConnection::sendInLoop,
+                this,     // FIXME
+                buf->retrieveAllAsString()));
+            //std::forward<string>(message)));
         }
     }
 
@@ -107,11 +102,7 @@ namespace MuduoPlus
         ssize_t nwrote = 0;
         size_t remaining = len;
         bool faultError = false;
-        if (state_ == kDisconnected)
-        {
-            LOG_WARN << "disconnected, give up writing";
-            return;
-        }
+
         // if no thing in output queue, try writing directly
         if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
         {
@@ -158,13 +149,7 @@ namespace MuduoPlus
 
     void TcpConnection::shutdown()
     {
-        // FIXME: use compare and swap
-        if (state_ == kConnected)
-        {
-            setState(kDisconnecting);
-            // FIXME: shared_from_this()?
-            loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this));
-        }
+        loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this));       
     }
 
     void TcpConnection::shutdownInLoop()
@@ -179,51 +164,21 @@ namespace MuduoPlus
 
     void TcpConnection::forceClose()
     {
-        // FIXME: use compare and swap
-        if (state_ == kConnected || state_ == kDisconnecting)
-        {
-            setState(kDisconnecting);
-            loop_->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
-        }
+        loop_->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
     }
 
     void TcpConnection::forceCloseWithDelay(double seconds)
     {
-        if (state_ == kConnected || state_ == kDisconnecting)
-        {
-            setState(kDisconnecting);
-            loop_->runAfter(
-                seconds,
-                makeWeakCallback(shared_from_this(),
-                &TcpConnection::forceClose));  // not forceCloseInLoop to avoid race condition
-        }
+        loop_->runAfter(
+            seconds,
+            makeWeakCallback(shared_from_this(),
+            &TcpConnection::forceClose));  // not forceCloseInLoop to avoid race condition      
     }
 
     void TcpConnection::forceCloseInLoop()
     {
         loop_->assertInLoopThread();
-        if (state_ == kConnected || state_ == kDisconnecting)
-        {
-            // as if we received 0 byte in handleRead();
-            handleClose();
-        }
-    }
-
-    const char* TcpConnection::stateToString() const
-    {
-        switch (state_)
-        {
-        case kDisconnected:
-            return "kDisconnected";
-        case kConnecting:
-            return "kConnecting";
-        case kConnected:
-            return "kConnected";
-        case kDisconnecting:
-            return "kDisconnecting";
-        default:
-            return "unknown state";
-        }
+        handleClose();        
     }
 
     void TcpConnection::setTcpNoDelay(bool on)
@@ -264,8 +219,6 @@ namespace MuduoPlus
     void TcpConnection::connectEstablished()
     {
         loop_->assertInLoopThread();
-        assert(state_ == kConnecting);
-        setState(kConnected);
         channel_->tie(shared_from_this());
         channel_->enableReading();
 
@@ -324,10 +277,8 @@ namespace MuduoPlus
                     {
                         loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                     }
-                    if (state_ == kDisconnecting)
-                    {
-                        shutdownInLoop();
-                    }
+                        
+                    shutdownInLoop();                    
                 }
             }
             else
@@ -349,10 +300,8 @@ namespace MuduoPlus
     void TcpConnection::handleClose()
     {
         loop_->assertInLoopThread();
-        LOG_TRACE << "fd = " << channel_->fd() << " state = " << stateToString();
-        assert(state_ == kConnected || state_ == kDisconnecting);
-        // we don't close fd, leave it to dtor, so we can find leaks easily.
-        setState(kDisconnected);
+        LOG_TRACE << "fd = " << channel_->fd() << " state = ";
+
         channel_->disableAll();
 
         TcpConnectionPtr guardThis(shared_from_this());
