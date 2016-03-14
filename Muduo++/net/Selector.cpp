@@ -60,7 +60,7 @@ namespace MuduoPlus
 
             if (FD_ISSET(pChannel->fd(), &exceptSet))
             {
-                events |= Channel::kErrorEvent;
+                events |= Channel::kCloseEvent;
             }
 
             if (events)
@@ -115,7 +115,7 @@ namespace MuduoPlus
                 FD_SET(pChannel->fd(), &writeSet);
             }
 
-            if (pChannel->interestEvents() & Channel::kErrorEvent)
+            if (pChannel->interestEvents() & Channel::kCloseEvent)
             {
                 FD_SET(pChannel->fd(), &exceptSet);
             }

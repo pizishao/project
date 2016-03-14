@@ -14,6 +14,10 @@
 #include <sys/socket.h>
 #endif
 
+//#include <assert.h>
+
+//#include "Logger.h"
+
 #ifdef WIN32
 #define socket_t intptr_t
 #else
@@ -56,8 +60,31 @@
 
 #endif
 
-#define MAX_TO_READ_EVER    (16384)
-#define MAX_TO_WRITE_EVER   (16384)
+/* Arguments for shutdown() */
+#ifndef SHUT_RD
+#define SHUT_RD 0
+#endif
+
+#ifndef SHUT_WR
+#define SHUT_WR 1
+#endif
+
+#ifndef SHUT_BOTH
+#define SHUT_BOTH 2
+#endif
+
+#define MAX_TO_READ_ONCE    (16384)
+
+/*
+#define MUD_ASSERT(exp, format, ...)   \
+    do  \
+    {   \
+        if (!(exp)) \
+        {  \
+            MuduoPlus::LogPrinter(LogType_Error, format, __VA_ARGS__) \
+            assert(false); \
+        }  \
+} while (0);*/
 
 enum ResultCode
 {

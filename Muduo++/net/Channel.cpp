@@ -9,8 +9,7 @@ namespace MuduoPlus
     const int Channel::kNoneEvent = 0x00;
     const int Channel::kReadEvent = 0x01;
     const int Channel::kWriteEvent = 0x02;
-    const int Channel::kErrorEvent = 0x04;
-    const int Channel::kCloseEvent = 0x08;
+    const int Channel::kCloseEvent = 0x04;
 
     Channel::Channel(EventLoop* loop, int fd)
         : loop_(loop),
@@ -49,14 +48,6 @@ namespace MuduoPlus
 
     void Channel::handleEventWithGuard(Timestamp receiveTime)
     {
-        if (recvEvents_ & kReadEvent)
-        {
-            if (readCallback_)
-            {
-                readCallback_();
-            }
-        }
-
         if (recvEvents_ & kCloseEvent)
         {
             if (closeCallback_)
@@ -65,13 +56,13 @@ namespace MuduoPlus
             }
         }
 
-        if (recvEvents_ & kErrorEvent)
+        if (recvEvents_ & kReadEvent)
         {
-            if (errorCallback_)
+            if (readCallback_)
             {
-                errorCallback_();
+                readCallback_(receiveTime);
             }
-        }        
+        }          
 
         if (recvEvents_ & kWriteEvent)
         {
@@ -79,6 +70,11 @@ namespace MuduoPlus
             {
                 writeCallback_();
             }
+        }
+
+        if (finishCallback_)
+        {
+            finishCallback_();
         }
     }
 }

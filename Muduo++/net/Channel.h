@@ -12,27 +12,31 @@ namespace MuduoPlus
     {
     public:
         typedef std::function<void()> EventCallback;
-        typedef std::function<void()> ReadEventCallback;
+        typedef std::function<void(Timestamp)> ReadEventCallback;
 
         Channel(EventLoop* loop, int fd);
         ~Channel();
 
         void handleEvent(Timestamp receiveTime);
+
         void setReadCallback(const ReadEventCallback& cb)
         {
             readCallback_ = cb;
         }
+
         void setWriteCallback(const EventCallback& cb)
         {
             writeCallback_ = cb;
         }
+
         void setCloseCallback(const EventCallback& cb)
         {
             closeCallback_ = cb;
         }
-        void setErrorCallback(const EventCallback& cb)
+
+        void setFinishCallback(const EventCallback& cb)
         {
-            errorCallback_ = cb;
+            finishCallback_ = cb;
         }
 
         int  fd() const { return fd_; }
@@ -58,7 +62,6 @@ namespace MuduoPlus
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
-        static const int kErrorEvent;
         static const int kCloseEvent;
 
     private:
@@ -77,6 +80,6 @@ namespace MuduoPlus
         ReadEventCallback   readCallback_;
         EventCallback       writeCallback_;
         EventCallback       closeCallback_;
-        EventCallback       errorCallback_;
+        EventCallback       finishCallback_;
     };
 }

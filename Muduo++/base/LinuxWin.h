@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string>
+#include <assert.h>
 
 #include "Platform.h"
 

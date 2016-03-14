@@ -42,9 +42,13 @@ namespace SocketOps
     bool        BindSocket(socket_t fd, const struct sockaddr *sa);
     bool        Listen(socket_t fd);
     socket_t    Accept(socket_t fd, struct sockaddr *addr);
-    int         Recv(socket_t fd, char *buff, size_t count);
+    int         Send(socket_t fd, const void* buff, int count);
+    int         Recv(socket_t fd, char *buff, int count);
 
     bool        SetSocketNoneBlocking(socket_t fd);
+    void        SetKeepAlive(socket_t fd, bool on);
+    void        ShutdownWrite(int fd);
+    void        SetTcpNoDelay(int fd, bool on);
     int         ReuseListenSocket(socket_t fd);
     int         CreateSocketPair(socket_t fdPair[2]);
 }

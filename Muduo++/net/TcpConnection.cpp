@@ -1,3 +1,4 @@
+#include "base/Logger.h"
 #include "TcpConnection.h"
 #include "Channel.h"
 #include "EventLoop.h"
@@ -11,135 +12,115 @@ namespace MuduoPlus
         const InetAddress& peerAddr)
         : loop_(loop),
         name_(nameArg),
-        socket_(new Socket(sockfd)),
-        channel_(new Channel(loop, sockfd)),
+        fd_(sockfd),
+        sockErrorOccurred(false),
+        channel_(new Channel(loop, fd_)),
         localAddr_(localAddr),
         peerAddr_(peerAddr),
         highWaterMark_(64 * 1024 * 1024),
         reading_(true)
     {
-        channel_->setReadCallback(
-            std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
-        channel_->setWriteCallback(
-            std::bind(&TcpConnection::handleWrite, this));
-        channel_->setCloseCallback(
-            std::bind(&TcpConnection::handleClose, this));
-        channel_->setErrorCallback(
-            std::bind(&TcpConnection::handleError, this));
-        socket_->setKeepAlive(true);
+        auto selfPtr = shared_from_this();
+
+        channel_->setReadCallback([=](Timestamp receiveTime)
+        {
+            selfPtr->handleRead(receiveTime);
+        });
+
+        channel_->setWriteCallback([=]()
+        {
+            selfPtr->handleWrite();
+        });
+
+        channel_->setCloseCallback([=]()
+        {
+            selfPtr->handleClose();
+        });
+
+        channel_->setFinishCallback([=]()
+        {
+            selfPtr->handleFinish();
+        });
+
+        SocketOps::SetKeepAlive(fd_, true);
     }
 
     TcpConnection::~TcpConnection()
     {
-        LOG_DEBUG << "TcpConnection::dtor[" << name_ << "] at " << this
-            << " fd=" << channel_->fd();
-    }
-
-    bool TcpConnection::getTcpInfo(struct tcp_info* tcpi) const
-    {
-        return socket_->getTcpInfo(tcpi);
-    }
-
-    std::string TcpConnection::getTcpInfoString() const
-    {
-        char buf[1024] = {0};
-        socket_->getTcpInfoString(buf, sizeof buf);
-        return buf;
+        LOG_PRINT(LogType_Info, "TcpConnection::dtor[%s] at %p fd=%d", name_.c_str(), this,
+            channel_->fd());        
     }
 
     void TcpConnection::send(const void* data, int len)
     {
-        Buffer buf;
-        buf.append(data, len);
-        send(&buf);
-    }
-
-    /*void TcpConnection::send(const StringPiece& message)
-    {
-        if (state_ == kConnected)
+        if (len <= 0)
         {
-            if (loop_->isInLoopThread())
-            {
-                sendInLoop(message);
-            }
-            else
-            {
-                loop_->runInLoop(
-                    std::bind(&TcpConnection::sendInLoop,
-                    this,     // FIXME
-                    message.as_string()));
-                //std::forward<string>(message)));
-            }
+            return;
         }
-    }*/
 
-    // FIXME efficiency!!!
-    void TcpConnection::send(Buffer* buf)
-    {
         if (loop_->isInLoopThread())
         {
-            sendInLoop(buf->peek(), buf->readableBytes());
-            buf->retrieveAll();
+            sendInLoop(data, len);
         }
         else
         {
-            loop_->runInLoop(
-                std::bind(&TcpConnection::sendInLoop,
-                this,     // FIXME
-                buf->retrieveAllAsString()));
-            //std::forward<string>(message)));
+            auto vecData = std::make_shared<vector_char>();
+            auto selfPtr = shared_from_this();
+
+            loop_->runInLoop([=]()
+            {
+                selfPtr->sendInLoop(vecData);
+            });
         }
     }
 
-    /*void TcpConnection::sendInLoop(const StringPiece& message)
+    void TcpConnection::sendInLoop(std::shared_ptr<vector_char> vecData)
     {
-        sendInLoop(message.data(), message.size());
-    }*/
+        loop_->assertInLoopThread();
+        sendInLoop(vecData->data(), vecData->size());
+    }
 
     void TcpConnection::sendInLoop(const void* data, size_t len)
     {
         loop_->assertInLoopThread();
-        ssize_t nwrote = 0;
-        size_t remaining = len;
+        size_t sendCount = 0;
+        size_t left = len;
         bool faultError = false;
 
         // if no thing in output queue, try writing directly
         if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
         {
-            nwrote = sockets::write(channel_->fd(), data, len);
-            if (nwrote >= 0)
+            sendCount = SocketOps::Send(channel_->fd(), data, len);
+            if (sendCount >= 0)
             {
-                remaining = len - nwrote;
-                if (remaining == 0 && writeCompleteCallback_)
+                left = len - sendCount;
+                if (left == 0 && writeCompleteCallback_)
                 {
                     loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                 }
             }
-            else // nwrote < 0
+            else // sendCount < 0
             {
-                nwrote = 0;
-                if (errno != EWOULDBLOCK)
+                if (!ERR_RW_RETRIABLE(GetErrorCode()))
                 {
-                    LOG_SYSERR << "TcpConnection::sendInLoop";
-                    if (errno == EPIPE || errno == ECONNRESET) // FIXME: any others?
-                    {
-                        faultError = true;
-                    }
+                    sockErrorOccurred = true;
+                    faultError = true;                    
                 }
             }
         }
 
-        assert(remaining <= len);
-        if (!faultError && remaining > 0)
+        assert(left <= len);
+        if (!faultError && left > 0)
         {
             size_t oldLen = outputBuffer_.readableBytes();
-            if (oldLen + remaining >= highWaterMark_
+            if (oldLen + left >= highWaterMark_
                 && oldLen < highWaterMark_
                 && highWaterMarkCallback_)
             {
-                loop_->queueInLoop(std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + remaining));
+                loop_->queueInLoop(std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + left));
             }
-            outputBuffer_.append(static_cast<const char*>(data)+nwrote, remaining);
+
+            outputBuffer_.append(static_cast<const char*>(data)+sendCount, left);
             if (!channel_->isWriting())
             {
                 channel_->enableWriting();
@@ -149,7 +130,12 @@ namespace MuduoPlus
 
     void TcpConnection::shutdown()
     {
-        loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this));       
+        auto selfPtr = shared_from_this();
+
+        loop_->runInLoop([=]()
+        {
+            selfPtr->shutdownInLoop();
+        });
     }
 
     void TcpConnection::shutdownInLoop()
@@ -157,8 +143,7 @@ namespace MuduoPlus
         loop_->assertInLoopThread();
         if (!channel_->isWriting())
         {
-            // we are not writing
-            socket_->shutdownWrite();
+            SocketOps::ShutdownWrite(fd_);
         }
     }
 
@@ -183,12 +168,17 @@ namespace MuduoPlus
 
     void TcpConnection::setTcpNoDelay(bool on)
     {
-        socket_->setTcpNoDelay(on);
+        SocketOps::SetTcpNoDelay(fd_, on);
     }
 
     void TcpConnection::startRead()
     {
-        loop_->runInLoop(std::bind(&TcpConnection::startReadInLoop, this));
+        auto selfPtr = shared_from_this();
+
+        loop_->runInLoop([=]()
+        {
+            selfPtr->startReadInLoop();
+        });
     }
 
     void TcpConnection::startReadInLoop()
@@ -203,7 +193,12 @@ namespace MuduoPlus
 
     void TcpConnection::stopRead()
     {
-        loop_->runInLoop(std::bind(&TcpConnection::stopReadInLoop, this));
+        auto selfPtr = shared_from_this();
+
+        loop_->runInLoop([=]()
+        {
+            selfPtr->stopReadInLoop();
+        });
     }
 
     void TcpConnection::stopReadInLoop()
@@ -219,7 +214,6 @@ namespace MuduoPlus
     void TcpConnection::connectEstablished()
     {
         loop_->assertInLoopThread();
-        channel_->tie(shared_from_this());
         channel_->enableReading();
 
         connectionCallback_(shared_from_this());
@@ -228,34 +222,23 @@ namespace MuduoPlus
     void TcpConnection::connectDestroyed()
     {
         loop_->assertInLoopThread();
-        if (state_ == kConnected)
-        {
-            setState(kDisconnected);
-            channel_->disableAll();
-
-            connectionCallback_(shared_from_this());
-        }
+        channel_->disableAll();
+        //connectionCallback_(shared_from_this());
+       
         channel_->remove();
     }
 
     void TcpConnection::handleRead(Timestamp receiveTime)
     {
         loop_->assertInLoopThread();
-        int savedErrno = 0;
-        ssize_t n = inputBuffer_.readFd(channel_->fd(), &savedErrno);
-        if (n > 0)
+        bool ret = inputBuffer_.readFd(channel_->fd());
+        if (ret)
         {
             messageCallback_(shared_from_this(), &inputBuffer_, receiveTime);
         }
-        else if (n == 0)
-        {
-            handleClose();
-        }
         else
         {
-            errno = savedErrno;
-            LOG_SYSERR << "TcpConnection::handleRead";
-            handleError();
+            sockErrorOccurred = true;
         }
     }
 
@@ -264,7 +247,7 @@ namespace MuduoPlus
         loop_->assertInLoopThread();
         if (channel_->isWriting())
         {
-            ssize_t n = sockets::write(channel_->fd(),
+            size_t n = SocketOps::Send(channel_->fd(),
                 outputBuffer_.peek(),
                 outputBuffer_.readableBytes());
             if (n > 0)
@@ -277,43 +260,39 @@ namespace MuduoPlus
                     {
                         loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                     }
-                        
-                    shutdownInLoop();                    
+                    
+
+                    //shutdownInLoop();                    
                 }
             }
             else
             {
-                LOG_SYSERR << "TcpConnection::handleWrite";
-                // if (state_ == kDisconnecting)
-                // {
-                //   shutdownInLoop();
-                // }
+                if (!ERR_RW_RETRIABLE(GetErrorCode()))
+                {
+                    sockErrorOccurred = true;
+                    LOG_PRINT(LogType_Error, "TcpConnection::handleWrite");
+                }
             }
         }
         else
         {
-            LOG_TRACE << "Connection fd = " << channel_->fd()
-                << " is down, no more writing";
+            LOG_PRINT(LogType_Info, "Connection fd = %d is down, no more writing", channel_->fd());
         }
     }
 
     void TcpConnection::handleClose()
     {
         loop_->assertInLoopThread();
-        LOG_TRACE << "fd = " << channel_->fd() << " state = ";
 
         channel_->disableAll();
-
-        TcpConnectionPtr guardThis(shared_from_this());
-        connectionCallback_(guardThis);
-        // must be the last line
-        closeCallback_(guardThis);
+        sockErrorOccurred = true;
     }
 
-    void TcpConnection::handleError()
+    void TcpConnection::handleFinish()
     {
-        int err = sockets::getSocketError(channel_->fd());
-        LOG_ERROR << "TcpConnection::handleError [" << name_
-            << "] - SO_ERROR = " << err << " " << strerror_tl(err);
+        if (sockErrorOccurred && closeCallback_)
+        {
+            closeCallback_(shared_from_this());
+        }
     }
 }

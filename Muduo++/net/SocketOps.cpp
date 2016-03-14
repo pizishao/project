@@ -69,7 +69,12 @@ namespace SocketOps
         return      newFd;
     }
 
-    int Recv(socket_t fd, char *buff, size_t count)
+    int Send(socket_t fd, const void* buff, int count)
+    {
+        return send(fd, (char *)buff, count, 0);
+    }
+
+    int Recv(socket_t fd, char *buff, int count)
     {
         return recv(fd, buff, count, 0);
     }
@@ -96,6 +101,34 @@ namespace SocketOps
 #endif
 
         return true;
+    }
+
+    void SetKeepAlive(socket_t fd, bool on)
+    {
+        int val = on ? 1 : 0;
+
+        if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char *)&val, sizeof(val)) < 0)
+        {
+            assert(false);
+        }
+    }
+
+    void ShutdownWrite(int fd)
+    {
+        if (shutdown(fd, SHUT_WR) < 0)
+        {
+            assert(false);
+        }
+    }
+
+    void SetTcpNoDelay(int fd, bool on)
+    {
+        int optval = on ? 1 : 0;
+        if (::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+            (char *)&optval, sizeof(optval)) < 0)
+        {
+            assert(false);
+        }
     }
 
     int ReuseListenSocket(socket_t fd)

@@ -89,6 +89,7 @@
     <ClInclude Include="base\StringPiece.h" />
     <ClInclude Include="base\Platform.h" />
     <ClInclude Include="base\Timestamp.h" />
+    <ClInclude Include="base\types.h" />
     <ClInclude Include="net\Acceptor.h" />
     <ClInclude Include="net\Buffer.h" />
     <ClInclude Include="net\CallBack.h" />

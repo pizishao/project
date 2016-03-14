@@ -24,13 +24,13 @@ namespace MuduoPlus
 #ifdef WIN32
         while (true)
         {
-            char buf[MAX_TO_READ_EVER] = { 0 };
-            int n = SocketOps::Recv(fd, buf, MAX_TO_READ_EVER);
+            char buf[MAX_TO_READ_ONCE] = { 0 };
+            int n = SocketOps::Recv(fd, buf, MAX_TO_READ_ONCE);
             if (n > 0)
             {
                 append(buf, n);
 
-                if (n < MAX_TO_READ_EVER) // no more data
+                if (n < MAX_TO_READ_ONCE) // no more data
                 {
                     return true;
                 }
@@ -50,7 +50,7 @@ namespace MuduoPlus
 #else
         while (true)
         {
-            char extrabuf[MAX_TO_READ_EVER] = {0};
+            char extrabuf[MAX_TO_READ_ONCE] = {0};
             struct iovec vec[2];
             const size_t writable = writableBytes();
             vec[0].iov_base = begin() + writerIndex_;
@@ -85,5 +85,12 @@ namespace MuduoPlus
             }
         }
 #endif                
+    }
+
+    bool Buffer::sendFd(int fd, int len)
+    {
+        while (true)
+        {
+        }
     }
 }

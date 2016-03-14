@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include "base/types.h"
 #include "base/NonCopyable.h"
 #include "base/Timestamp.h"
 
@@ -13,7 +14,7 @@
 namespace MuduoPlus
 {
     class Channel;
-    class EventLoop;
+    class EventLoop; 
 
     class TcpConnection : NonCopyable,
         public std::enable_shared_from_this<TcpConnection>
@@ -34,12 +35,12 @@ namespace MuduoPlus
         const InetAddress& localAddress() const { return localAddr_; }
         const InetAddress& peerAddress() const { return peerAddr_; }
         // return true if success.
-        bool getTcpInfo(struct tcp_info*) const;
-        std::string getTcpInfoString() const;
+        /*bool getTcpInfo(struct tcp_info*) const;
+        std::string getTcpInfoString() const;*/
 
         // void send(string&& message); // C++11
-        void send(const void* message, int len);
-        void send(Buffer* message);  // this one will swap data
+        void send(const void* data, int len);
+        //void send(Buffer* message);  // this one will swap data
         void shutdown(); // NOT thread safe, no simultaneous calling
         // void shutdownAndForceCloseAfter(double seconds); // NOT thread safe, no simultaneous calling
         void forceClose();
@@ -96,8 +97,9 @@ namespace MuduoPlus
         void handleRead(Timestamp receiveTime);
         void handleWrite();
         void handleClose();
-        void handleError();
-        void sendInLoop(const void* message, size_t len);
+        void handleFinish();
+        void sendInLoop(std::shared_ptr<vector_char> vecData);
+        void sendInLoop(const void* data, size_t len);
         void shutdownInLoop();
         // void shutdownAndForceCloseInLoop(double seconds);
         void forceCloseInLoop();
@@ -107,7 +109,8 @@ namespace MuduoPlus
         EventLoop* loop_;
         const std::string name_;
         // we don't expose those classes to client.
-        std::shared_ptr<Socket> socket_;
+        int fd_;
+        bool sockErrorOccurred;
         std::shared_ptr<Channel> channel_;
         const InetAddress localAddr_;
         const InetAddress peerAddr_;
@@ -119,7 +122,7 @@ namespace MuduoPlus
         size_t highWaterMark_;
         Buffer inputBuffer_;
         Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
-        bool reading_;
+        bool    reading_;
     };
 
     typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
