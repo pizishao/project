@@ -78,7 +78,7 @@ namespace MuduoPlus
 
         void printActiveChannels() const;
 
-        typedef std::vector<Channel*> ChannelList;
+        typedef std::vector<Pipe>   PipeList;
 
         bool                        looping_; 
         bool                        quit_; 
@@ -94,7 +94,7 @@ namespace MuduoPlus
         std::shared_ptr<Channel>    wakeupChannel_;
         //boost::any                  context_;
 
-        ChannelList                 activeChannels_;
+        PipeList                    activePipes_;
         Channel*                    currentActiveChannel_;
 
         std::mutex                  mutex_;

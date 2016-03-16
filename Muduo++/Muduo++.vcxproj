@@ -88,6 +88,7 @@
     <ClInclude Include="base\NonCopyable.h" />
     <ClInclude Include="base\StringPiece.h" />
     <ClInclude Include="base\Platform.h" />
+    <ClInclude Include="base\ThreadPool.h" />
     <ClInclude Include="base\Timestamp.h" />
     <ClInclude Include="base\types.h" />
     <ClInclude Include="net\Acceptor.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="net\Connector.h" />
     <ClInclude Include="net\EventLoop.h" />
     <ClInclude Include="net\InetAddress.h" />
+    <ClInclude Include="net\Pipe.h" />
     <ClInclude Include="net\Poller.h" />
     <ClInclude Include="net\Selector.h" />
     <ClInclude Include="net\SocketOps.h" />
@@ -111,6 +113,7 @@
   <ItemGroup>
     <ClCompile Include="base\LinuxWin.cpp" />
     <ClCompile Include="base\Logger.cpp" />
+    <ClCompile Include="base\ThreadPool.cpp" />
     <ClCompile Include="base\Timestamp.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="net\Acceptor.cpp" />

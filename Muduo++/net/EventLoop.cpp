@@ -67,8 +67,8 @@ namespace MuduoPlus
 
         while (!quit_)
         {
-            activeChannels_.clear();
-            poller_->poll(m_PollTimeoutMsec, &activeChannels_);
+            activePipes_.clear();
+            poller_->poll(m_PollTimeoutMsec, &activePipes_);
             /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
@@ -76,10 +76,10 @@ namespace MuduoPlus
             // TODO sort channel by priority          
 
             eventHandling_ = true;
-            for (ChannelList::iterator it = activeChannels_.begin();
-                it != activeChannels_.end(); ++it)
+            for (PipeList::iterator it = activePipes_.begin();
+                it != activePipes_.end(); ++it)
             {
-                currentActiveChannel_ = *it;
+                currentActiveChannel_ = it->channel_;
                 currentActiveChannel_->handleEvent(pollReturnTime_);
             }
             currentActiveChannel_ = NULL;
@@ -169,8 +169,8 @@ namespace MuduoPlus
         assertInLoopThread();
         if (eventHandling_)
         {
-            assert(currentActiveChannel_ == channel ||
-                std::find(activeChannels_.begin(), activeChannels_.end(), channel) == activeChannels_.end());
+            /*assert(currentActiveChannel_ == channel ||
+                std::find(activePipes_.begin(), activePipes_.end(), channel) == activePipes_.end());*/
         }
         poller_->removeChannel(channel);
     }
@@ -255,10 +255,10 @@ namespace MuduoPlus
 
     void EventLoop::printActiveChannels() const
     {
-        for (ChannelList::const_iterator it = activeChannels_.begin();
-            it != activeChannels_.end(); ++it)
+        for (PipeList::const_iterator it = activePipes_.begin();
+            it != activePipes_.end(); ++it)
         {
-            const Channel* ch = *it;
+            const Channel* ch = it->channel_;
             //LOG_TRACE << "{" << ch->reventsToString() << "} ";
         }
     }

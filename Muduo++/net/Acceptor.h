@@ -21,7 +21,7 @@ namespace MuduoPlus
         Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reuseport);
         ~Acceptor();
 
-        void SetNewConnCallBack(const NewConnCallback& cb)
+        void setNewConnectionCallback(const NewConnCallback& cb)
         {
             m_NewConnCallBack = cb;
         }

@@ -10,7 +10,7 @@ namespace MuduoPlus
         Selector(EventLoop* loop);
         virtual ~Selector();
 
-        virtual void poll(int timeoutMs, ChannelList* activeChannels);
+        virtual void poll(int timeoutMs, PipeList* activePipes);
         virtual void updateChannel(Channel* channel);
         virtual void removeChannel(Channel* channel);
 
@@ -18,12 +18,12 @@ namespace MuduoPlus
         static const int kInitEventListSize = 16;
 
         void resetFDSet();
-        void fillActiveChannels(ChannelList* activeChannels) const;
+        void fillActivePipes(PipeList* activePipes) const;
 
-        typedef std::vector<struct epoll_event> EventList;
+        //typedef std::vector<struct epoll_event> EventList;
 
-        FD_SET readSet;
-        FD_SET writeSet;
-        FD_SET exceptSet;
+        FD_SET readSet_;
+        FD_SET writeSet_;
+        FD_SET exceptSet_;
     };
 }

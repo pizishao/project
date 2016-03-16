@@ -59,6 +59,9 @@ namespace MuduoPlus
         EventLoop* ownerLoop() { return loop_; }
         void remove();
 
+        void setOwner(std::weak_ptr<void> ptr);
+        std::weak_ptr<void> getOwner();
+
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
@@ -75,6 +78,7 @@ namespace MuduoPlus
         int        recvEvents_; // it's the received event types of epoll or select
         int        index_;      // used by Poller.
 
+        std::weak_ptr<void> owner_;
         bool addedToLoop_;
 
         ReadEventCallback   readCallback_;

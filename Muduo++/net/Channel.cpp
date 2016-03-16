@@ -41,6 +41,16 @@ namespace MuduoPlus
         loop_->removeChannel(this);
     }
 
+    void Channel::setOwner(std::weak_ptr<void> ptr)
+    {
+        owner_ = ptr;
+    }
+
+    std::weak_ptr<void> Channel::getOwner()
+    {
+        return owner_;
+    }
+
     void Channel::handleEvent(Timestamp receiveTime)
     {
         handleEventWithGuard(receiveTime);

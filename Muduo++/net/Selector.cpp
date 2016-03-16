@@ -10,16 +10,16 @@ namespace MuduoPlus
     Selector::Selector(EventLoop* loop)
         : Poller(loop)
     {
-        FD_ZERO(&readSet);
-        FD_ZERO(&writeSet);
-        FD_ZERO(&exceptSet);
+        FD_ZERO(&readSet_);
+        FD_ZERO(&writeSet_);
+        FD_ZERO(&exceptSet_);
     }
 
     Selector::~Selector()
     {
     }
 
-    void Selector::poll(int timeoutMS, ChannelList* activeChannels)
+    void Selector::poll(int timeoutMS, PipeList* activePipes)
     {
         resetFDSet();
 
@@ -31,34 +31,35 @@ namespace MuduoPlus
         tv.tv_sec = sec;
         tv.tv_usec = msec * 1000;
 
-        int iRet = select(0, &readSet, &writeSet, &exceptSet, &tv);
+        int iRet = select(0, &readSet_, &writeSet_, &exceptSet_, &tv);
 
         if (iRet <= 0)
         {
             return;
         }
 
-        fillActiveChannels(activeChannels);
+        fillActivePipes(activePipes);
     }
 
-    void Selector::fillActiveChannels(ChannelList* activeChannels) const
+    void Selector::fillActivePipes(PipeList* activePipes) const
     {
-        for (const auto& channelPair : channels_)
+        for (const auto& pipePair : pipes_)
         {
-            Channel *pChannel = channelPair.second;
+            Pipe    pipe = pipePair.second;
+            Channel *pChannel = pipe.channel_;
             int events = Channel::kNoneEvent;
 
-            if (FD_ISSET(pChannel->fd(), &readSet))
+            if (FD_ISSET(pChannel->fd(), &readSet_))
             {
                 events |= Channel::kReadEvent;
             }
 
-            if (FD_ISSET(pChannel->fd(), &writeSet))
+            if (FD_ISSET(pChannel->fd(), &writeSet_))
             {
                 events |= Channel::kWriteEvent;
             }
 
-            if (FD_ISSET(pChannel->fd(), &exceptSet))
+            if (FD_ISSET(pChannel->fd(), &exceptSet_))
             {
                 events |= Channel::kCloseEvent;
             }
@@ -66,16 +67,28 @@ namespace MuduoPlus
             if (events)
             {
                 pChannel->setRecvEvents(events);
-                activeChannels->push_back(pChannel);
+                activePipes->push_back(pipe);
             }
         }
     }
 
     void Selector::updateChannel(Channel* channel)
     {
-        if (channels_.find(channel->fd()) == channels_.end())
+        if (pipes_.find(channel->fd()) == pipes_.end())
         {
-            channels_.insert({ channel->fd(), channel });
+            auto weakOwner = channel->getOwner();
+            auto owner = weakOwner.lock();
+            if (owner)
+            {
+                Pipe pipe;
+                pipe.channel_ = channel;
+                pipe.ower_ = owner;
+                pipes_.insert({ channel->fd(), pipe});
+            }
+            else
+            {
+                assert(false);
+            }
         } 
         else
         {
@@ -88,36 +101,36 @@ namespace MuduoPlus
         Poller::assertInLoopThread();
 
         int fd = channel->fd();
-        auto found = channels_.find(fd);
-        assert(found != channels_.end());
-        assert(found->second == channel);
+        auto found = pipes_.find(fd);
+        assert(found != pipes_.end());
+        assert(found->second.channel_ == channel);
 
-        channels_.erase(fd);
+        pipes_.erase(fd);
     }
 
     void Selector::resetFDSet()
     {
-        FD_ZERO(&readSet);
-        FD_ZERO(&writeSet);
-        FD_ZERO(&exceptSet);
+        FD_ZERO(&readSet_);
+        FD_ZERO(&writeSet_);
+        FD_ZERO(&exceptSet_);
 
-        for (const auto& channelPair : channels_)
+        for (const auto& pipePair : pipes_)
         {
-            Channel *pChannel = channelPair.second;
+            Channel *pChannel = pipePair.second.channel_;
 
             if (pChannel->interestEvents() & Channel::kReadEvent)
             {
-                FD_SET(pChannel->fd(), &readSet);
+                FD_SET(pChannel->fd(), &readSet_);
             }
 
             if (pChannel->interestEvents() & Channel::kWriteEvent)
             {
-                FD_SET(pChannel->fd(), &writeSet);
+                FD_SET(pChannel->fd(), &writeSet_);
             }
 
             if (pChannel->interestEvents() & Channel::kCloseEvent)
             {
-                FD_SET(pChannel->fd(), &exceptSet);
+                FD_SET(pChannel->fd(), &exceptSet_);
             }
         }
     }

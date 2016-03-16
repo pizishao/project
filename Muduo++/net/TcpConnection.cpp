@@ -20,27 +20,14 @@ namespace MuduoPlus
         highWaterMark_(64 * 1024 * 1024),
         reading_(true)
     {
-        auto selfPtr = shared_from_this();
-
-        channel_->setReadCallback([=](Timestamp receiveTime)
-        {
-            selfPtr->handleRead(receiveTime);
-        });
-
-        channel_->setWriteCallback([=]()
-        {
-            selfPtr->handleWrite();
-        });
-
-        channel_->setCloseCallback([=]()
-        {
-            selfPtr->handleClose();
-        });
-
-        channel_->setFinishCallback([=]()
-        {
-            selfPtr->handleFinish();
-        });
+        channel_->setReadCallback(
+            std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
+        channel_->setWriteCallback(
+            std::bind(&TcpConnection::handleWrite, this));
+        channel_->setCloseCallback(
+            std::bind(&TcpConnection::handleClose, this));
+        channel_->setFinishCallback(
+            std::bind(&TcpConnection::handleFinish, this));
 
         SocketOps::SetKeepAlive(fd_, true);
     }
@@ -154,10 +141,11 @@ namespace MuduoPlus
 
     void TcpConnection::forceCloseWithDelay(double seconds)
     {
-        loop_->runAfter(
-            seconds,
-            makeWeakCallback(shared_from_this(),
-            &TcpConnection::forceClose));  // not forceCloseInLoop to avoid race condition      
+        auto selfPtr = shared_from_this();
+        loop_->runAfter(seconds, [=]()
+        {
+            selfPtr->forceClose();
+        });
     }
 
     void TcpConnection::forceCloseInLoop()
@@ -213,10 +201,12 @@ namespace MuduoPlus
 
     void TcpConnection::connectEstablished()
     {
+        auto selfPtr = shared_from_this();
         loop_->assertInLoopThread();
+        channel_->setOwner(selfPtr);
         channel_->enableReading();
 
-        connectionCallback_(shared_from_this());
+        connectionCallback_(selfPtr);
     }
 
     void TcpConnection::connectDestroyed()

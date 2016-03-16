@@ -17,6 +17,9 @@ namespace MuduoPlus
     typedef std::function < void(const TcpConnectionPtr&,
         Buffer*, Timestamp) > MessageCallback;
 
+    /*typedef std::function < void(int64_t clientHandle,
+        Buffer*, Timestamp) > MessageCallback;*/
+
     void defaultConnectionCallback(const TcpConnectionPtr& conn);
     void defaultMessageCallback(const TcpConnectionPtr& conn, const char*);
 }
