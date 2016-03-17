@@ -69,8 +69,8 @@ namespace MuduoPlus
             std::lock_guard<std::mutex> lockGuard(mutex_);
             while (isFull())
             {
-                std::unique_lock<std::mutex> uniqueLocker(mutex_);
-                notFull_.wait(uniqueLocker);
+                std::unique_lock<std::mutex> uniLock(mutex_);
+                notFull_.wait(uniLock);
             }
             assert(!isFull());
 
@@ -85,8 +85,8 @@ namespace MuduoPlus
         // always use a while-loop, due to spurious wakeup
         while (queue_.empty() && running_)
         {
-            std::unique_lock<std::mutex> uniqueLocker(mutex_);
-            notEmpty_.wait(uniqueLocker);
+            std::unique_lock<std::mutex> uniLock(mutex_);
+            notEmpty_.wait(uniLock);
         }
 
         Task task;

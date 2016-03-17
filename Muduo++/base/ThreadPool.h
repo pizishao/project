@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "NonCopyable.h"
+#include "base/types.h"
 
 namespace MuduoPlus
 {
@@ -51,7 +52,7 @@ namespace MuduoPlus
         std::condition_variable  notFull_;
         std::string name_;
         Task threadInitCallback_;
-        std::vector<std::shared_ptr<std::thread>> threads_;
+        vector_ptr<std::thread > threads_;
         std::deque<Task> queue_;
         size_t maxQueueSize_;
         bool running_;

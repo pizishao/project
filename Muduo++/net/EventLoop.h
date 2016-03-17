@@ -9,6 +9,7 @@
 #include "base/Timestamp.h"
 #include "CallBack.h"
 #include "TimerId.h"
+#include "Pipe.h"
 
 namespace MuduoPlus
 {
@@ -95,7 +96,6 @@ namespace MuduoPlus
         //boost::any                  context_;
 
         PipeList                    activePipes_;
-        Channel*                    currentActiveChannel_;
 
         std::mutex                  mutex_;
         std::vector<Functor>        pendingFunctors_;

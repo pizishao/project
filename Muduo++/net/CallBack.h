@@ -3,6 +3,9 @@
 #include <memory>
 #include <functional>
 
+#include "Buffer.h"
+#include "base/Timestamp.h"
+
 namespace MuduoPlus
 {
     class TcpConnection;

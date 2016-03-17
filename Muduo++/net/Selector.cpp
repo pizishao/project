@@ -10,9 +10,9 @@ namespace MuduoPlus
     Selector::Selector(EventLoop* loop)
         : Poller(loop)
     {
-        FD_ZERO(&readSet_);
-        FD_ZERO(&writeSet_);
-        FD_ZERO(&exceptSet_);
+        FD_ZERO(&readfds_);
+        FD_ZERO(&writefds_);
+        FD_ZERO(&exceptfds_);
     }
 
     Selector::~Selector()
@@ -31,10 +31,16 @@ namespace MuduoPlus
         tv.tv_sec = sec;
         tv.tv_usec = msec * 1000;
 
-        int iRet = select(0, &readSet_, &writeSet_, &exceptSet_, &tv);
+        // zero if the time limit expired, or SOCKET_ERROR if an error occurred
+        int iRet = select(0, &readfds_, &writefds_, &exceptfds_, &tv); 
 
         if (iRet <= 0)
         {
+            if (iRet < 0)
+            {
+                assert(false);
+            }
+
             return;
         }
 
@@ -49,17 +55,17 @@ namespace MuduoPlus
             Channel *pChannel = pipe.channel_;
             int events = Channel::kNoneEvent;
 
-            if (FD_ISSET(pChannel->fd(), &readSet_))
+            if (FD_ISSET(pChannel->fd(), &readfds_))
             {
                 events |= Channel::kReadEvent;
             }
 
-            if (FD_ISSET(pChannel->fd(), &writeSet_))
+            if (FD_ISSET(pChannel->fd(), &writefds_))
             {
                 events |= Channel::kWriteEvent;
             }
 
-            if (FD_ISSET(pChannel->fd(), &exceptSet_))
+            if (FD_ISSET(pChannel->fd(), &exceptfds_))
             {
                 events |= Channel::kCloseEvent;
             }
@@ -101,18 +107,21 @@ namespace MuduoPlus
         Poller::assertInLoopThread();
 
         int fd = channel->fd();
+
+#if DEBUG
         auto found = pipes_.find(fd);
         assert(found != pipes_.end());
         assert(found->second.channel_ == channel);
+#endif       
 
         pipes_.erase(fd);
     }
 
     void Selector::resetFDSet()
     {
-        FD_ZERO(&readSet_);
-        FD_ZERO(&writeSet_);
-        FD_ZERO(&exceptSet_);
+        FD_ZERO(&readfds_);
+        FD_ZERO(&writefds_);
+        FD_ZERO(&exceptfds_);
 
         for (const auto& pipePair : pipes_)
         {
@@ -120,17 +129,17 @@ namespace MuduoPlus
 
             if (pChannel->interestEvents() & Channel::kReadEvent)
             {
-                FD_SET(pChannel->fd(), &readSet_);
+                FD_SET(pChannel->fd(), &readfds_);
             }
 
             if (pChannel->interestEvents() & Channel::kWriteEvent)
             {
-                FD_SET(pChannel->fd(), &writeSet_);
+                FD_SET(pChannel->fd(), &writefds_);
             }
 
             if (pChannel->interestEvents() & Channel::kCloseEvent)
             {
-                FD_SET(pChannel->fd(), &exceptSet_);
+                FD_SET(pChannel->fd(), &exceptfds_);
             }
         }
     }

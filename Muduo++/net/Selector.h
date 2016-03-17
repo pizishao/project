@@ -22,8 +22,8 @@ namespace MuduoPlus
 
         //typedef std::vector<struct epoll_event> EventList;
 
-        FD_SET readSet_;
-        FD_SET writeSet_;
-        FD_SET exceptSet_;
+        FD_SET readfds_;
+        FD_SET writefds_;
+        FD_SET exceptfds_;
     };
 }

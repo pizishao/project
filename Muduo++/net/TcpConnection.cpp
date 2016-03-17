@@ -283,6 +283,7 @@ namespace MuduoPlus
         if (sockErrorOccurred && closeCallback_)
         {
             closeCallback_(shared_from_this());
+            closeCallback_ = nullptr;
         }
     }
 }

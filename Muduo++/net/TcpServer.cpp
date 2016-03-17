@@ -1,9 +1,11 @@
 #include <stdio.h>
 
 #include "TcpServer.h"
+#include "TcpConnection.h"
 #include "Acceptor.h"
 #include "EventLoop.h"
 #include "SocketOps.h"
+#include "EventLoopThreadPool.h"
 
 namespace MuduoPlus
 {
@@ -36,7 +38,7 @@ namespace MuduoPlus
             TcpConnectionPtr conn = it->second;
             it->second.reset();
             conn->getLoop()->runInLoop(
-                boost::bind(&TcpConnection::connectDestroyed, conn));
+                std::bind(&TcpConnection::connectDestroyed, conn));
             conn.reset();
         }
     }
@@ -55,7 +57,7 @@ namespace MuduoPlus
 
             assert(!acceptor_->listenning());
             loop_->runInLoop(
-                boost::bind(&Acceptor::listen, get_pointer(acceptor_)));
+                std::bind(&Acceptor::listen, get_pointer(acceptor_)));
         }
     }
 
@@ -84,14 +86,14 @@ namespace MuduoPlus
         conn->setMessageCallback(messageCallback_);
         conn->setWriteCompleteCallback(writeCompleteCallback_);
         conn->setCloseCallback(
-            boost::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
-        ioLoop->runInLoop(boost::bind(&TcpConnection::connectEstablished, conn));
+            std::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
+        ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
     }
 
     void TcpServer::removeConnection(const TcpConnectionPtr& conn)
     {
         // FIXME: unsafe
-        loop_->runInLoop(boost::bind(&TcpServer::removeConnectionInLoop, this, conn));
+        loop_->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
     }
 
     void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
@@ -104,6 +106,6 @@ namespace MuduoPlus
         assert(n == 1);
         EventLoop* ioLoop = conn->getLoop();
         ioLoop->queueInLoop(
-            boost::bind(&TcpConnection::connectDestroyed, conn));
+            std::bind(&TcpConnection::connectDestroyed, conn));
     }
 }

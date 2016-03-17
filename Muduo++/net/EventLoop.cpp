@@ -15,8 +15,7 @@ namespace MuduoPlus
         eventHandling_(false),
         callingPendingFunctors_(false),
         threadId_(GetCurThreadID()),        
-        timerQueue_(new TimerQueue(this)),        
-        currentActiveChannel_(NULL)        
+        timerQueue_(new TimerQueue(this))     
     {
         /*LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
         if (t_loopInThisThread)
@@ -79,10 +78,10 @@ namespace MuduoPlus
             for (PipeList::iterator it = activePipes_.begin();
                 it != activePipes_.end(); ++it)
             {
-                currentActiveChannel_ = it->channel_;
-                currentActiveChannel_->handleEvent(pollReturnTime_);
+                Channel *channel = it->channel_;
+                channel->handleEvent(pollReturnTime_);
             }
-            currentActiveChannel_ = NULL;
+
             eventHandling_ = false;
             doPendingFunctors();
         }
@@ -169,8 +168,18 @@ namespace MuduoPlus
         assertInLoopThread();
         if (eventHandling_)
         {
-            /*assert(currentActiveChannel_ == channel ||
-                std::find(activePipes_.begin(), activePipes_.end(), channel) == activePipes_.end());*/
+#if DEBUG
+            bool bFind = false;
+            for (auto &pos : activePipes_)
+            {
+                if (pos.channel_ == channel)
+                {
+                    bFind = true;
+                }
+            }
+
+            assert(bFind);
+#endif
         }
         poller_->removeChannel(channel);
     }

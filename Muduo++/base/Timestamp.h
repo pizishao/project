@@ -64,17 +64,23 @@ namespace MuduoPlus
 
         double secondFromNow()
         {
-            return secondDifference(Timestamp::now(), *this);
+            Timestamp nowStamp = Timestamp::now();
+            int64_t diff = nowStamp.microSecondsSinceEpoch() - microSecondsSinceEpoch();
+            return static_cast<double>(diff) / Timestamp::kMicroSecPerSec;
         }
 
         double milliSecondFromNow()
         {
-            return millisecondDifference(Timestamp::now(), *this);
+            Timestamp nowStamp = Timestamp::now();
+            int64_t diff = nowStamp.microSecondsSinceEpoch() - microSecondsSinceEpoch();
+            return static_cast<double>(diff) / Timestamp::kMicroSecPerMilliSec;
         }
 
         int64_t microSecondFromNow()
         {
-            return microSecondDifference(Timestamp::now(), *this);
+            Timestamp nowStamp = Timestamp::now();
+            int64_t diff = nowStamp.microSecondsSinceEpoch() - microSecondsSinceEpoch();
+            return diff;
         }
 
         static Timestamp invalid()
