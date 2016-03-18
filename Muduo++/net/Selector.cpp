@@ -84,17 +84,17 @@ namespace MuduoPlus
         {
             auto weakOwner = channel->getOwner();
             auto owner = weakOwner.lock();
-            if (owner)
+            //if (owner)
             {
                 Pipe pipe;
                 pipe.channel_ = channel;
                 pipe.ower_ = owner;
                 pipes_.insert({ channel->fd(), pipe});
             }
-            else
+            /*else
             {
                 assert(false);
-            }
+            }*/
         } 
         else
         {

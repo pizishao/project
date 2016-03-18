@@ -12,7 +12,7 @@ namespace MuduoPlus
     class EventLoop;
     class InetAddress;
 
-    class Acceptor
+    class Acceptor : public std::enable_shared_from_this<Acceptor>
     {
     public:
         typedef std::function < void(int sockfd,

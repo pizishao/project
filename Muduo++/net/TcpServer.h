@@ -101,7 +101,7 @@ namespace MuduoPlus
         EventLoop* loop_;  // the acceptor loop
         const std::string ipPort_;
         const std::string name_;
-        std::unique_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
+        std::shared_ptr<Acceptor> acceptor_; // avoid revealing Acceptor
         std::shared_ptr<EventLoopThreadPool> threadPool_;
         ConnectionCallback connectionCallback_;
         MessageCallback messageCallback_;

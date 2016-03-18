@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <atomic>
 
 #include "base/types.h"
 #include "base/NonCopyable.h"
@@ -34,6 +35,8 @@ namespace MuduoPlus
         const std::string& name() const { return name_; }
         const InetAddress& localAddress() const { return localAddr_; }
         const InetAddress& peerAddress() const { return peerAddr_; }
+        bool connected() const { return state_ == kConnected; }
+        bool disconnected() const { return state_ == kDisconnected; }
         // return true if success.
         /*bool getTcpInfo(struct tcp_info*) const;
         std::string getTcpInfoString() const;*/
@@ -103,14 +106,19 @@ namespace MuduoPlus
         void shutdownInLoop();
         // void shutdownAndForceCloseInLoop(double seconds);
         void forceCloseInLoop();
+        void releaseConnection();
+        void setState(StateE s) { state_ = s; }
+        const char* stateToString() const;
         void startReadInLoop();
         void stopReadInLoop();
 
         EventLoop* loop_;
         const std::string name_;
+        std::atomic<StateE> state_;
         // we don't expose those classes to client.
         int fd_;
         bool sockErrorOccurred;
+        bool userClosed_;
         std::shared_ptr<Channel> channel_;
         const InetAddress localAddr_;
         const InetAddress peerAddr_;

@@ -57,6 +57,7 @@ namespace MuduoPlus
         m_ListenFd = fd;
         m_AcceptChannelPtr = std::make_shared<Channel>(m_pEventLoop, m_ListenFd);
         m_AcceptChannelPtr->setReadCallback(std::bind(&Acceptor::HandleRead, this));
+        m_AcceptChannelPtr->setOwner(shared_from_this());
         m_AcceptChannelPtr->enableReading();
 
         return true;

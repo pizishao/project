@@ -12,8 +12,10 @@ namespace MuduoPlus
         const InetAddress& peerAddr)
         : loop_(loop),
         name_(nameArg),
+        state_(kConnecting),
         fd_(sockfd),
         sockErrorOccurred(false),
+        userClosed_(false),
         channel_(new Channel(loop, fd_)),
         localAddr_(localAddr),
         peerAddr_(peerAddr),
@@ -26,8 +28,7 @@ namespace MuduoPlus
             std::bind(&TcpConnection::handleWrite, this));
         channel_->setCloseCallback(
             std::bind(&TcpConnection::handleClose, this));
-        channel_->setFinishCallback(
-            std::bind(&TcpConnection::handleFinish, this));
+        channel_->setFinishCallback(std::bind(&TcpConnection::handleFinish, this));
 
         SocketOps::SetKeepAlive(fd_, true);
     }
@@ -35,7 +36,8 @@ namespace MuduoPlus
     TcpConnection::~TcpConnection()
     {
         LOG_PRINT(LogType_Info, "TcpConnection::dtor[%s] at %p fd=%d", name_.c_str(), this,
-            channel_->fd());        
+            channel_->fd());    
+        assert(state_ == kDisconnected);
     }
 
     void TcpConnection::send(const void* data, int len)
@@ -45,31 +47,48 @@ namespace MuduoPlus
             return;
         }
 
-        if (loop_->isInLoopThread())
+        if (state_ == kConnected)
         {
-            sendInLoop(data, len);
-        }
-        else
-        {
-            auto vecData = std::make_shared<vector_char>();
-            auto selfPtr = shared_from_this();
-
-            loop_->runInLoop([=]()
+            if (loop_->isInLoopThread())
             {
-                selfPtr->sendInLoop(vecData);
-            });
+                sendInLoop(data, len);
+            }
+            else
+            {
+                auto vecData = std::make_shared<vector_char>();
+                auto selfPtr = shared_from_this();
+
+                loop_->runInLoop([=]()
+                {
+                    selfPtr->sendInLoop(vecData);
+                });
+            }
         }
     }
 
     void TcpConnection::sendInLoop(std::shared_ptr<vector_char> vecData)
-    {
+    {        
         loop_->assertInLoopThread();
+
+        if (state_ == kDisconnected)
+        {
+            LOG_PRINT(LogType_Warn, "disconnected, give up writing");
+            return;
+        }
+
         sendInLoop(vecData->data(), vecData->size());
     }
 
     void TcpConnection::sendInLoop(const void* data, size_t len)
-    {
+    {        
         loop_->assertInLoopThread();
+
+        if (state_ == kDisconnected)
+        {
+            LOG_PRINT(LogType_Warn, "disconnected, give up writing");
+            return;
+        }
+
         size_t sendCount = 0;
         size_t left = len;
         bool faultError = false;
@@ -117,12 +136,16 @@ namespace MuduoPlus
 
     void TcpConnection::shutdown()
     {
-        auto selfPtr = shared_from_this();
-
-        loop_->runInLoop([=]()
+        if (state_ == kConnected)
         {
-            selfPtr->shutdownInLoop();
-        });
+            setState(kDisconnecting);
+            auto selfPtr = shared_from_this();
+
+            loop_->runInLoop([=]()
+            {
+                selfPtr->shutdownInLoop();
+            });
+        }
     }
 
     void TcpConnection::shutdownInLoop()
@@ -132,26 +155,70 @@ namespace MuduoPlus
         {
             SocketOps::ShutdownWrite(fd_);
         }
+
+        userClosed_ = true;
     }
 
     void TcpConnection::forceClose()
     {
-        loop_->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
+        if (state_ == kConnected || state_ == kDisconnecting)
+        {
+            setState(kDisconnecting);
+            loop_->queueInLoop(std::bind(&TcpConnection::forceCloseInLoop, shared_from_this()));
+        }
     }
 
     void TcpConnection::forceCloseWithDelay(double seconds)
     {
-        auto selfPtr = shared_from_this();
-        loop_->runAfter(seconds, [=]()
+        if (state_ == kConnected || state_ == kDisconnecting)
         {
-            selfPtr->forceClose();
-        });
+            setState(kDisconnecting);
+            auto selfPtr = shared_from_this();
+            loop_->runAfter(seconds, [=]()
+            {
+                selfPtr->forceClose();
+            });
+        }
     }
 
     void TcpConnection::forceCloseInLoop()
     {
         loop_->assertInLoopThread();
-        handleClose();        
+        userClosed_ = true;  
+
+        releaseConnection();
+    }
+
+    void TcpConnection::releaseConnection()
+    {
+        if (state_ == kConnected || state_ == kDisconnecting)
+        {
+            setState(kDisconnected);
+            channel_->disableAll();         
+
+            if (closeCallback_)
+            {
+                closeCallback_(shared_from_this());
+                closeCallback_ = nullptr;
+            }            
+        }
+    }
+
+    const char* TcpConnection::stateToString() const
+    {
+        switch (state_)
+        {
+        case kDisconnected:
+            return "kDisconnected";
+        case kConnecting:
+            return "kConnecting";
+        case kConnected:
+            return "kConnected";
+        case kDisconnecting:
+            return "kDisconnecting";
+        default:
+            return "unknown state";
+        }
     }
 
     void TcpConnection::setTcpNoDelay(bool on)
@@ -202,6 +269,8 @@ namespace MuduoPlus
     void TcpConnection::connectEstablished()
     {
         auto selfPtr = shared_from_this();
+        assert(state_ == kConnecting);
+        setState(kConnected);
         loop_->assertInLoopThread();
         channel_->setOwner(selfPtr);
         channel_->enableReading();
@@ -212,9 +281,19 @@ namespace MuduoPlus
     void TcpConnection::connectDestroyed()
     {
         loop_->assertInLoopThread();
-        channel_->disableAll();
-        //connectionCallback_(shared_from_this());
-       
+        /*if (state_ == kConnected)
+        {
+            setState(kDisconnected);
+            channel_->disableAll();            
+        }*/
+
+        assert(state_ == kDisconnected);
+
+        if (!userClosed_)
+        {
+            connectionCallback_(shared_from_this());
+        }
+
         channel_->remove();
     }
 
@@ -251,8 +330,10 @@ namespace MuduoPlus
                         loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                     }
                     
-
-                    //shutdownInLoop();                    
+                    if (state_ == kDisconnecting)
+                    {
+                        shutdownInLoop();
+                    }
                 }
             }
             else
@@ -273,17 +354,21 @@ namespace MuduoPlus
     void TcpConnection::handleClose()
     {
         loop_->assertInLoopThread();
-
-        channel_->disableAll();
+        assert(state_ == kConnected || state_ == kDisconnecting);
+                
         sockErrorOccurred = true;
     }
 
     void TcpConnection::handleFinish()
     {
-        if (sockErrorOccurred && closeCallback_)
+        setState(kDisconnected);
+        channel_->disableAll();        
+
+        if (sockErrorOccurred /*&& closeCallback_*/)
         {
-            closeCallback_(shared_from_this());
-            closeCallback_ = nullptr;
-        }
+            releaseConnection();
+            /*closeCallback_(shared_from_this());
+            closeCallback_ = nullptr;*/
+        }        
     }
 }
