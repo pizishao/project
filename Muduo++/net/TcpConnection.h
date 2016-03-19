@@ -44,7 +44,7 @@ namespace MuduoPlus
         // void send(string&& message); // C++11
         void send(const void* data, int len);
         //void send(Buffer* message);  // this one will swap data
-        void shutdown(); // NOT thread safe, no simultaneous calling
+        void gracefulClose(); // NOT thread safe, no simultaneous calling
         // void shutdownAndForceCloseAfter(double seconds); // NOT thread safe, no simultaneous calling
         void forceClose();
         void forceCloseWithDelay(double seconds);
@@ -117,7 +117,7 @@ namespace MuduoPlus
         std::atomic<StateE> state_;
         // we don't expose those classes to client.
         int fd_;
-        bool sockErrorOccurred;
+        bool sockErrorOccurred_;
         bool userClosed_;
         std::shared_ptr<Channel> channel_;
         const InetAddress localAddr_;

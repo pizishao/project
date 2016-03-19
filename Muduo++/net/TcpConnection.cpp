@@ -14,7 +14,7 @@ namespace MuduoPlus
         name_(nameArg),
         state_(kConnecting),
         fd_(sockfd),
-        sockErrorOccurred(false),
+        sockErrorOccurred_(false),
         userClosed_(false),
         channel_(new Channel(loop, fd_)),
         localAddr_(localAddr),
@@ -55,7 +55,7 @@ namespace MuduoPlus
             }
             else
             {
-                auto vecData = std::make_shared<vector_char>();
+                auto vecData = std::make_shared<vector_char>((char *)data, (char *)data + len);
                 auto selfPtr = shared_from_this();
 
                 loop_->runInLoop([=]()
@@ -109,7 +109,7 @@ namespace MuduoPlus
             {
                 if (!ERR_RW_RETRIABLE(GetErrorCode()))
                 {
-                    sockErrorOccurred = true;
+                    sockErrorOccurred_ = true;
                     faultError = true;                    
                 }
             }
@@ -134,29 +134,30 @@ namespace MuduoPlus
         }
     }
 
-    void TcpConnection::shutdown()
+    void TcpConnection::gracefulClose()
     {
         if (state_ == kConnected)
         {
             setState(kDisconnecting);
-            auto selfPtr = shared_from_this();
+            /*auto selfPtr = shared_from_this();
 
             loop_->runInLoop([=]()
             {
                 selfPtr->shutdownInLoop();
-            });
+            });*/
         }
     }
 
     void TcpConnection::shutdownInLoop()
     {
         loop_->assertInLoopThread();
-        if (!channel_->isWriting())
-        {
-            SocketOps::ShutdownWrite(fd_);
-        }
-
+        assert(!channel_->isWriting());
         userClosed_ = true;
+        //if (!channel_->isWriting())
+        {
+            //SocketOps::ShutdownWrite(fd_);
+            releaseConnection();
+        }        
     }
 
     void TcpConnection::forceClose()
@@ -194,7 +195,8 @@ namespace MuduoPlus
         if (state_ == kConnected || state_ == kDisconnecting)
         {
             setState(kDisconnected);
-            channel_->disableAll();         
+            channel_->disableAll();  
+            channel_->remove();
 
             if (closeCallback_)
             {
@@ -292,9 +294,7 @@ namespace MuduoPlus
         if (!userClosed_)
         {
             connectionCallback_(shared_from_this());
-        }
-
-        channel_->remove();
+        }        
     }
 
     void TcpConnection::handleRead(Timestamp receiveTime)
@@ -307,7 +307,7 @@ namespace MuduoPlus
         }
         else
         {
-            sockErrorOccurred = true;
+            sockErrorOccurred_ = true;
         }
     }
 
@@ -340,7 +340,7 @@ namespace MuduoPlus
             {
                 if (!ERR_RW_RETRIABLE(GetErrorCode()))
                 {
-                    sockErrorOccurred = true;
+                    sockErrorOccurred_ = true;
                     LOG_PRINT(LogType_Error, "TcpConnection::handleWrite");
                 }
             }
@@ -356,7 +356,7 @@ namespace MuduoPlus
         loop_->assertInLoopThread();
         assert(state_ == kConnected || state_ == kDisconnecting);
                 
-        sockErrorOccurred = true;
+        sockErrorOccurred_ = true;
     }
 
     void TcpConnection::handleFinish()
@@ -364,7 +364,7 @@ namespace MuduoPlus
         setState(kDisconnected);
         channel_->disableAll();        
 
-        if (sockErrorOccurred /*&& closeCallback_*/)
+        if (sockErrorOccurred_ /*&& closeCallback_*/)
         {
             releaseConnection();
             /*closeCallback_(shared_from_this());
