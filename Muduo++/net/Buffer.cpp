@@ -25,7 +25,7 @@ namespace MuduoPlus
         while (true)
         {
             char buf[MAX_TO_READ_ONCE] = { 0 };
-            int n = SocketOps::Recv(fd, buf, MAX_TO_READ_ONCE);
+            int n = SocketOps::secv(fd, buf, MAX_TO_READ_ONCE);
             if (n > 0)
             {
                 append(buf, n);

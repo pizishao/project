@@ -10,7 +10,7 @@
 #include <thread>
 
 #include "base/Platform.hpp"
-#include "net/InetAddress.h"
+#include "InetAddress.h"
 
 /*
 #include <muduo/base/Logging.h>
@@ -81,14 +81,14 @@ namespace MuduoPlus
         }
     }
 
-    string InetAddress::toIpPort() const
+    std::string InetAddress::toIpPort() const
     {
         char buf[64] = "";
         sockets::toIpPort(buf, sizeof buf, getSockAddr());
         return buf;
     }
 
-    string InetAddress::toIp() const
+    std::string InetAddress::toIp() const
     {
         char buf[64] = "";
         sockets::toIp(buf, sizeof buf, getSockAddr());

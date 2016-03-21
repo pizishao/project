@@ -35,7 +35,7 @@ namespace MuduoPlus
 #endif
 
         memset(wakeupFd_, 0, sizeof(wakeupFd_));
-        SocketOps::CreateSocketPair(wakeupFd_);
+        SocketOps::createSocketPair(wakeupFd_);
         wakeupChannel_.reset(new Channel(this, wakeupFd_[1]));
 
         wakeupChannel_->setReadCallback(

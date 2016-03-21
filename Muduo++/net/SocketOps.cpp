@@ -4,14 +4,14 @@
 
 namespace SocketOps
 {
-    socket_t    CreateSocket()
+    socket_t    createSocket()
     {
         socket_t fd = socket(AF_INET, SOCK_STREAM, 0);
 
         return  fd;
     }
 
-    void CloseSocket(socket_t fd)
+    void closeSocket(socket_t fd)
     {
 #ifndef WIN32
         close(fd);
@@ -20,7 +20,7 @@ namespace SocketOps
 #endif
     }
 
-    ResultCode Connect(socket_t fd, const struct sockaddr *sa)
+    ResultCode connect(socket_t fd, const struct sockaddr *sa)
     {
         if (connect(fd, sa, sizeof(*sa)) >= 0)
         {
@@ -41,7 +41,7 @@ namespace SocketOps
         return ResultCode::fail;
     }
 
-    bool BindSocket(socket_t fd, const struct sockaddr *sa)
+    bool bindSocket(socket_t fd, const struct sockaddr *sa)
     {
         if (bind(fd, sa, sizeof(*sa)) < 0)
         {
@@ -51,7 +51,7 @@ namespace SocketOps
         return true;
     }
 
-    bool Listen(socket_t fd)
+    bool listen(socket_t fd)
     {
         if (listen(fd, SOMAXCONN) < 0)
         {
@@ -61,7 +61,7 @@ namespace SocketOps
         return true;
     }
 
-    socket_t Accept(socket_t fd, struct sockaddr *addr)
+    socket_t accept(socket_t fd, struct sockaddr *addr)
     {
         socklen_t   socklen = sizeof(*addr);
         socket_t    newFd = accept(fd, addr, &socklen);
@@ -69,17 +69,17 @@ namespace SocketOps
         return      newFd;
     }
 
-    int Send(socket_t fd, const void* buff, int count)
+    int send(socket_t fd, const void* buff, int count)
     {
         return send(fd, (char *)buff, count, 0);
     }
 
-    int Recv(socket_t fd, char *buff, int count)
+    int secv(socket_t fd, char *buff, int count)
     {
         return recv(fd, buff, count, 0);
     }
 
-    bool SetSocketNoneBlocking(socket_t fd)
+    bool setSocketNoneBlocking(socket_t fd)
     {
 #ifdef WIN32
     {
@@ -103,7 +103,7 @@ namespace SocketOps
         return true;
     }
 
-    void SetKeepAlive(socket_t fd, bool on)
+    void setKeepAlive(socket_t fd, bool on)
     {
         int val = on ? 1 : 0;
 
@@ -113,7 +113,7 @@ namespace SocketOps
         }
     }
 
-    void ShutdownWrite(int fd)
+    void shutdownWrite(int fd)
     {
         if (shutdown(fd, SHUT_WR) < 0)
         {
@@ -121,7 +121,7 @@ namespace SocketOps
         }
     }
 
-    void SetTcpNoDelay(int fd, bool on)
+    void setTcpNoDelay(int fd, bool on)
     {
         int optval = on ? 1 : 0;
         if (::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
@@ -131,7 +131,7 @@ namespace SocketOps
         }
     }
 
-    int ReuseListenSocket(socket_t fd)
+    int reuseListenSocket(socket_t fd)
     {
 #ifndef WIN32
         int one = 1;
@@ -142,7 +142,7 @@ namespace SocketOps
 #endif
     }
 
-    int CreateSocketPair(socket_t fdPair[2])
+    int createSocketPair(socket_t fdPair[2])
     {
         if (!fdPair)
         {
@@ -229,7 +229,7 @@ namespace SocketOps
             goto err;
         }
 
-        CloseSocket(listener);
+        closeSocket(listener);
         fdPair[0] = connector;
         fdPair[1] = acceptor;
 
@@ -238,19 +238,33 @@ namespace SocketOps
 err:
         if (listener != -1)
         {
-            CloseSocket(listener);
+            closeSocket(listener);
         }
 
         if (connector != -1)
         {
-            CloseSocket(connector);
+            closeSocket(connector);
         }
 
         if (acceptor != -1)
         {
-            CloseSocket(acceptor);
+            closeSocket(acceptor);
         }
 
         return -1;
     }
+
+    sockaddr_in getLocalAddr(int sockfd)
+    {
+        struct sockaddr_in localaddr = {0);
+        socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
+
+        if (::getsockname(sockfd, (sockaddr *)(&localaddr), &addrlen) < 0)
+        {
+            assert(false);
+        }
+
+        return localaddr;
+    }
+
 }

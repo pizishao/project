@@ -17,12 +17,12 @@ namespace MuduoPlus
     {
         m_AcceptChannelPtr->disableAll();
         m_AcceptChannelPtr->remove();
-        SocketOps::CloseSocket(m_ListenFd);
+        SocketOps::closeSocket(m_ListenFd);
     }
 
     bool Acceptor::Listen()
     {
-        socket_t fd = SocketOps::CreateSocket();
+        socket_t fd = SocketOps::createSocket();
 
         if (fd == -1)
         {           
@@ -31,28 +31,28 @@ namespace MuduoPlus
             return false;
         }
 
-        if (!SocketOps::SetSocketNoneBlocking(fd))
+        if (!SocketOps::setSocketNoneBlocking(fd))
         {
             LOG_PRINT(LogType_Error, "enable socket noneBlocking failed:%s %s:%d", 
                 GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
-        if (!SocketOps::BindSocket(fd, (sockaddr *)&m_ListenAddr.GetSockAddr()))
+        if (!SocketOps::bindSocket(fd, (sockaddr *)&m_ListenAddr.getSockAddrIn()))
         {
             LOG_PRINT(LogType_Error, "bind socket failed:%s %s:%d", 
                 GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
-        if (!SocketOps::Listen(fd))
+        if (!SocketOps::listen(fd))
         {
             LOG_PRINT(LogType_Error, "listen socket failed:%s %s:%d", 
                 GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
-        LOG_PRINT(LogType_Info, "listen at ip:%s port:%u", m_ListenAddr.IpString().c_str(), m_ListenAddr.PortHostEndian());
+        LOG_PRINT(LogType_Info, "listen at ip:%s port:%u", m_ListenAddr.ip().c_str(), m_ListenAddr.port());
 
         m_ListenFd = fd;
         m_AcceptChannelPtr = std::make_shared<Channel>(m_pEventLoop, m_ListenFd);
@@ -63,7 +63,7 @@ namespace MuduoPlus
         return true;
 
     err:
-        SocketOps::CloseSocket(fd);
+        SocketOps::closeSocket(fd);
         return false;
     }
 
@@ -76,20 +76,20 @@ namespace MuduoPlus
             InetAddress peerAddr;
             sockaddr addr = {0};
 
-            socket_t newFd = SocketOps::Accept(m_ListenFd, &addr);
+            socket_t newFd = SocketOps::accept(m_ListenFd, &addr);
             if (newFd < 0)
             {
                 break;
             }
 
-            peerAddr.SetSockAddr(*(sockaddr_in *)&addr);
+            peerAddr.setSockAddrIn(*(sockaddr_in *)&addr);
             if (m_NewConnCallBack)
             {               
                 m_NewConnCallBack(newFd, peerAddr);
             }
             else
             {
-                SocketOps::CloseSocket(newFd);
+                SocketOps::closeSocket(newFd);
             }
         }
 

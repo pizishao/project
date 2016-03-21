@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 
 #include "TcpServer.h"
 #include "TcpConnection.h"
@@ -6,6 +7,7 @@
 #include "EventLoop.h"
 #include "SocketOps.h"
 #include "EventLoopThreadPool.h"
+#include "base/Logger.h"
 
 namespace MuduoPlus
 {
@@ -30,7 +32,7 @@ namespace MuduoPlus
     TcpServer::~TcpServer()
     {
         loop_->assertInLoopThread();
-        LOG_TRACE << "TcpServer::~TcpServer [" << name_ << "] destructing";
+        LOG_PRINT(LogType_Info, "TcpServer::~TcpServer [%s] destructing", name_.c_str());
 
         for (ConnectionMap::iterator it(connections_.begin());
             it != connections_.end(); ++it)
@@ -54,10 +56,9 @@ namespace MuduoPlus
         if (started_.getAndSet(1) == 0)
         {
             threadPool_->start(threadInitCallback_);
-
             assert(!acceptor_->listenning());
             loop_->runInLoop(
-                std::bind(&Acceptor::listen, get_pointer(acceptor_)));
+                std::bind(&Acceptor::listen, acceptor_.get()));
         }
     }
 
@@ -68,12 +69,11 @@ namespace MuduoPlus
         char buf[64];
         snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_);
         ++nextConnId_;
-        string connName = name_ + buf;
+        std::string connName = name_ + buf;
 
-        LOG_INFO << "TcpServer::newConnection [" << name_
-            << "] - new connection [" << connName
-            << "] from " << peerAddr.toIpPort();
-        InetAddress localAddr(sockets::getLocalAddr(sockfd));
+        LOG_PRINT(LogType_Info, "TcpServer::newConnection [%s] - new connection [%s] from %s",
+            name_.c_str(), connName.c_str(), peerAddr.toIpPort().c_str());
+        InetAddress localAddr(SocketOps::getLocalAddr(sockfd));
         // FIXME poll with zero timeout to double confirm the new connection
         // FIXME use make_shared if necessary
         TcpConnectionPtr conn(new TcpConnection(ioLoop,
@@ -86,7 +86,7 @@ namespace MuduoPlus
         conn->setMessageCallback(messageCallback_);
         conn->setWriteCompleteCallback(writeCompleteCallback_);
         conn->setCloseCallback(
-            std::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
+            std::bind(&TcpServer::removeConnection, this, std::placeholders::_1)); // FIXME: unsafe
         ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
     }
 
@@ -99,8 +99,8 @@ namespace MuduoPlus
     void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
     {
         loop_->assertInLoopThread();
-        LOG_INFO << "TcpServer::removeConnectionInLoop [" << name_
-            << "] - connection " << conn->name();
+        LOG_PRINT(LogType_Info, "TcpServer::removeConnectionInLoop [%s] - connection %s",
+            name_.c_str(), conn->name().c_str());
         size_t n = connections_.erase(conn->name());
         (void)n;
         assert(n == 1);

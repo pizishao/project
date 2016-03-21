@@ -36,19 +36,21 @@ namespace SocketOps
         return ntohs(net16);
     }
 
-    socket_t    CreateSocket();
-    void        CloseSocket(socket_t fd);
-    ResultCode  Connect(socket_t fd, const struct sockaddr *sa);
-    bool        BindSocket(socket_t fd, const struct sockaddr *sa);
-    bool        Listen(socket_t fd);
-    socket_t    Accept(socket_t fd, struct sockaddr *addr);
-    int         Send(socket_t fd, const void* buff, int count);
-    int         Recv(socket_t fd, char *buff, int count);
+    socket_t    createSocket();
+    void        closeSocket(socket_t fd);
+    ResultCode  connect(socket_t fd, const struct sockaddr *sa);
+    bool        bindSocket(socket_t fd, const struct sockaddr *sa);
+    bool        listen(socket_t fd);
+    socket_t    accept(socket_t fd, struct sockaddr *addr);
+    int         send(socket_t fd, const void* buff, int count);
+    int         secv(socket_t fd, char *buff, int count);
 
-    bool        SetSocketNoneBlocking(socket_t fd);
-    void        SetKeepAlive(socket_t fd, bool on);
-    void        ShutdownWrite(int fd);
-    void        SetTcpNoDelay(int fd, bool on);
-    int         ReuseListenSocket(socket_t fd);
-    int         CreateSocketPair(socket_t fdPair[2]);
+    bool        setSocketNoneBlocking(socket_t fd);
+    void        setKeepAlive(socket_t fd, bool on);
+    void        shutdownWrite(int fd);
+    void        setTcpNoDelay(int fd, bool on);
+    int         reuseListenSocket(socket_t fd);
+    int         createSocketPair(socket_t fdPair[2]);
+    sockaddr_in getLocalAddr(int sockfd);
+
 }

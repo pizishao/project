@@ -30,7 +30,7 @@ namespace MuduoPlus
             std::bind(&TcpConnection::handleClose, this));
         channel_->setFinishCallback(std::bind(&TcpConnection::handleFinish, this));
 
-        SocketOps::SetKeepAlive(fd_, true);
+        SocketOps::setKeepAlive(fd_, true);
     }
 
     TcpConnection::~TcpConnection()
@@ -96,7 +96,7 @@ namespace MuduoPlus
         // if no thing in output queue, try writing directly
         if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
         {
-            sendCount = SocketOps::Send(channel_->fd(), data, len);
+            sendCount = SocketOps::send(channel_->fd(), data, len);
             if (sendCount >= 0)
             {
                 left = len - sendCount;
@@ -225,7 +225,7 @@ namespace MuduoPlus
 
     void TcpConnection::setTcpNoDelay(bool on)
     {
-        SocketOps::SetTcpNoDelay(fd_, on);
+        SocketOps::setTcpNoDelay(fd_, on);
     }
 
     void TcpConnection::startRead()
@@ -316,7 +316,7 @@ namespace MuduoPlus
         loop_->assertInLoopThread();
         if (channel_->isWriting())
         {
-            size_t n = SocketOps::Send(channel_->fd(),
+            size_t n = SocketOps::send(channel_->fd(),
                 outputBuffer_.peek(),
                 outputBuffer_.readableBytes());
             if (n > 0)
