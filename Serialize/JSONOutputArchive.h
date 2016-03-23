@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SerializeHeader.h"
-#include "SerializeTraits.h"
+#include "common.h"
+#include "traits.h"
 #include "RapidjsonWrap.h"
 
 namespace Serialization
