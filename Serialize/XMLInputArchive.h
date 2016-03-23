@@ -5,6 +5,7 @@
 
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
+#include "RapidxmlWrap.h"
 
 namespace Serialization
 {

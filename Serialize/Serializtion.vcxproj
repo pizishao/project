@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>D:\third-party\Project\Serialize\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,6 +85,8 @@
   <ItemGroup>
     <ClInclude Include="JSONInputArchive.h" />
     <ClInclude Include="JSONOutputArchive.h" />
+    <ClInclude Include="RapidjsonWrap.h" />
+    <ClInclude Include="RapidxmlWrap.h" />
     <ClInclude Include="SerializeHeader.h" />
     <ClInclude Include="SerializeTraits.h" />
     <ClInclude Include="stdafx.h" />
@@ -93,6 +95,7 @@
     <ClInclude Include="XMLOutputArchive.h" />
     <ClInclude Include="YAMLInputArchive.h" />
     <ClInclude Include="YAMLOutputArchive.h" />
+    <ClInclude Include="YamlWrap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

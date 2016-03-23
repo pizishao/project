@@ -2,10 +2,7 @@
 
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
-
-#include "rapidxml/rapidxml.hpp"  
-#include "rapidxml/rapidxml_utils.hpp"  
-#include "rapidxml/rapidxml_print.hpp"
+#include "RapidxmlWrap.h"
 
 namespace Serialization
 {

@@ -5,6 +5,7 @@
 
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
+#include "RapidjsonWrap.h"
 
 namespace Serialization
 {

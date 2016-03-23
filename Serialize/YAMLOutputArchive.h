@@ -2,8 +2,7 @@
 
 #include "SerializeHeader.h"
 #include "SerializeTraits.h"
-
-#include "yaml-cpp/yaml.h"
+#include "YamlWrap.h"
 
 namespace Serialization
 {

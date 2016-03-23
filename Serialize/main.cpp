@@ -16,8 +16,6 @@
 #include "XMLInputArchive.h"
 #include "YAMLOutputArchive.h"
 
-#pragma comment(lib, "libyaml-cppmdd.lib")
-
 struct Student
 {
     std::string sName;
@@ -213,10 +211,10 @@ int _tmain(int argc, _TCHAR* argv[])
     Serialization::YamlOutputArchive oAchive;
     oAchive << foo;
 
-    auto p = &Foo::Serialize<Serialization::YamlOutputArchive>;
+    /*auto p = &Foo::Serialize<Serialization::YamlOutputArchive>;
     std::string name = typeid(decltype(p)).name();
 
-    int value = std::is_member_function_pointer<decltype(&Foo::Serialize<Serialization::YamlOutputArchive>)>::value;
+    int value = std::is_member_function_pointer<decltype(&Foo::Serialize<Serialization::YamlOutputArchive>)>::value;*/
 
 
     //std::string s = oAchive.GetXmlText();
