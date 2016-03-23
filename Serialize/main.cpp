@@ -156,6 +156,8 @@ int _tmain(int argc, _TCHAR* argv[])
 {
     Foo foo;
 
+    int a = has_member_serialize_func<Foo>::value;
+
     Student st1;
     Student st2;
     Student st3;
@@ -206,18 +208,24 @@ int _tmain(int argc, _TCHAR* argv[])
     foo.un_set.insert(st2);
     foo.un_set.insert(st3);
 
-    JsonOutPutArchive oAchive;
+    //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
-    //YamlOutputArchive oAchive;
+    Serialization::YamlOutputArchive oAchive;
     oAchive << foo;
 
+    auto p = &Foo::Serialize<Serialization::YamlOutputArchive>;
+    std::string name = typeid(decltype(p)).name();
+
+    int value = std::is_member_function_pointer<decltype(&Foo::Serialize<Serialization::YamlOutputArchive>)>::value;
+
+
     //std::string s = oAchive.GetXmlText();
-    std::string s = oAchive.GetJsonText();
-    //std::string s = oAchive.GetYamlText();
+    //std::string s = oAchive.GetJsonText();
+    std::string s = oAchive.GetYamlText();
     foo.Clear();
 
     //JsonInPutArchive iAchive;
-    XmlInPutArchive iAchive;
+    Serialization::XmlInPutArchive iAchive;
     iAchive.Load(s);
     //iAchive.LoadFromFile("test.txt");
     iAchive >> foo;
