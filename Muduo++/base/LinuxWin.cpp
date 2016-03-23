@@ -29,6 +29,26 @@ std::string GetErrorText(int errcode)
 #endif    
 }
 
+std::string GetCurrErrorText()
+{
+    int errcode = GetErrorCode();
+
+#ifdef WIN32
+    LPVOID buffer;
+    ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+        nullptr,
+        errcode,
+        0,
+        (LPTSTR)&buffer,
+        0,
+        nullptr);
+
+    return (char *)buffer;
+#else
+    return (strerror(errcode));
+#endif    
+}
+
 #ifdef WIN32
 int gettimeofday(struct timeval *tp, void *tzp)
 {

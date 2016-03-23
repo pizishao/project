@@ -6,13 +6,38 @@
 class JsonOutPutArchive
 {
 public:
-    JsonOutPutArchive() :
-        writer(s)
-    {
+    JsonOutPutArchive() : writer(s){}
+    ~JsonOutPutArchive(){}
 
+private:
+    void StartArray(const char *tag)
+    {
+        writer.String(tag);
+        writer.StartArray();
     }
 
-    ~JsonOutPutArchive(){}
+    void EndArray()
+    {
+        writer.EndArray();
+    }
+
+    void StartObject(const char *tag)
+    {
+        if (tag)
+        {
+            writer.String(tag);
+            writer.StartObject();
+        }
+        else
+        {
+            writer.StartObject();
+        }
+    }
+
+    void EndObject()
+    {
+        writer.EndObject();
+    }
 
 public:    
 
@@ -79,104 +104,90 @@ public:
     template <typename T, int N>
     void Serialize(const char *tag, T(&array)[N])
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (int i = 0; i < N; i++)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", array[i]);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T, int N1, int N2>
     void Serialize(const char *tag, T(&array)[N1][N2])
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (int i = 0; i < N1; i++)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", array[i]);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T, int N1, int N2, int N3>
     void Serialize(const char *tag, T(&array)[N1][N2][N3])
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (int i = 0; i < N1; i++)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", array[i]);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     typename std::enable_if<std::is_class<T>::value, void>::type
     Serialize(const char *tag, T &obj)
     {
-        writer.String(tag);
-
-        writer.StartObject();
+        StartObject(tag);
         obj.Serialize(*this);
-        writer.EndObject();
+        EndObject();
     }    
 
     template <typename T>
     void Serialize(const char *tag, std::vector<T> &vec)
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (auto &pos : vec)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", pos);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     void Serialize(const char *tag, std::list<T> &ls)
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (auto &pos : ls)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", pos);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     void Serialize(const char *tag, std::stack<T> &st)
     {
-        writer.String(tag);
-
         std::stack<T> tmpStack;
         while (!st.empty())
         {
@@ -184,27 +195,24 @@ public:
             st.pop();
         }
 
-        writer.StartArray();
+        StartArray(tag);
 
         while (!tmpStack.empty())
         {
-            writer.StartObject();
-
+            StartObject(nullptr);
             Serialize("item", tmpStack.top());
+            EndObject();
+
             st.emplace(tmpStack.top());
             tmpStack.pop();
-
-            writer.EndObject();                        
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     void Serialize(const char *tag, std::deque<T> &deq)
     {
-        writer.String(tag);
-
         std::deque<T> tmpDeq;       
         while (!deq.empty())
         {
@@ -212,102 +220,89 @@ public:
             deq.pop_front();
         }
 
-        writer.StartArray();
+        StartArray(tag);
 
         while (!tmpDeq.empty())
         {
-            writer.StartObject();
-
+            StartObject(nullptr);
             Serialize("item", tmpDeq.front());
-            deq.emplace_back(tmpDeq.front());
-            tmpDeq.pop_front();
+            EndObject();
 
-            writer.EndObject();            
+            deq.emplace_back(tmpDeq.front());
+            tmpDeq.pop_front();                        
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename _Kty, typename _Ty>
     void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (auto &pos : mp)
         {
-            writer.StartObject();
-
+            StartObject(nullptr);
             Serialize("key", pos.first);
             Serialize("value", pos.second);
-
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     void Serialize(const char *tag, std::set<T> &set)
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (auto &pos : set)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", (T &)pos);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename _Kty, typename _Ty>
     void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (auto &pos : mp)
         {
-            writer.StartObject();
-
+            StartObject(nullptr);
             Serialize("key", pos.first);
             Serialize("value", pos.second);
-
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     void Serialize(const char *tag, std::unordered_set<T> &set)
     {
-        writer.String(tag);
-
-        writer.StartArray();
+        StartArray(tag);
 
         for (auto &pos : set)
         {
-            writer.StartObject();
+            StartObject(nullptr);
             Serialize("item", (T &)pos);
-            writer.EndObject();
+            EndObject();
         }
 
-        writer.EndArray();
+        EndArray();
     }
 
     template <typename T>
     void operator << (T &obj)
     {
-        writer.StartObject();
+        StartObject(nullptr);
         obj.Serialize(*this);
-        writer.EndObject();
+        EndObject();
     }
 
     std::string GetJsonText()

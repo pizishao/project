@@ -14,6 +14,9 @@
 #include "JSONOutputArchive.h"
 #include "XMLOutputArchive.h"
 #include "XMLInputArchive.h"
+#include "YAMLOutputArchive.h"
+
+#pragma comment(lib, "libyaml-cppmdd.lib")
 
 struct Student
 {
@@ -203,12 +206,14 @@ int _tmain(int argc, _TCHAR* argv[])
     foo.un_set.insert(st2);
     foo.un_set.insert(st3);
 
-    //JsonOutPutArchive oAchive;
-    XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
+    JsonOutPutArchive oAchive;
+    //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
+    //YamlOutputArchive oAchive;
     oAchive << foo;
 
-    std::string s = oAchive.GetXmlText();
-    //std::string s = oAchive.GetJsonText();
+    //std::string s = oAchive.GetXmlText();
+    std::string s = oAchive.GetJsonText();
+    //std::string s = oAchive.GetYamlText();
     foo.Clear();
 
     //JsonInPutArchive iAchive;

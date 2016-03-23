@@ -41,9 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>D:\third-party\Project\Serialize\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>D:\third-party\Project\Serialize\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -89,6 +91,8 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="XMLInputArchive.h" />
     <ClInclude Include="XMLOutputArchive.h" />
+    <ClInclude Include="YAMLInputArchive.h" />
+    <ClInclude Include="YAMLOutputArchive.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -158,7 +158,6 @@ namespace SocketOps
         struct sockaddr_in listen_addr = {0};
         struct sockaddr_in connect_addr = {0};
         socklen_t size = 0;
-        int saved_errno = -1;
 
         listener = socket(AF_INET, SOCK_STREAM, 0);
         if (listener < 0)
@@ -169,13 +168,13 @@ namespace SocketOps
         listen_addr.sin_family = AF_INET;
         listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
         listen_addr.sin_port = 0;	/* kernel chooses port.	 */
-        if (bind(listener, (struct sockaddr *) &listen_addr,
-            sizeof(listen_addr)) == -1)
+        if (::bind(listener, (struct sockaddr *) &listen_addr,
+            sizeof(listen_addr)) < 0)
         {
             goto err;
         }
 
-        if (listen(listener, 1) == -1)
+        if (::listen(listener, 1) < 0)
         {
             goto err;
         }
@@ -188,7 +187,7 @@ namespace SocketOps
 
         /* We want to find out the port number to connect to.  */
         size = sizeof(connect_addr);
-        if (getsockname(listener, (struct sockaddr *) &connect_addr, &size) == -1)
+        if (getsockname(listener, (struct sockaddr *) &connect_addr, &size) < 0)
         {
             goto err;
         }
@@ -216,7 +215,7 @@ namespace SocketOps
             goto err;
         }
 
-        if (getsockname(connector, (struct sockaddr *) &connect_addr, &size) == -1)
+        if (getsockname(connector, (struct sockaddr *) &connect_addr, &size) < 0)
         {
             goto err;
         }
@@ -232,21 +231,20 @@ namespace SocketOps
         closeSocket(listener);
         fdPair[0] = connector;
         fdPair[1] = acceptor;
-
         return 0;
 
 err:
-        if (listener != -1)
+        if (listener > 0)
         {
             closeSocket(listener);
         }
 
-        if (connector != -1)
+        if (connector > 0)
         {
             closeSocket(connector);
         }
 
-        if (acceptor != -1)
+        if (acceptor > 0)
         {
             closeSocket(acceptor);
         }

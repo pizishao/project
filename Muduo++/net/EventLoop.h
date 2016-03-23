@@ -91,7 +91,7 @@ namespace MuduoPlus
         Timestamp                   pollReturnTime_;
         std::shared_ptr<Poller>     poller_;
         std::shared_ptr<TimerQueue> timerQueue_;
-        socket_t                    wakeupFd_[2];
+        socket_t                    wakeupFdPair_[2];
         std::shared_ptr<Channel>    wakeupChannel_;
         //boost::any                  context_;
 

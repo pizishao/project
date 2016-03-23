@@ -27,28 +27,28 @@ namespace MuduoPlus
         if (fd == -1)
         {           
             LOG_PRINT(LogType_Error, "create socket failed:%s %s:%d", 
-                GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
+                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
             return false;
         }
 
         if (!SocketOps::setSocketNoneBlocking(fd))
         {
             LOG_PRINT(LogType_Error, "enable socket noneBlocking failed:%s %s:%d", 
-                GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
+                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
-        if (!SocketOps::bindSocket(fd, (sockaddr *)&m_ListenAddr.getSockAddrIn()))
+        if (!SocketOps::bindSocket(fd, &m_ListenAddr.getSockAddr()))
         {
             LOG_PRINT(LogType_Error, "bind socket failed:%s %s:%d", 
-                GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
+                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
         if (!SocketOps::listen(fd))
         {
             LOG_PRINT(LogType_Error, "listen socket failed:%s %s:%d", 
-                GetErrorText(GetErrorCode()).c_str(), __FUNCTION__, __LINE__);
+                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
@@ -82,7 +82,7 @@ namespace MuduoPlus
                 break;
             }
 
-            peerAddr.setSockAddrIn(*(sockaddr_in *)&addr);
+            peerAddr.setSockAddr(addr);
             if (m_NewConnCallBack)
             {               
                 m_NewConnCallBack(newFd, peerAddr);

@@ -18,5 +18,6 @@ int         GetCurThreadID();
 
 int         GetErrorCode();
 std::string GetErrorText(int errcode);
+std::string GetCurrErrorText();
 
 

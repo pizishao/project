@@ -34,9 +34,9 @@ namespace MuduoPlus
         poller_(Poller::newDefaultPoller(this));
 #endif
 
-        memset(wakeupFd_, 0, sizeof(wakeupFd_));
-        SocketOps::createSocketPair(wakeupFd_);
-        wakeupChannel_.reset(new Channel(this, wakeupFd_[1]));
+        memset(wakeupFdPair_, 0, sizeof(wakeupFdPair_));
+        SocketOps::createSocketPair(wakeupFdPair_);
+        wakeupChannel_.reset(new Channel(this, wakeupFdPair_[1]));
 
         wakeupChannel_->setReadCallback(
             std::bind(&EventLoop::handleRead, this));
@@ -211,9 +211,9 @@ namespace MuduoPlus
         int r;
 
 #ifdef WIN32
-        r = send(wakeupFd_[0], buf, 1, 0);
+        r = send(wakeupFdPair_[0], buf, 1, 0);
 #else
-        r = write(wakeupFd_[0], buf, 1);
+        r = write(wakeupFdPair_[0], buf, 1);
 #endif
 
         if (r < 0 && errno != EAGAIN)
@@ -237,10 +237,10 @@ namespace MuduoPlus
     {
         unsigned char buf[1024] = {0};
 #ifdef WIN32
-        while (recv(wakeupFd_[1], (char*)buf, sizeof(buf), 0) > 0)
+        while (recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
             ;
 #else
-        while (read(recv(wakeupFd_[1], (char*)buf, sizeof(buf)) > 0)
+        while (read(recv(wakeupFdPair_[1], (char*)buf, sizeof(buf)) > 0))
             ;
 #endif
     }
