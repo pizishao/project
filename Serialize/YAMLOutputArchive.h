@@ -287,7 +287,7 @@ namespace Serialization
             EndObject();
         }
 
-        std::string GetYamlText()
+        std::string c_str()
         {
             return writer.c_str();
         }

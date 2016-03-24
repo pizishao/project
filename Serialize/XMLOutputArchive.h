@@ -12,20 +12,20 @@ namespace Serialization
         XmlOutPutArchive(SerialEncodeType type)
         {
             XmlNodePtr declaration = m_doc.allocate_node(rapidxml::node_declaration);;
-            XmlAttributePtr decl_ver = m_doc.allocate_attribute("version", "1.0");
-            XmlAttributePtr decl_encode;
+            XmlAttributePtr version = m_doc.allocate_attribute("version", "1.0");
+            XmlAttributePtr encode;
 
             if (type == SerialEncodeType::UTF8)
             {
-                decl_encode = m_doc.allocate_attribute("encoding", "utf-8");
+                encode = m_doc.allocate_attribute("encoding", "utf-8");
             }
             else
             {
-                decl_encode = m_doc.allocate_attribute("encoding", "gb2312");
+                encode = m_doc.allocate_attribute("encoding", "gb2312");
             }
 
-            declaration->append_attribute(decl_ver);
-            declaration->append_attribute(decl_encode);
+            declaration->append_attribute(version);
+            declaration->append_attribute(encode);
 
             m_doc.append_node(declaration);
 
@@ -348,7 +348,7 @@ namespace Serialization
             obj.Serialize(*this);
         }
 
-        std::string GetXmlText()
+        std::string c_str()
         {
             std::string text;
 

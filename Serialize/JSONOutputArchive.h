@@ -308,7 +308,7 @@ namespace Serialization
             EndObject();
         }
 
-        std::string GetJsonText()
+        std::string c_str()
         {
             return s.GetString();
         }

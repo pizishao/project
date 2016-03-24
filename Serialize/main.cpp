@@ -219,7 +219,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //std::string s = oAchive.GetXmlText();
     //std::string s = oAchive.GetJsonText();
-    std::string s = oAchive.GetYamlText();
+    std::string s = oAchive.c_str();
     foo.Clear();
 
     //JsonInPutArchive iAchive;
