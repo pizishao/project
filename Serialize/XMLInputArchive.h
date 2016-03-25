@@ -80,11 +80,15 @@ namespace Serialization
         {
             if (m_stack.empty())
             {
-                assert(false);
                 return nullptr;
             }
 
             XmlNodePtr parent = m_stack.top();
+            if (!parent)
+            {
+                return nullptr;
+            }
+
             XmlNodePtr subNode = parent->first_node(tag);
 
             return subNode;
@@ -99,7 +103,6 @@ namespace Serialization
         {
             if (m_stack.empty())
             {
-                assert(false);
                 return;
             }
 

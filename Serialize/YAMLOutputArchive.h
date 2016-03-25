@@ -110,23 +110,14 @@ namespace Serialization
             EndArray();
         }
 
-        /*template <typename T>
-        typename std::enable_if<has_member_serialize_func<T>::value, void>::type
-            Serialize(const char *tag, T &obj)
+        template<class T>
+        auto serialize_imp(const char *tag, T &obj, int)
+            -> decltype(Serialize_(*this, obj))
         {
             StartObject(tag);
-            obj.Serialize(*this);
+            Serialize_(*this, obj);
             EndObject();
-        }*/
-
-        /*template <typename T>
-        typename std::enable_if<not_has_member_serialize_func<T, YamlOutputArchive>::value, void>::type
-            Serialize(const char *tag, T &obj)
-        {
-            StartObject(tag);
-            Serialize(*this, obj);
-            EndObject();
-        }*/
+        }
 
         template <typename T>
         typename std::enable_if<std::is_class<T>::value, void>::type

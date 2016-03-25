@@ -145,33 +145,30 @@ namespace Serialization
 
         void inline Serialize(const char *tag, bool &value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = jVal->GetBool();
+            GET_JVALUE_OR_RET(tag);
+            value = jVal->GetBool();
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                str = jVal->GetString();
+            GET_JVALUE_OR_RET(tag);
+            str = jVal->GetString();
         }
 
         template<typename T>
         typename std::enable_if<std::is_enum<T>::value, void>::type
             Serialize(const char* tag, T& value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = (T)jVal->GetInt();
+            GET_JVALUE_OR_RET(tag);
+            value = (T)jVal->GetInt();
         }
 
         template <typename T, int N>
         void Serialize(const char *tag, T(&array)[N])
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = std::min(N, arrayValue.Size());
@@ -186,9 +183,9 @@ namespace Serialization
         template <typename T, int N1, int N2>
         void Serialize(const char *tag, T(&array)[N1][N2])
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = std::min(N1, arrayValue.Size());
@@ -203,9 +200,9 @@ namespace Serialization
         template <typename T, int N1, int N2, int N3>
         void Serialize(const char *tag, T(&array)[N1][N2][N3])
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = std::min(N1, arrayValue.Size());
@@ -221,9 +218,9 @@ namespace Serialization
         typename std::enable_if<std::is_class<T>::value, void>::type
             Serialize(const char *tag, T &obj)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                StartObject(jVal);
+            StartObject(jVal);
             obj.Serialize(*this);
             EndObject(jVal);
         }
@@ -231,9 +228,9 @@ namespace Serialization
         template <typename T>
         void SerializeArrayVector(const char *tag, std::vector<T> &vec)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             size = std::min(vec.size(), arrayValue.Size());
@@ -252,9 +249,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::vector<T> &vec)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = arrayValue.Size();
@@ -273,9 +270,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::list<T> &ls)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = arrayValue.Size();
@@ -294,9 +291,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::stack<T> &st)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = arrayValue.Size();
@@ -315,9 +312,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::deque<T> &deq)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = arrayValue.Size();
@@ -336,9 +333,9 @@ namespace Serialization
         template <typename _Kty, typename _Ty>
         void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             for (std::size_t i = 0; i < arrayValue.Size(); i++)
@@ -362,9 +359,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::set<T> &set)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = arrayValue.Size();
@@ -383,9 +380,9 @@ namespace Serialization
         template <typename _Kty, typename _Ty>
         void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             for (std::size_t i = 0; i < arrayValue.Size(); i++)
@@ -409,9 +406,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::unordered_set<T> &set)
         {
-            GET_JVALUE_OR_RET(tag)
+            GET_JVALUE_OR_RET(tag);
 
-                rapidjson::Value &arrayValue = *jVal;
+            rapidjson::Value &arrayValue = *jVal;
             assert(arrayValue.IsArray());
 
             int size = arrayValue.Size();

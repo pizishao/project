@@ -15,6 +15,7 @@
 #include "XMLOutputArchive.h"
 #include "XMLInputArchive.h"
 #include "YAMLOutputArchive.h"
+#include "YAMLInputArchive.h"
 
 struct Student
 {
@@ -23,7 +24,7 @@ struct Student
     float score;
     std::time_t t1;
 
-    bool operator==(const Student &rhs) const 
+    bool operator==(const Student &rhs) const
     {
         if (sName == rhs.sName && age == rhs.age && score == rhs.score)
         {
@@ -154,8 +155,6 @@ int _tmain(int argc, _TCHAR* argv[])
 {
     Foo foo;
 
-    int a = has_member_serialize_func<Foo>::value;
-
     Student st1;
     Student st2;
     Student st3;
@@ -209,12 +208,17 @@ int _tmain(int argc, _TCHAR* argv[])
     //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
     Serialization::YamlOutputArchive oAchive;
+
     oAchive << foo;
+    
 
-    /*auto p = &Foo::Serialize<Serialization::YamlOutputArchive>;
-    std::string name = typeid(decltype(p)).name();
+    //int a = has_member_serialize_func<std::vector<Student>, Serialization::YamlOutputArchive>::value;
 
-    int value = std::is_member_function_pointer<decltype(&Foo::Serialize<Serialization::YamlOutputArchive>)>::value;*/
+    //auto p = &Foo::Serialize<Serialization::YamlOutputArchive>;
+    //std::string name = typeid(decltype(p)).name();
+
+    //int value = std::is_member_function_pointer<void(__thiscall Foo::*)(class Serialization::YamlOutputArchive &)>::value;
+    //int value = std::is_member_function_pointer<decltype(&Foo::Serialize<Serialization::YamlOutputArchive>)>::value;
 
 
     //std::string s = oAchive.GetXmlText();
@@ -222,9 +226,12 @@ int _tmain(int argc, _TCHAR* argv[])
     std::string s = oAchive.c_str();
     foo.Clear();
 
-    //JsonInPutArchive iAchive;
-    Serialization::XmlInPutArchive iAchive;
+    Serialization::YamlInputArchive iAchive;
     iAchive.Load(s);
+
+    //JsonInPutArchive iAchive;
+    //Serialization::XmlInPutArchive iAchive;
+    //iAchive.Load(s);
     //iAchive.LoadFromFile("test.txt");
     iAchive >> foo;
 
