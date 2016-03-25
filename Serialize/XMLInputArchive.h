@@ -134,76 +134,68 @@ namespace Serialization
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (T)std::atoll(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)std::atoll(node->value());
         }
 
         template <typename T>
         typename std::enable_if<is_unsignedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (T)std::atoll(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)std::atoll(node->value());
         }
 
         template <typename T>
         typename std::enable_if<is_signedSmallInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (T)std::atoi(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)std::atoi(node->value());
         }
 
         template <typename T>
         typename std::enable_if<is_unsignedSmallInt<T>::value, void>::type
             inline   Serialize(const char *tag, T &value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (T)std::atoi(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)std::atoi(node->value());
         }
 
         template <typename T>
         typename std::enable_if<std::is_floating_point<T>::value, void>::type
             inline Serialize(const char *tag, T& value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (T)std::atof(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)std::atof(node->value());
         }
 
         template<typename T>
         typename std::enable_if<std::is_enum<T>::value, void>::type
             Serialize(const char* tag, T& value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (T)std::atoi(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)std::atoi(node->value());
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                value = (bool)std::atoi(node->value());
+            GET_TAG_NODE_OR_RET(tag);
+            value = (bool)std::atoi(node->value());
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
-            GET_TAG_NODE_OR_RET(tag)
-
-                str = node->value();
+            GET_TAG_NODE_OR_RET(tag);
+            str = node->value();
         }
 
         template <typename T, int N>
         void Serialize(const char *tag, T(&array)[N])
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount && i < N; i++)
@@ -220,9 +212,9 @@ namespace Serialization
         template <typename T, int N1, int N2>
         void Serialize(const char *tag, T(&array)[N1][N2])
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount && i < N1; i++)
@@ -239,9 +231,9 @@ namespace Serialization
         template <typename T, int N1, int N2, int N3>
         void Serialize(const char *tag, T(&array)[N1][N2][N3])
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount && i < N1; i++)
@@ -259,9 +251,9 @@ namespace Serialization
         typename std::enable_if<std::is_class<T>::value, void>::type
             Serialize(const char *tag, T &obj)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartObject(node);
+            StartObject(node);
             obj.Serialize(*this);
             EndObject(node);
         }
@@ -269,9 +261,9 @@ namespace Serialization
         template <typename T>
         void SerializeArrayVector(const char *tag, std::vector<T> &vec)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount && i < (int)vec.size(); i++)
@@ -290,9 +282,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::vector<T> &vec)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount; i++)
@@ -311,9 +303,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::list<T> &ls)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount; i++)
@@ -332,9 +324,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::stack<T> &st)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount; i++)
@@ -353,9 +345,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::deque<T> &deq)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount; i++)
@@ -374,10 +366,10 @@ namespace Serialization
         template <typename _Kty, typename _Ty>
         void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                for (XmlNodePtr subNode = node->first_node(); subNode != nullptr;
-                    subNode = subNode->next_sibling())
+            for (XmlNodePtr subNode = node->first_node(); subNode != nullptr;
+                subNode = subNode->next_sibling())
             {
                 XmlNodePtr keyNode = subNode->first_node("key");
                 XmlNodePtr valueNode = subNode->first_node("value");
@@ -401,9 +393,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::set<T> &set)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount; i++)
@@ -422,10 +414,10 @@ namespace Serialization
         template <typename _Kty, typename _Ty>
         void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                for (XmlNodePtr subNode = node->first_node(); subNode != nullptr;
-                    subNode = subNode->next_sibling())
+            for (XmlNodePtr subNode = node->first_node(); subNode != nullptr;
+                subNode = subNode->next_sibling())
             {
                 XmlNodePtr  keyNode = subNode->first_node("key");
                 XmlNodePtr  valueNode = subNode->first_node("value");
@@ -449,9 +441,9 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::unordered_set<T> &set)
         {
-            GET_TAG_NODE_OR_RET(tag)
+            GET_TAG_NODE_OR_RET(tag);
 
-                StartArray(node);
+            StartArray(node);
 
             int childCount = GetNodeChildCount(node);
             for (int i = 0; i < childCount; i++)
