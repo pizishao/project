@@ -5,7 +5,7 @@
 
 namespace Serialization
 {
-    template<typename archive, bool intrusive>
+    template<typename archive, bool intrusive = true>
     class OutputArchive
     {
         static const bool is_intrusive = intrusive;

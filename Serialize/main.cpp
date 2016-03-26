@@ -239,7 +239,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
-    Serialization::OutputArchive<Serialization::YamlOutputArchive, true> outputArchive;
+    Serialization::OutputArchive<Serialization::YamlOutputArchive> outputArchive;
 
     outputArchive << foo;
 
