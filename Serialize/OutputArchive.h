@@ -2,13 +2,14 @@
 
 #include "traits.h"
 #include "common.h"
-//#include "YAMLOutputArchive.h"
 
 namespace Serialization
 {
-    template<typename archive>
+    template<typename archive, bool intrusive>
     class OutputArchive
     {
+        static const bool is_intrusive = intrusive;
+
     public:
         OutputArchive(){}
         ~OutputArchive(){}
@@ -105,13 +106,29 @@ namespace Serialization
             m_outArchive.EndArray(tag);
         }
 
-        template <typename T>
-        typename std::enable_if<std::is_class<T>::value, void>::type
-            Serialize(const char *tag, T &obj)
+        template<class T>
+        auto SerializeClass(const char *tag, T &obj, int a)
+            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<is_intrusive, std::is_class<T>::value>::no, void())
+        {
+            m_outArchive.StartObject(tag);
+            Serialization::Serialize(*this, obj);
+            m_outArchive.EndObject(tag);
+        }
+
+        template<class T>
+        auto SerializeClass(const char *tag, T &obj, long a)
+            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<is_intrusive, std::is_class<T>::value>::yes, void())
         {
             m_outArchive.StartObject(tag);
             obj.Serialize(*this);
             m_outArchive.EndObject(tag);
+        }
+
+        template <typename T>
+        auto Serialize(const char *tag, T &obj)
+            -> decltype(SerializeClass(tag, obj, 0))
+        {
+            SerializeClass(tag, obj, 0);
         }
 
         template <typename T>
@@ -257,11 +274,10 @@ namespace Serialization
         }
 
         template <typename T>
-        void operator << (T &obj)
+        auto operator << (T &obj)
+            -> decltype(SerializeClass(nullptr, obj, 0))
         {
-            m_outArchive.StartObject(nullptr);
-            obj.Serialize(*this);
-            m_outArchive.EndObject(nullptr);
+            SerializeClass(nullptr, obj, 0);
         }
 
         std::string c_str()

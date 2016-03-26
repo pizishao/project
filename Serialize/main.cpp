@@ -25,6 +25,16 @@ struct Student
     float score;
     std::time_t t1;
 
+    template <typename Archive>
+    void Serialize(Archive &ar)
+    {
+        ar.Serialize("sName", sName);
+        ar.Serialize("age", age);
+        ar.Serialize("score", score);
+        t1 = std::time(nullptr);
+        ar.Serialize("t1", t1);
+    }
+
     bool operator==(const Student &rhs) const
     {
         if (sName == rhs.sName && age == rhs.age && score == rhs.score)
@@ -64,17 +74,21 @@ struct Student
 
         return false;
     }
-
-    template <typename Archive>
-    void Serialize(Archive &ar)
-    {
-        ar.Serialize("sName", sName);
-        ar.Serialize("age", age);
-        ar.Serialize("score", score);
-        t1 = std::time(nullptr);
-        ar.Serialize("t1", t1);
-    }
 };
+
+/*
+namespace Serialization
+{
+    template <typename Archive>
+    void Serialize(Archive &ar, Student &stu)
+    {
+        ar.Serialize("sName", stu.sName);
+        ar.Serialize("age", stu.age);
+        ar.Serialize("score", stu.score);
+        stu.t1 = std::time(nullptr);
+        ar.Serialize("t1", stu.t1);
+    }
+}*/
 
 namespace std
 {
@@ -130,6 +144,23 @@ struct Foo
         un_set.clear();
     }
 };
+
+/*
+namespace Serialization
+{
+    template <typename Archive>
+    void Serialize(Archive &ar, Foo &foo)
+    {
+        ar.Serialize("vec", foo.vec);
+        ar.Serialize("ls", foo.ls);
+        ar.Serialize("st", foo.st);
+        ar.Serialize("deq", foo.deq);
+        ar.Serialize("mp", foo.mp);
+        ar.Serialize("set", foo.set);
+        ar.Serialize("un_mp", foo.un_mp);
+        ar.Serialize("un_set", foo.un_set);
+    }
+}*/
 
 std::string GBToUTF8(const char* str)
 {
@@ -208,9 +239,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
-    Serialization::OutputArchive<Serialization::YamlOutputArchive> outputArchive;
+    Serialization::OutputArchive<Serialization::YamlOutputArchive, true> outputArchive;
 
     outputArchive << foo;
+
+    /*decltype(intrusive_if<true, std::is_class<Student>::value>::yes_class, intrusive_if<true, std::is_class<Student>::value>::yes, void())*/
     
 
     //int a = has_member_serialize_func<std::vector<Student>, Serialization::YamlOutputArchive>::value;
@@ -224,17 +257,18 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //std::string s = oAchive.GetXmlText();
     //std::string s = oAchive.GetJsonText();
+    
     std::string s = outputArchive.c_str();
     foo.Clear();
 
-    Serialization::YamlInputArchive iAchive;
-    iAchive.Load(s);
+    //Serialization::YamlInputArchive iAchive;
+    //iAchive.Load(s);
 
     //JsonInPutArchive iAchive;
     //Serialization::XmlInPutArchive iAchive;
     //iAchive.Load(s);
     //iAchive.LoadFromFile("test.txt");
-    iAchive >> foo;
+    //iAchive >> foo;
 
      getchar();
 
