@@ -102,45 +102,40 @@ namespace Serialization
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = jVal->GetInt64();
+            GET_JVALUE_OR_RET(tag);
+            value = jVal->GetInt64();
         }
 
         template <typename T>
         typename std::enable_if<is_unsignedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = jVal->GetUint64();
+            GET_JVALUE_OR_RET(tag);
+            value = jVal->GetUint64();
         }
 
         template <typename T>
         typename std::enable_if<is_signedSmallInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = jVal->GetInt();
+            GET_JVALUE_OR_RET(tag);
+            value = jVal->GetInt();
         }
 
         template <typename T>
         typename std::enable_if<is_unsignedSmallInt<T>::value, void>::type
             inline   Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = jVal->GetUint();
+            GET_JVALUE_OR_RET(tag);
+            value = jVal->GetUint();
         }
 
         template <typename T>
         typename std::enable_if<std::is_floating_point<T>::value, void>::type
             inline Serialize(const char *tag, T& value)
         {
-            GET_JVALUE_OR_RET(tag)
-
-                value = jVal->GetDouble();
+            GET_JVALUE_OR_RET(tag);
+            value = jVal->GetDouble();
         }
 
         void inline Serialize(const char *tag, bool &value)

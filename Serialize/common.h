@@ -20,3 +20,30 @@
 #include <unordered_set>
 
 #include <algorithm>
+
+#include "RapidxmlWrap.h"
+#include "RapidjsonWrap.h"
+#include "YamlWrap.h"
+
+namespace Serialization
+{
+    struct Node
+    {
+        Node()
+        {
+            jNodePtr = nullptr;
+            xNodePtr =  nullptr;
+            valid = false;
+        }
+
+        bool isNull()
+        {
+            return valid;
+        }
+
+        rapidjson::Value* jNodePtr;
+        XmlNodePtr        xNodePtr;
+        YamlNode          yNode;
+        bool              valid;
+    };
+}

@@ -9,21 +9,13 @@ namespace Serialization
     class XmlOutPutArchive
     {
     public:
-        XmlOutPutArchive(SerialEncodeType type)
+        XmlOutPutArchive()
         {
             XmlNodePtr declaration = m_doc.allocate_node(rapidxml::node_declaration);;
             XmlAttributePtr version = m_doc.allocate_attribute("version", "1.0");
             XmlAttributePtr encode;
 
-            if (type == SerialEncodeType::UTF8)
-            {
-                encode = m_doc.allocate_attribute("encoding", "utf-8");
-            }
-            else
-            {
-                encode = m_doc.allocate_attribute("encoding", "gb2312");
-            }
-
+            encode = m_doc.allocate_attribute("encoding", "utf-8");
             declaration->append_attribute(version);
             declaration->append_attribute(encode);
 
@@ -52,8 +44,14 @@ namespace Serialization
                 m_doc.allocate_string(value.c_str())));
         }
 
+    public:
         void StartObject(const char *tag)
         {
+            if (!tag)
+            {
+                return;
+            }
+
             if (m_stack.empty())
             {
                 assert(false);
@@ -68,6 +66,11 @@ namespace Serialization
 
         void EndObject(const char *tag)
         {
+            if (!tag)
+            {
+                return;
+            }
+
             if (m_stack.empty())
             {
                 assert(false);
@@ -119,233 +122,6 @@ namespace Serialization
         void inline Serialize(const char *tag, std::string str)
         {
             WriteValue(tag, str);
-        }
-
-        template <typename T, int N>
-        void Serialize(const char *tag, T(&array)[N])
-        {
-            StartArray(tag);
-
-            for (int i = 0; i < N; i++)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i);
-
-                Serialize(buffer, array[i]);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T, int N1, int N2>
-        void Serialize(const char *tag, T(&array)[N1][N2])
-        {
-            StartArray(tag);
-
-            for (int i = 0; i < N1; i++)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i);
-
-                Serialize(buffer, array[i]);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T, int N1, int N2, int N3>
-        void Serialize(const char *tag, T(&array)[N1][N2][N3])
-        {
-            StartArray(tag);
-
-            for (int i = 0; i < N1; i++)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i);
-
-                Serialize(buffer, array[i]);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        typename std::enable_if<std::is_class<T>::value, void>::type
-            Serialize(const char *tag, T &obj)
-        {
-            StartObject(tag);
-            obj.Serialize(*this);
-            EndObject(tag);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::vector<T> &vec)
-        {
-            StartArray(tag);
-
-            int i = 0;
-            for (auto &pos : vec)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                Serialize(buffer, pos);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::list<T> &ls)
-        {
-            StartArray(tag);
-
-            int i = 0;
-            for (auto &pos : ls)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                Serialize(buffer, pos);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::stack<T> &st)
-        {
-            std::stack<T> tmpStack;
-
-            while (!st.empty())
-            {
-                tmpStack.emplace(st.top());
-                st.pop();
-            }
-
-            StartArray(tag);
-
-            int i = 0;
-            while (!tmpStack.empty())
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                Serialize(buffer, tmpStack.top());
-
-                st.emplace(tmpStack.top());
-                tmpStack.pop();
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::deque<T> &deq)
-        {
-            std::deque<T> tmpDeq;
-
-            while (!deq.empty())
-            {
-                tmpDeq.emplace_back(deq.front());
-                deq.pop_front();
-            }
-
-            StartArray(tag);
-
-            int i = 0;
-            while (!tmpDeq.empty())
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                Serialize(buffer, tmpDeq.front());
-
-                deq.emplace_back(tmpDeq.front());
-                tmpDeq.pop_front();
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
-        {
-            StartArray(tag);
-
-            int i = 0;
-            for (auto &pos : mp)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                StartObject(buffer);
-                Serialize("key", pos.first);
-                Serialize("value", pos.second);
-                EndObject(buffer);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::set<T> &set)
-        {
-            StartArray(tag);
-
-            int i = 0;
-            for (auto &pos : set)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                Serialize(buffer, (T &)pos);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
-        {
-            StartArray(tag);
-
-            int i = 0;
-            for (auto &pos : mp)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                StartObject(buffer);
-                Serialize("key", pos.first);
-                Serialize("value", pos.second);
-                EndObject(buffer);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::unordered_set<T> &set)
-        {
-            StartArray(tag);
-
-            int i = 0;
-            for (auto &pos : set)
-            {
-                char buffer[50] = { 0 };
-                sprintf(buffer, "item%d", i++);
-
-                Serialize(buffer, (T &)pos);
-            }
-
-            EndArray(tag);
-        }
-
-        template <typename T>
-        void operator << (T &obj)
-        {
-            obj.Serialize(*this);
         }
 
         std::string c_str()

@@ -10,6 +10,7 @@
 #include <ctime>
 #include <wtypes.h>
 
+#include "OutputArchive.h"
 #include "JSONInputArchive.h"
 #include "JSONOutputArchive.h"
 #include "XMLOutputArchive.h"
@@ -207,9 +208,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
-    Serialization::YamlOutputArchive oAchive;
+    Serialization::OutputArchive<Serialization::YamlOutputArchive> outputArchive;
 
-    oAchive << foo;
+    outputArchive << foo;
     
 
     //int a = has_member_serialize_func<std::vector<Student>, Serialization::YamlOutputArchive>::value;
@@ -223,7 +224,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //std::string s = oAchive.GetXmlText();
     //std::string s = oAchive.GetJsonText();
-    std::string s = oAchive.c_str();
+    std::string s = outputArchive.c_str();
     foo.Clear();
 
     Serialization::YamlInputArchive iAchive;

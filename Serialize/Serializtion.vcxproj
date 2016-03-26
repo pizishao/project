@@ -83,8 +83,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="InputArchive.h" />
     <ClInclude Include="JSONInputArchive.h" />
     <ClInclude Include="JSONOutputArchive.h" />
+    <ClInclude Include="OutputArchive.h" />
     <ClInclude Include="RapidjsonWrap.h" />
     <ClInclude Include="RapidxmlWrap.h" />
     <ClInclude Include="common.h" />

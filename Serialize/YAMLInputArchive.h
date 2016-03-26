@@ -124,7 +124,7 @@ namespace Serialization
             GET_TAG_NODE_OR_RET(tag);
             assert(node.Type() == YAML::NodeType::Sequence);
 
-            int size = std::min(N, node.size());
+            int size = std::min(N1, node.size());
             for (int i = 0, auto itr = node.begin(); i < size && itr != node.end(); i++, itr++)
             {
                 YamlNode &subNode = *itr;
@@ -141,7 +141,7 @@ namespace Serialization
             GET_TAG_NODE_OR_RET(tag);
             assert(node.Type() == YAML::NodeType::Sequence);
 
-            int size = std::min(N, node.size());
+            int size = std::min(N1, node.size());
             for (int i = 0, auto itr = node.begin(); i < size && itr != node.end(); i++, itr++)
             {
                 YamlNode &subNode = *itr;
