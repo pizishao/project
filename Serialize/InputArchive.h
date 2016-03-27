@@ -2,6 +2,9 @@
 
 namespace Serialization
 {
+    template <typename Archive, typename T>
+    void Serialize(Archive &ar, T &obj);
+
     template<typename archive, bool intrusive = true>
     class InputArchive
     {
@@ -22,14 +25,7 @@ namespace Serialization
         bool LoadFromFile(std::string filename)
         {
             return m_outArchive.LoadFromFile(filename);
-        }
-
-        template <typename T>
-        auto operator >> (T &obj)
-            -> decltype(SerializeClass(nullptr, obj, 0))
-        {
-            SerializeClass(nullptr, obj, 0);
-        }
+        }        
 
         template <typename T>
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
@@ -132,9 +128,23 @@ namespace Serialization
         }
 
         template<class T>
+        static auto SerializeClass_(const char *tag, T &obj, long a)
+            -> decltype(intrusive_if<InputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<InputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
+        {
+            return;
+        }
+
+        template<class T>
+        static auto SerializeClass_(const char *tag, T &obj, int a)
+            -> decltype(intrusive_if<InputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<InputArchive::is_intrusive, std::is_class<T>::value>::no, void())
+        {
+            return;
+        }
+
+        template<class T>
         auto SerializeClass(const char *tag, T &obj, int a)
-            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<is_intrusive, std::is_class<T>::value>::no, void())
-        {   
+            -> decltype(intrusive_if<InputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<InputArchive::is_intrusive, std::is_class<T>::value>::no, void())
+        {
             if (!tag)
             {
                 Serialization::Serialize(*this, obj);
@@ -146,7 +156,7 @@ namespace Serialization
                 m_outArchive.StartObject(node.elem);
                 Serialization::Serialize(*this, obj);
                 m_outArchive.EndObject(node.elem);
-            }           
+            }
         }
 
         template<class T>
@@ -169,7 +179,7 @@ namespace Serialization
 
         template <typename T>
         auto Serialize(const char *tag, T &obj)
-            -> decltype(SerializeClass(tag, obj, 0))
+            -> decltype(SerializeClass_(tag, obj, 0))
         {            
             SerializeClass(tag, obj, 0);
         }
@@ -358,6 +368,13 @@ namespace Serialization
 
                 m_outArchive.EndObject(children[i]);
             }
+        }
+
+        template <typename T>
+        auto operator >> (T &obj)
+            -> decltype(SerializeClass_(nullptr, obj, 0))
+        {
+            SerializeClass(nullptr, obj, 0);
         }
 
 #undef GET_TAG_NODE_OR_RET

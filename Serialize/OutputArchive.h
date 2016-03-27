@@ -5,6 +5,9 @@
 
 namespace Serialization
 {
+    template <typename Archive, typename T>
+    void Serialize(Archive &ar, T &obj);
+
     template<typename archive, bool intrusive = true>
     class OutputArchive
     {
@@ -108,7 +111,7 @@ namespace Serialization
 
         template<class T>
         auto SerializeClass(const char *tag, T &obj, int a)
-            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<is_intrusive, std::is_class<T>::value>::no, void())
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
         {
             m_outArchive.StartObject(tag);
             Serialization::Serialize(*this, obj);
@@ -116,8 +119,22 @@ namespace Serialization
         }
 
         template<class T>
+        static auto SerializeClass_(const char *tag, T &obj, long a)
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
+        {
+            return;
+        }
+
+        template<class T>
+        static auto SerializeClass_(const char *tag, T &obj, int a)
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
+        {
+            return;
+        }
+
+        template<class T>
         auto SerializeClass(const char *tag, T &obj, long a)
-            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<is_intrusive, std::is_class<T>::value>::yes, void())
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
         {
             m_outArchive.StartObject(tag);
             obj.Serialize(*this);
@@ -126,7 +143,7 @@ namespace Serialization
 
         template <typename T>
         auto Serialize(const char *tag, T &obj)
-            -> decltype(SerializeClass(tag, obj, 0))
+            -> decltype(SerializeClass_(tag, obj, 0))
         {
             SerializeClass(tag, obj, 0);
         }
@@ -275,7 +292,7 @@ namespace Serialization
 
         template <typename T>
         auto operator << (T &obj)
-            -> decltype(SerializeClass(nullptr, obj, 0))
+            -> decltype(SerializeClass_(nullptr, obj, 0))
         {
             SerializeClass(nullptr, obj, 0);
         }
