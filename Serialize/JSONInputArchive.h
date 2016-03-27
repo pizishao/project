@@ -16,6 +16,36 @@ namespace Serialization
         ~JsonInPutArchive(){}
 
     public:
+        bool Load(const std::string jsontext)
+        {
+            m_doc.Parse<0>(jsontext.c_str());
+
+            if (m_doc.HasParseError())
+            {
+                assert(false);
+                return false;
+            }
+
+            m_stack.push(&m_doc);
+
+            return true;
+        }
+
+        bool LoadFromFile(std::string filename)
+        {
+            std::ifstream in(filename.c_str());
+
+            if (!in)
+            {
+                return false;
+            }
+
+            std::stringstream strstream;
+            strstream << in.rdbuf();
+
+            return Load(strstream.str());
+        }
+
         Node GetTagNode(const char *tag)
         {
             Node node;
@@ -87,46 +117,9 @@ namespace Serialization
             m_stack.pop();
         }
 
-    public:
-
 #define GET_TAG_NODE_OR_RET(tag) Node node = GetTagNode(tag); if (node.elem.IsNull()) return;
 
-        bool Load(const std::string jsontext)
-        {
-            m_doc.Parse<0>(jsontext.c_str());
-
-            if (m_doc.HasParseError())
-            {
-                assert(false);
-                return false;
-            }
-
-            m_stack.push(&m_doc);
-
-            return true;
-        }
-
-        bool LoadFromFile(std::string filename)
-        {
-            std::ifstream in(filename.c_str());
-
-            if (!in)
-            {
-                return false;
-            }
-
-            std::stringstream strstream;
-            strstream << in.rdbuf();
-
-            return Load(strstream.str());
-        }
-
-        template <typename T>
-        void operator >> (T &obj)
-        {
-            obj.Serialize(*this);
-        }
-
+    public:        
         template <typename T>
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)

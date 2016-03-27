@@ -12,11 +12,10 @@ namespace Serialization
     class XmlInPutArchive
     {
     public:
-
         XmlInPutArchive(){}
-
         ~XmlInPutArchive(){}
 
+    public:
         bool Load(const std::string xmltext)
         {
             try
@@ -57,8 +56,6 @@ namespace Serialization
 
             return Load(strstream.str());
         }
-
-    public:
 
         Node GetTagNode(const char *tag)
         {
@@ -137,10 +134,9 @@ namespace Serialization
             m_stack.pop();
         }
 
-    public:
-
 #define GET_TAG_NODE_OR_RET(tag)  Node node = GetTagNode(tag); if (node.elem.IsNull()) return; 
 
+    public:
         template <typename T>
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)

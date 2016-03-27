@@ -45,7 +45,6 @@ namespace Serialization
         }
 
     public:
-
         template <typename T>
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             Serialize(const char *tag, T &value)

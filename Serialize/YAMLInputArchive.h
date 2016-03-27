@@ -31,7 +31,6 @@ namespace Serialization
             return true;
         }
 
-    public:
         Node GetTagNode(const char *tag)
         {
             Node node;
@@ -100,9 +99,9 @@ namespace Serialization
             m_stack.pop();
         }
 
-    public:
 #define GET_TAG_NODE_OR_RET(tag) Node node = GetTagNode(tag); if (node.elem.IsNull()) return;
 
+    public:
         template <typename T>
         typename std::enable_if<std::is_arithmetic<T>::value, void>::type
             Serialize(const char *tag, T &value)

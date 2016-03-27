@@ -12,6 +12,7 @@ namespace Serialization
         ~InputArchive(){}
 
 #define GET_TAG_NODE_OR_RET(tag) Node node = m_outArchive.GetTagNode(tag); if (node.elem.IsNull()) return;
+
     public:
         bool Load(const std::string text)
         {
@@ -359,7 +360,7 @@ namespace Serialization
             }
         }
 
-#undef GET_JVALUE_OR_RET
+#undef GET_TAG_NODE_OR_RET
 
     private:
         archive m_outArchive;

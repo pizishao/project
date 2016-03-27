@@ -13,11 +13,7 @@ namespace Serialization
         {
             XmlNodePtr declaration = m_doc.allocate_node(rapidxml::node_declaration);;
             XmlAttributePtr version = m_doc.allocate_attribute("version", "1.0");
-            XmlAttributePtr encode;
-
-            encode = m_doc.allocate_attribute("encoding", "utf-8");
             declaration->append_attribute(version);
-            declaration->append_attribute(encode);
 
             m_doc.append_node(declaration);
 
@@ -110,7 +106,6 @@ namespace Serialization
         }
 
     public:
-
         template <typename T>
         typename std::enable_if<std::is_arithmetic<T>::value, void>::type
             Serialize(const char *tag, T &value)
