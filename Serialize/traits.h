@@ -41,7 +41,7 @@ struct intrusive_if<false, true>
 
 template<>
 struct intrusive_if<true, true>
-{	// type is _Ty for _Test
+{	
     const static bool yes = true;
     const static bool yes_class = true;
 };

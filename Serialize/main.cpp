@@ -10,13 +10,15 @@
 #include <ctime>
 #include <wtypes.h>
 
-#include "OutputArchive.h"
 #include "JSONInputArchive.h"
 #include "JSONOutputArchive.h"
 #include "XMLOutputArchive.h"
 #include "XMLInputArchive.h"
 #include "YAMLOutputArchive.h"
 #include "YAMLInputArchive.h"
+
+#include "OutputArchive.h"
+#include "InputArchive.h"
 
 struct Student
 {
@@ -75,6 +77,7 @@ struct Student
         return false;
     }
 };
+
 
 /*
 namespace Serialization
@@ -239,9 +242,13 @@ int _tmain(int argc, _TCHAR* argv[])
 
     //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
-    Serialization::OutputArchive<Serialization::YamlOutputArchive> outputArchive;
+    Serialization::OutputArchive<Serialization::YamlOutputArchive> outputArchiveYaml;
+    Serialization::OutputArchive<Serialization::JsonOutPutArchive> outputArchiveJson;
+    Serialization::OutputArchive<Serialization::XmlOutPutArchive> outputArchiveXml;
 
-    outputArchive << foo;
+    outputArchiveYaml << foo;
+    outputArchiveJson << foo;
+    outputArchiveXml << foo;
 
     /*decltype(intrusive_if<true, std::is_class<Student>::value>::yes_class, intrusive_if<true, std::is_class<Student>::value>::yes, void())*/
     
@@ -258,17 +265,28 @@ int _tmain(int argc, _TCHAR* argv[])
     //std::string s = oAchive.GetXmlText();
     //std::string s = oAchive.GetJsonText();
     
-    std::string s = outputArchive.c_str();
+    std::string sYaml = outputArchiveYaml.c_str();
+    std::string sJson = outputArchiveJson.c_str();
+    std::string sXml = outputArchiveXml.c_str();
     foo.Clear();
 
     //Serialization::YamlInputArchive iAchive;
     //iAchive.Load(s);
 
-    //JsonInPutArchive iAchive;
+    Serialization::InputArchive<Serialization::JsonInPutArchive>    iArchiveJson;
+    Serialization::InputArchive<Serialization::YamlInputArchive>    iArchiveYaml;
+    Serialization::InputArchive<Serialization::XmlInPutArchive>     iArchiveXml;
     //Serialization::XmlInPutArchive iAchive;
-    //iAchive.Load(s);
-    //iAchive.LoadFromFile("test.txt");
-    //iAchive >> foo;
+    iArchiveJson.Load(sJson);
+    //iArchive.LoadFromFile("test.txt");
+    iArchiveJson >> foo;
+    foo.Clear();
+    iArchiveYaml.Load(sYaml);
+    iArchiveYaml >> foo;
+
+    foo.Clear();
+    iArchiveXml.Load(sXml);
+    iArchiveXml >> foo;
 
      getchar();
 

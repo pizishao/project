@@ -15,41 +15,70 @@ namespace Serialization
         JsonInPutArchive(){}
         ~JsonInPutArchive(){}
 
-    private:
-        rapidjson::Value* GetTagValue(const char *tag)
+    public:
+        Node GetTagNode(const char *tag)
         {
+            Node node;
+
             if (m_stack.empty())
             {
                 assert(false);
-                return nullptr;
+                return node;
             }
 
             rapidjson::Value &jVal = *m_stack.top();
 
             if (jVal.HasMember(tag))
             {
-                return &(jVal[tag]);
+                rapidjson::Value &tagValue = jVal[tag];
+                node.elem = &tagValue;
+                if (tagValue.IsArray())
+                {
+                    for (size_t i = 0; i < tagValue.Size(); i++)
+                    {
+                        node.children.push_back(Any(&tagValue[i]));
+                    }
+                }
             }
-            else
+            
+            return node;
+        }
+
+        bool HasMember(const char *tag, Any &any)
+        {
+            rapidjson::Value *val = any.AnyCast<rapidjson::Value *>();
+            if (val && val->HasMember(tag))
             {
-                return nullptr;
+                return true;
             }
+
+            return false;
         }
 
-        void StartObject(rapidjson::Value *val)
+        void StartObject(Any &any)
         {
-            m_stack.push(val);
+            if (any.IsNull())
+            {
+                return;
+            }
+
+            m_stack.push(any.AnyCast<rapidjson::Value *>());
         }
 
-        void EndObject(rapidjson::Value *val)
+        void EndObject(Any &any)
         {
+            if (any.IsNull())
+            {
+                return;
+            }
+
             if (m_stack.empty())
             {
                 assert(false);
                 return;
             }
 
-            if (m_stack.top() != val)
+            if (m_stack.top() != any.AnyCast<rapidjson::Value *>())
             {
                 assert(false);
                 return;
@@ -60,7 +89,7 @@ namespace Serialization
 
     public:
 
-#define GET_JVALUE_OR_RET(tag) rapidjson::Value *jVal = GetTagValue(tag); if (!jVal) return;
+#define GET_TAG_NODE_OR_RET(tag) Node node = GetTagNode(tag); if (node.elem.IsNull()) return;
 
         bool Load(const std::string jsontext)
         {
@@ -102,322 +131,61 @@ namespace Serialization
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = jVal->GetInt64();
+            GET_TAG_NODE_OR_RET(tag);
+            value = node.elem.AnyCast<rapidjson::Value *>()->GetInt64();
         }
 
         template <typename T>
         typename std::enable_if<is_unsignedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = jVal->GetUint64();
+            GET_TAG_NODE_OR_RET(tag);
+            value = node.elem.AnyCast<rapidjson::Value *>()->GetUint64();
         }
 
         template <typename T>
         typename std::enable_if<is_signedSmallInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = jVal->GetInt();
+            GET_TAG_NODE_OR_RET(tag);
+            value = node.elem.AnyCast<rapidjson::Value *>()->GetInt();
         }
 
         template <typename T>
         typename std::enable_if<is_unsignedSmallInt<T>::value, void>::type
             inline   Serialize(const char *tag, T &value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = jVal->GetUint();
+            GET_TAG_NODE_OR_RET(tag);
+            value = node.elem.AnyCast<rapidjson::Value *>()->GetUint();
         }
 
         template <typename T>
         typename std::enable_if<std::is_floating_point<T>::value, void>::type
             inline Serialize(const char *tag, T& value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = jVal->GetDouble();
+            GET_TAG_NODE_OR_RET(tag);
+            value = node.elem.AnyCast<rapidjson::Value *>()->GetDouble();
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = jVal->GetBool();
+            GET_TAG_NODE_OR_RET(tag);
+            value = node.elem.AnyCast<rapidjson::Value *>()->GetBool();
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
-            GET_JVALUE_OR_RET(tag);
-            str = jVal->GetString();
+            GET_TAG_NODE_OR_RET(tag);
+            str = node.elem.AnyCast<rapidjson::Value *>()->GetString();
         }
 
         template<typename T>
         typename std::enable_if<std::is_enum<T>::value, void>::type
             Serialize(const char* tag, T& value)
         {
-            GET_JVALUE_OR_RET(tag);
-            value = (T)jVal->GetInt();
-        }
-
-        template <typename T, int N>
-        void Serialize(const char *tag, T(&array)[N])
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = std::min(N, arrayValue.Size());
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-                Serialize("item", array[i]);
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T, int N1, int N2>
-        void Serialize(const char *tag, T(&array)[N1][N2])
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = std::min(N1, arrayValue.Size());
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-                Serialize("item", array[i]);
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T, int N1, int N2, int N3>
-        void Serialize(const char *tag, T(&array)[N1][N2][N3])
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = std::min(N1, arrayValue.Size());
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-                Serialize("item", array[i]);
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T>
-        typename std::enable_if<std::is_class<T>::value, void>::type
-            Serialize(const char *tag, T &obj)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            StartObject(jVal);
-            obj.Serialize(*this);
-            EndObject(jVal);
-        }
-
-        template <typename T>
-        void SerializeArrayVector(const char *tag, std::vector<T> &vec)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            size = std::min(vec.size(), arrayValue.Size());
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                vec[i] = obj;
-
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::vector<T> &vec)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = arrayValue.Size();
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                vec.emplace_back(obj);
-
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::list<T> &ls)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = arrayValue.Size();
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                ls.emplace_back(obj);
-
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::stack<T> &st)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = arrayValue.Size();
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                st.emplace(obj);
-
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::deque<T> &deq)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = arrayValue.Size();
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                deq.emplace_back(obj);
-
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            for (std::size_t i = 0; i < arrayValue.Size(); i++)
-            {
-                if (arrayValue[i].HasMember("key") && arrayValue[i].HasMember("value"))
-                {
-                    _Kty key;
-                    _Ty  value;
-
-                    StartObject(&arrayValue[i]);
-
-                    Serialize("key", key);
-                    Serialize("value", value);
-                    mp.insert({ key, value });
-
-                    EndObject(&arrayValue[i]);
-                }
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::set<T> &set)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = arrayValue.Size();
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                set.insert(obj);
-
-                EndObject(&arrayValue[i]);
-            }
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            for (std::size_t i = 0; i < arrayValue.Size(); i++)
-            {
-                if (arrayValue[i].HasMember("key") && arrayValue[i].HasMember("value"))
-                {
-                    _Kty key;
-                    _Ty  value;
-
-                    StartObject(&arrayValue[i]);
-
-                    Serialize("key", key);
-                    Serialize("value", value);
-                    mp.insert({ key, value });
-
-                    EndObject(&arrayValue[i]);
-                }
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::unordered_set<T> &set)
-        {
-            GET_JVALUE_OR_RET(tag);
-
-            rapidjson::Value &arrayValue = *jVal;
-            assert(arrayValue.IsArray());
-
-            int size = arrayValue.Size();
-            for (int i = 0; i < size; i++)
-            {
-                StartObject(&arrayValue[i]);
-
-                T obj;
-                Serialize("item", obj);
-                set.insert(obj);
-
-                EndObject(&arrayValue[i]);
-            }
-        }
+            GET_TAG_NODE_OR_RET(tag);
+            value = (T)(node.elem.AnyCast<rapidjson::Value *>()->GetInt());
+        }             
 
 #undef GET_JVALUE_OR_RET
 

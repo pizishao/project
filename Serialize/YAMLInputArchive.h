@@ -15,70 +15,101 @@ namespace Serialization
         ~YamlInputArchive(){}
 
     public:
-        void Load(const std::string yamltext)
+        bool Load(const std::string yamltext)
         {
             YAML::Node root = YAML::Load(yamltext);
             m_stack.push(root);
+
+            return true;
         }
 
-        void LoadFromFile(std::string filename)
+        bool LoadFromFile(std::string filename)
         {
             YAML::Node root = YAML::LoadFile(filename);
             m_stack.push(root);
+
+            return true;
         }
 
-        template <typename T>
-        void operator >> (T &obj)
+    public:
+        Node GetTagNode(const char *tag)
         {
-            obj.Serialize(*this);
-        }
+            Node node;
 
-    private:
-        YamlNode NullNode()
-        {
-            static YamlNode nullNode = YamlNode();
-            return nullNode;
-        }
-
-        YamlNode GetTagNode(const char *tag)
-        {
             if (m_stack.empty())
             {
-                return NullNode();
+                return node;
             }
 
             YamlNode parent = m_stack.top();
+            YamlNode subNode = parent[tag];
 
-            return parent[tag];
+            if (!subNode.IsNull())
+            {
+                node.elem = subNode;
+                if (subNode.IsSequence())
+                {
+                    for (auto itr = subNode.begin(); itr != subNode.end(); itr++)
+                    {
+                        YamlNode childNode = *itr;
+                        node.children.push_back(Any(childNode));
+                    }
+                }
+            }
+
+            return node;
         }
 
-        void StartObject(YamlNode node)
+        bool HasMember(const char *tag, Any &any)
         {
-            m_stack.push(node);
+            YamlNode node = any.AnyCast<YamlNode>();
+            YamlNode subNode = node[tag];
+            if (!subNode.IsNull())
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        void EndObject(YamlNode node)
+        void StartObject(Any &any)
         {
+            if (any.IsNull())
+            {
+                return;
+            }
+
+            m_stack.push(any.AnyCast<YamlNode>());
+        }
+
+        void EndObject(Any &any)
+        {
+            if (any.IsNull())
+            {
+                return;
+            }
+
             if (m_stack.empty())
             {
                 assert(false);
                 return;
             }
 
-            assert(node == m_stack.top());
+            assert(any.AnyCast<YamlNode>() == m_stack.top());
 
             m_stack.pop();
         }
 
     public:
-#define GET_TAG_NODE_OR_RET(tag)  YamlNode node = GetTagNode(tag); if (node.IsNull()) return; 
+#define GET_TAG_NODE_OR_RET(tag) Node node = GetTagNode(tag); if (node.elem.IsNull()) return;
 
         template <typename T>
         typename std::enable_if<std::is_arithmetic<T>::value, void>::type
             Serialize(const char *tag, T &value)
         {            
             GET_TAG_NODE_OR_RET(tag);
-            value = node.as<T>();
+            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            value = yamlNode.as<T>();
         }
 
         template<typename T>
@@ -86,272 +117,22 @@ namespace Serialization
             Serialize(const char* tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.as<int>();
+            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            value = yamlNode.as<int>();
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.as<bool>();
+            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            value = yamlNode.as<bool>();
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
             GET_TAG_NODE_OR_RET(tag);
-            str = node.as<std::string>();
-        }
-
-        template <typename T, int N>
-        void Serialize(const char *tag, T(&array)[N])
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            int size = std::min(N, node.size());
-            for (int i = 0, auto itr = node.begin(); i < size && itr != node.end(); i++, itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-                Serialize("item", array[i]);
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T, int N1, int N2>
-        void Serialize(const char *tag, T(&array)[N1][N2])
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            int size = std::min(N1, node.size());
-            for (int i = 0, auto itr = node.begin(); i < size && itr != node.end(); i++, itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-                Serialize("item", array[i]);
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T, int N1, int N2, int N3>
-        void Serialize(const char *tag, T(&array)[N1][N2][N3])
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            int size = std::min(N1, node.size());
-            for (int i = 0, auto itr = node.begin(); i < size && itr != node.end(); i++, itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-                Serialize("item", array[i]);
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T>
-        typename std::enable_if<std::is_class<T>::value, void>::type
-            Serialize(const char *tag, T &obj)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartObject(node);
-            obj.Serialize(*this);
-            EndObject(node);
-        }
-
-        template <typename T>
-        void SerializeArrayVector(const char *tag, std::vector<T> &vec)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            size = std::min(vec.size(), node.size());
-            for (int i = 0, auto itr = node.begin(); i < size && itr != node.end(); i++, itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                vec[i] = obj;
-
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::vector<T> &vec)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                vec.emplace_back(obj);
-
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::list<T> &ls)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                ls.emplace_back(obj);
-
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::stack<T> &st)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                st.emplace(obj);
-
-                EndObject(subNode);
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::deque<T> &deq)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                deq.emplace_back(obj);
-
-                EndObject(subNode);
-            }
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-                if (!subNode["key"].IsNull() && !subNode["value"].IsNull())
-                {
-                    _Kty key;
-                    _Ty  value;
-
-                    StartObject(subNode);
-
-                    Serialize("key", key);
-                    Serialize("value", value);
-                    mp.insert({ key, value });
-
-                    EndObject(subNode);
-                }
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::set<T> &set)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                set.insert(obj);
-
-                EndObject(subNode);
-            }
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode subNode = *itr;
-                if (!subNode["key"].IsNull() && !subNode["value"].IsNull())
-                {
-                    _Kty key;
-                    _Ty  value;
-
-                    StartObject(subNode);
-
-                    Serialize("key", key);
-                    Serialize("value", value);
-                    mp.insert({ key, value });
-
-                    EndObject(subNode);
-                }
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::unordered_set<T> &set)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-            assert(node.Type() == YAML::NodeType::Sequence);
-
-            for (auto itr = node.begin(); itr != node.end(); itr++)
-            {
-                YamlNode &subNode = *itr;
-
-                StartObject(subNode);
-
-                T obj;
-                Serialize("item", obj);
-                set.insert(obj);
-
-                EndObject(subNode);
-            }
+            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            str = yamlNode.as<std::string>();
         }
 
 #undef GET_TAG_NODE_OR_RET

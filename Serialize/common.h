@@ -24,26 +24,18 @@
 #include "RapidxmlWrap.h"
 #include "RapidjsonWrap.h"
 #include "YamlWrap.h"
+#include "any.h"
 
 namespace Serialization
 {
     struct Node
-    {
+    {   
+        Any                 elem;
+        std::vector<Any>    children;
+
         Node()
         {
-            jNodePtr = nullptr;
-            xNodePtr =  nullptr;
-            valid = false;
+            children.clear();
         }
-
-        bool isNull()
-        {
-            return valid;
-        }
-
-        rapidjson::Value* jNodePtr;
-        XmlNodePtr        xNodePtr;
-        YamlNode          yNode;
-        bool              valid;
     };
 }

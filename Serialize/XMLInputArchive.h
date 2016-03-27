@@ -30,7 +30,15 @@ namespace Serialization
                 return false;
             }
 
-            m_stack.push(m_doc.first_node("Object"));
+            XmlNodePtr objNode = m_doc.first_node("root");
+            if (objNode)
+            {
+                XmlNodePtr trunkNode = objNode->first_node("object");
+                if (trunkNode)
+                {
+                    m_stack.push(trunkNode);
+                }
+            }
 
             return true;
         }
@@ -50,63 +58,76 @@ namespace Serialization
             return Load(strstream.str());
         }
 
-        template <typename T>
-        void operator >> (T &obj)
+    public:
+
+        Node GetTagNode(const char *tag)
         {
-            obj.Serialize(*this);
-        }
+            Node node;
 
-    private:
-        int GetNodeChildCount(XmlNodePtr node)
-        {
-            int count = 0;
-
-            if (!node)
-            {
-                return 0;
-            }
-
-            for (XmlNodePtr subNode = node->first_node();
-                subNode != nullptr;
-                subNode = subNode->next_sibling())
-            {
-                count++;
-            }
-
-            return count;
-        }
-
-        XmlNodePtr GetTagNode(const char *tag)
-        {
             if (m_stack.empty())
             {
-                return nullptr;
+                return node;
             }
 
             XmlNodePtr parent = m_stack.top();
             if (!parent)
             {
-                return nullptr;
+                return node;
             }
 
             XmlNodePtr subNode = parent->first_node(tag);
+            if (!subNode)
+            {
+                return node;
+            }
 
-            return subNode;
+            node.elem = subNode;
+
+            for (XmlNodePtr childNode = subNode->first_node();
+                childNode != nullptr;
+                childNode = childNode->next_sibling())
+            {
+                node.children.push_back(Any(childNode));
+            }
+            
+            return node;
         }
 
-        void StartObject(XmlNodePtr node)
+        bool HasMember(const char *tag, Any &any)
         {
-            m_stack.push(node);
+            XmlNodePtr node = any.AnyCast<XmlNodePtr>();
+            if (node && node->first_node(tag))
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        void EndObject(XmlNodePtr node)
+        void StartObject(Any &any)
         {
-            if (m_stack.empty())
+            if (any.IsNull())
             {
                 return;
             }
 
-            if (m_stack.top() != node)
+            m_stack.push(any.AnyCast<XmlNodePtr>());
+        }
+
+        void EndObject(Any &any)
+        {
+            if (any.IsNull())
+            {
+                return;
+            }
+
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            if (m_stack.top() != any.AnyCast<XmlNodePtr>())
             {
                 assert(false);
                 return;
@@ -116,26 +137,16 @@ namespace Serialization
             m_stack.pop();
         }
 
-        void StartArray(XmlNodePtr node)
-        {
-            StartObject(node);
-        }
-
-        void EndArray(XmlNodePtr node)
-        {
-            EndObject(node);
-        }
-
     public:
 
-#define GET_TAG_NODE_OR_RET(tag)  XmlNodePtr node = GetTagNode(tag); if (!node) return; 
+#define GET_TAG_NODE_OR_RET(tag)  Node node = GetTagNode(tag); if (node.elem.IsNull()) return; 
 
         template <typename T>
         typename std::enable_if<is_signedBigInt<T>::value, void>::type
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoll(node->value());
+            value = (T)std::atoll(node.elem.AnyCast<XmlNodePtr>()->value());
         }
 
         template <typename T>
@@ -143,7 +154,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoll(node->value());
+            value = (T)std::atoll(node.elem.AnyCast<XmlNodePtr>()->value());
         }
 
         template <typename T>
@@ -151,7 +162,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoi(node->value());
+            value = (T)std::atoi(node.elem.AnyCast<XmlNodePtr>()->value());
         }
 
         template <typename T>
@@ -159,7 +170,7 @@ namespace Serialization
             inline   Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoi(node->value());
+            value = (T)std::atoi(node.elem.AnyCast<XmlNodePtr>()->value());
         }
 
         template <typename T>
@@ -167,7 +178,7 @@ namespace Serialization
             inline Serialize(const char *tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atof(node->value());
+            value = (T)std::atof(node.elem.AnyCast<XmlNodePtr>()->value());
         }
 
         template<typename T>
@@ -175,288 +186,19 @@ namespace Serialization
             Serialize(const char* tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoi(node->value());
+            value = (T)std::atoi(node.elem.AnyCast<XmlNodePtr>()->value());
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (bool)std::atoi(node->value());
+            value = std::atoi(node.elem.AnyCast<XmlNodePtr>()->value()) == 1;
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
             GET_TAG_NODE_OR_RET(tag);
-            str = node->value();
-        }
-
-        template <typename T, int N>
-        void Serialize(const char *tag, T(&array)[N])
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount && i < N; i++)
-            {
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, array[i]);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T, int N1, int N2>
-        void Serialize(const char *tag, T(&array)[N1][N2])
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount && i < N1; i++)
-            {
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, array[i]);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T, int N1, int N2, int N3>
-        void Serialize(const char *tag, T(&array)[N1][N2][N3])
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount && i < N1; i++)
-            {
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, array[i]);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T>
-        typename std::enable_if<std::is_class<T>::value, void>::type
-            Serialize(const char *tag, T &obj)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartObject(node);
-            obj.Serialize(*this);
-            EndObject(node);
-        }
-
-        template <typename T>
-        void SerializeArrayVector(const char *tag, std::vector<T> &vec)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount && i < (int)vec.size(); i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                vec[i] = obj;
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::vector<T> &vec)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                vec.emplace_back(obj);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::list<T> &ls)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                ls.emplace_back(obj);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::stack<T> &st)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                st.emplace(obj);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::deque<T> &deq)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                deq.emplace_back(obj);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            for (XmlNodePtr subNode = node->first_node(); subNode != nullptr;
-                subNode = subNode->next_sibling())
-            {
-                XmlNodePtr keyNode = subNode->first_node("key");
-                XmlNodePtr valueNode = subNode->first_node("value");
-
-                if (keyNode && valueNode)
-                {
-                    _Kty key;
-                    _Ty  value;
-
-                    StartObject(subNode);
-
-                    Serialize("key", key);
-                    Serialize("value", value);
-                    mp.insert({ key, value });
-
-                    EndObject(subNode);
-                }
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::set<T> &set)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                set.insert(obj);
-            }
-
-            EndArray(node);
-        }
-
-        template <typename _Kty, typename _Ty>
-        void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            for (XmlNodePtr subNode = node->first_node(); subNode != nullptr;
-                subNode = subNode->next_sibling())
-            {
-                XmlNodePtr  keyNode = subNode->first_node("key");
-                XmlNodePtr  valueNode = subNode->first_node("value");
-
-                if (keyNode && valueNode)
-                {
-                    _Kty key;
-                    _Ty  value;
-
-                    StartObject(subNode);
-
-                    Serialize("key", key);
-                    Serialize("value", value);
-                    mp.insert({ key, value });
-
-                    EndObject(subNode);
-                }
-            }
-        }
-
-        template <typename T>
-        void Serialize(const char *tag, std::unordered_set<T> &set)
-        {
-            GET_TAG_NODE_OR_RET(tag);
-
-            StartArray(node);
-
-            int childCount = GetNodeChildCount(node);
-            for (int i = 0; i < childCount; i++)
-            {
-                T obj;
-                char buffer[50] = { 0 };
-
-                sprintf(buffer, "item%d", i);
-                Serialize(buffer, obj);
-                set.insert(obj);
-            }
-
-            EndArray(node);
+            str = node.elem.AnyCast<XmlNodePtr>()->value();
         }
 
 #undef GET_TAG_NODE_OR_RET

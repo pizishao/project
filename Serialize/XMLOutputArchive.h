@@ -22,7 +22,7 @@ namespace Serialization
             m_doc.append_node(declaration);
 
             XmlNodePtr root = m_doc.allocate_node(rapidxml::node_element,
-                m_doc.allocate_string("Object"), nullptr);
+                m_doc.allocate_string("root"), nullptr);
             m_doc.append_node(root);
 
             m_stack.push(root);
@@ -47,11 +47,6 @@ namespace Serialization
     public:
         void StartObject(const char *tag)
         {
-            if (!tag)
-            {
-                return;
-            }
-
             if (m_stack.empty())
             {
                 assert(false);
@@ -59,18 +54,23 @@ namespace Serialization
             }
 
             XmlNodePtr parent = m_stack.top();
-            XmlNodePtr node = m_doc.allocate_node(rapidxml::node_element, m_doc.allocate_string(tag), nullptr);
+            XmlNodePtr node;
+            
+            if (tag)
+            {
+                node = m_doc.allocate_node(rapidxml::node_element, m_doc.allocate_string(tag), nullptr);
+            }            
+            else
+            {
+                node = m_doc.allocate_node(rapidxml::node_element, m_doc.allocate_string("object"), nullptr);
+            }
+
             parent->append_node(node);
             m_stack.push(node);
         }
 
         void EndObject(const char *tag)
         {
-            if (!tag)
-            {
-                return;
-            }
-
             if (m_stack.empty())
             {
                 assert(false);
@@ -79,10 +79,21 @@ namespace Serialization
 
             XmlNodePtr node = m_stack.top();
 
-            if (strcmp(node->name(), tag) != 0)
+            if (tag)
             {
-                assert(false);
-                return;
+                if (strcmp(node->name(), tag) != 0)
+                {
+                    assert(false);
+                    return;
+                }
+            }
+            else
+            {
+                if (strcmp(node->name(), "object") != 0)
+                {
+                    assert(false);
+                    return;
+                }
             }
 
             m_stack.pop();
@@ -128,7 +139,7 @@ namespace Serialization
         {
             std::string text;
 
-            assert(!m_stack.empty() && m_stack.top() == m_doc.first_node("Object"));
+            assert(!m_stack.empty() && m_stack.top() == m_doc.first_node("root"));
             rapidxml::print(std::back_inserter(text), m_doc, 0);
 
             return text;
