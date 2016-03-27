@@ -74,7 +74,7 @@ namespace Serialization
             Serialize(const char *tag, T &value)
         {
             writer.String(tag);
-            writer.UInt(value);
+            writer.Uint(value);
         }
 
         template <typename T>

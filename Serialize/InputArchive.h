@@ -21,7 +21,7 @@ namespace Serialization
 
         bool LoadFromFile(std::string filename)
         {
-            return m_outArchive.LoadFromFile(text);
+            return m_outArchive.LoadFromFile(filename);
         }
 
         template <typename T>
@@ -90,7 +90,7 @@ namespace Serialization
 
             auto &children = node.children;
 
-            int size = std::min(N, children.size());
+            int size = std::min(N, (int)children.size());
             for (int i = 0; i < size; i++)
             {
                 m_outArchive.m_outArchive.StartObject(children[i]);
@@ -106,7 +106,7 @@ namespace Serialization
 
             auto &children = node.children;
 
-            int size = std::min(N1, children.size());
+            int size = std::min(N1, (int)children.size());
             for (int i = 0; i < size; i++)
             {
                 m_outArchive.m_outArchive.StartObject(children[i]);
@@ -122,7 +122,7 @@ namespace Serialization
 
             auto &children = node.children;
 
-            int size = std::min(N1, children.size());
+            int size = std::min(N1, (int)children.size());
             for (int i = 0; i < size; i++)
             {
                 m_outArchive.m_outArchive.StartObject(children[i]);

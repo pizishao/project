@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <tuple>
 #include <ctime>
-#include <wtypes.h>
 
 #include "JSONInputArchive.h"
 #include "JSONOutputArchive.h"
