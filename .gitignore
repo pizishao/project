@@ -13,3 +13,4 @@ Debug/TcpServer.ilk
 *.exe
 *.ilk
 Serialize/Debug/test.txt
+Serialize/build/

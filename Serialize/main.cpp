@@ -3,8 +3,6 @@
 
 //#pragma execution_character_set("utf-8")
 
-#include "stdafx.h"
-
 #include <stdio.h>
 #include <tuple>
 #include <ctime>
@@ -165,6 +163,7 @@ namespace Serialization
     }
 }*/
 
+/*
 std::string GBToUTF8(const char* str)
 {
     std::string result;
@@ -184,9 +183,9 @@ std::string GBToUTF8(const char* str)
     delete[]szRes;
 
     return result;
-}
+}*/
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
     Foo foo;
 
