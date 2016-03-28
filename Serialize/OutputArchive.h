@@ -120,21 +120,24 @@ namespace Serialization
 
         template<class T>
         static auto FakeSerializeClass(const char *tag, T &obj, long a)
-            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, 
+                intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
         {
             return;
         }
 
         template<class T>
         static auto FakeSerializeClass(const char *tag, T &obj, int a)
-            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, 
+                intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
         {
             return;
         }
 
         template<class T>
         auto SerializeClass(const char *tag, T &obj, long a)
-            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, 
+                intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
         {
             m_outArchive.StartObject(tag);
             obj.Serialize(*this);
