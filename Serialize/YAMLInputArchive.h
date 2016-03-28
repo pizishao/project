@@ -137,6 +137,6 @@ namespace Serialization
 #undef GET_TAG_NODE_OR_RET
 
     private:
-        std::stack<YAML::Node>      m_stack;
+        std::stack<YamlNode>        m_stack;
     };
 }

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "yaml-cpp/yaml.h"
+#include "common.h"
 
-//#pragma comment(lib, "libyaml-cppmdd.lib")
-
-typedef YAML::Node  YamlNode;
+namespace Serialization
+{
+    typedef Node<YAML::Node>    YamlNode;
+}

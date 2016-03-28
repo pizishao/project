@@ -26,7 +26,9 @@ namespace Serialization
                 return false;
             }
 
-            m_stack.push(&m_doc);
+            JsonNode node;
+            node.elem = &m_doc;
+            m_stack.push(node);
 
             return true;
         }
@@ -46,17 +48,37 @@ namespace Serialization
             return Load(strstream.str());
         }
 
-        Node GetTagNode(const char *tag)
+        bool CheckTagNodeExist(const char *tag)
         {
-            Node node;
-
             if (m_stack.empty())
             {
                 assert(false);
+                return false;
+            }
+
+            JsonNode node = m_stack.top();
+
+            rapidjson::Value &jVal = *node.elem;
+
+            if (jVal.HasMember(tag))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        JsonNode GetTagNode(const char *tag)
+        {
+            JsonNode node;
+
+            if (m_stack.empty())
+            {
                 return node;
             }
 
-            rapidjson::Value &jVal = *m_stack.top();
+            JsonNode parentNode = m_stack.top();
+            rapidjson::Value &jVal = *parentNode.elem;
 
             if (jVal.HasMember(tag))
             {
@@ -66,18 +88,32 @@ namespace Serialization
                 {
                     for (size_t i = 0; i < tagValue.Size(); i++)
                     {
-                        node.children.push_back(Any(&tagValue[i]));
+                        node.children.push_back(&tagValue[i]);
                     }
                 }
             }
-            
+
             return node;
         }
 
-        bool HasMember(const char *tag, Any &any)
+        bool ItemHasTag(int index, const char *tag)
         {
-            rapidjson::Value *val = any.AnyCast<rapidjson::Value *>();
-            if (val && val->HasMember(tag))
+            if (m_stack.empty())
+            {                
+                return false;
+            }            
+
+            JsonNode parentNode = m_stack.top();
+
+            if (index >= (int)parentNode.children.size())
+            {
+                assert(false);
+                return false;
+            }
+
+            rapidjson::Value &jVal = *parentNode.children[index];
+            
+            if (jVal.HasMember(tag))
             {
                 return true;
             }
@@ -85,30 +121,24 @@ namespace Serialization
             return false;
         }
 
-        void StartObject(Any &any)
+        void StartObject(const char *tag)
         {
-            if (any.IsNull())
+            if (!CheckTagNodeExist(tag))
             {
                 return;
             }
 
-            m_stack.push(any.AnyCast<rapidjson::Value *>());
+            JsonNode node = GetTagNode(tag);
+            assert(node.elem);
+
+            m_stack.push(node);
         }
 
-        void EndObject(Any &any)
+        void EndObject(const char *tag)
         {
-            if (any.IsNull())
-            {
-                return;
-            }
+            (void)tag;
 
             if (m_stack.empty())
-            {
-                assert(false);
-                return;
-            }
-
-            if (m_stack.top() != any.AnyCast<rapidjson::Value *>())
             {
                 assert(false);
                 return;
@@ -117,7 +147,67 @@ namespace Serialization
             m_stack.pop();
         }
 
-#define GET_TAG_NODE_OR_RET(tag) Node node = GetTagNode(tag); if (node.elem.IsNull()) return;
+        int StartArray(const char *tag)
+        {
+            if (!CheckTagNodeExist(tag))
+            {
+                return 0;
+            }
+
+            JsonNode node = GetTagNode(tag);
+            assert(node.elem);
+
+            m_stack.push(node);
+
+            return node.children.size();
+        }
+
+        void EndArray(const char *tag)
+        {
+            (void)tag;
+
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            m_stack.pop();
+        }
+
+        void StartItem(int index)
+        {
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            JsonNode parentNode = m_stack.top();
+
+            if (index >= (int)parentNode.children.size())
+            {
+                assert(false);
+                return;
+            }
+
+            JsonNode subNode;
+            subNode.elem = parentNode.children[index];
+            m_stack.push(subNode);
+        }
+
+        void EndItem()
+        {
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            m_stack.pop();
+        }
+
+#define GET_TAG_NODE_OR_RET(tag) JsonNode node = GetTagNode(tag); if (!node.elem) return;
 
     public:        
         template <typename T>
@@ -125,7 +215,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.elem.AnyCast<rapidjson::Value *>()->GetInt64();
+            value = node.elem->GetInt64();
         }
 
         template <typename T>
@@ -133,7 +223,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.elem.AnyCast<rapidjson::Value *>()->GetUint64();
+            value = node.elem->GetUint64();
         }
 
         template <typename T>
@@ -141,7 +231,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.elem.AnyCast<rapidjson::Value *>()->GetInt();
+            value = node.elem->GetInt();
         }
 
         template <typename T>
@@ -149,7 +239,7 @@ namespace Serialization
             inline   Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.elem.AnyCast<rapidjson::Value *>()->GetUint();
+            value = node.elem->GetUint();
         }
 
         template <typename T>
@@ -157,19 +247,19 @@ namespace Serialization
             inline Serialize(const char *tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.elem.AnyCast<rapidjson::Value *>()->GetDouble();
+            value = node.elem->GetDouble();
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = node.elem.AnyCast<rapidjson::Value *>()->GetBool();
+            value = node.elem->GetBool();
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
             GET_TAG_NODE_OR_RET(tag);
-            str = node.elem.AnyCast<rapidjson::Value *>()->GetString();
+            str = node.elem->GetString();
         }
 
         template<typename T>
@@ -177,13 +267,13 @@ namespace Serialization
             Serialize(const char* tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)(node.elem.AnyCast<rapidjson::Value *>()->GetInt());
+            value = (T)(node.elem->GetInt());
         }             
 
-#undef GET_JVALUE_OR_RET
+#undef GET_TAG_NODE_OR_RET
 
     private:
-        std::stack<rapidjson::Value *>  m_stack;
+        std::stack<JsonNode>            m_stack;
         rapidjson::Document             m_doc;
     };
 }

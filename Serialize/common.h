@@ -21,20 +21,17 @@
 
 #include <algorithm>
 
-#include "RapidxmlWrap.h"
-#include "RapidjsonWrap.h"
-#include "YamlWrap.h"
-#include "any.h"
-
 namespace Serialization
 {
+    template<typename T>
     struct Node
-    {   
-        Any                 elem;
-        std::vector<Any>    children;
+    {
+        T                 elem;
+        std::vector<T>    children;
 
         Node()
         {
+            elem = T();
             children.clear();
         }
     };

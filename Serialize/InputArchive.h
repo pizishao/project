@@ -14,7 +14,7 @@ namespace Serialization
         InputArchive(){}
         ~InputArchive(){}
 
-#define GET_TAG_NODE_OR_RET(tag) Node node = m_outArchive.GetTagNode(tag); if (node.elem.IsNull()) return;
+#define CHECK_TAG_NODE_EXIST_OR_RET(tag) if (!m_outArchive.CheckTagNodeExist(tag)) return;
 
     public:
         bool Load(const std::string text)
@@ -82,49 +82,55 @@ namespace Serialization
         template <typename T, int N>
         void Serialize(const char *tag, T(&array)[N])
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
+            int size = std::min(count, N);
 
-            int size = std::min(N, (int)children.size());
             for (int i = 0; i < size; i++)
             {
-                m_outArchive.m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
                 Serialize("item", array[i]);
-                m_outArchive.m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T, int N1, int N2>
         void Serialize(const char *tag, T(&array)[N1][N2])
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
+            int size = std::min(count, N1);
 
-            int size = std::min(N1, (int)children.size());
             for (int i = 0; i < size; i++)
             {
-                m_outArchive.m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
                 Serialize("item", array[i]);
-                m_outArchive.m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T, int N1, int N2, int N3>
         void Serialize(const char *tag, T(&array)[N1][N2][N3])
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
+            int size = std::min(count, N1);
 
-            int size = std::min(N1, (int)children.size());
             for (int i = 0; i < size; i++)
             {
-                m_outArchive.m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
                 Serialize("item", array[i]);
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template<class T>
@@ -154,11 +160,11 @@ namespace Serialization
             }
             else
             {
-                GET_TAG_NODE_OR_RET(tag);
+                CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-                m_outArchive.StartObject(node.elem);
+                m_outArchive.StartObject(tag);
                 Serialization::Serialize(*this, obj);
-                m_outArchive.EndObject(node.elem);
+                m_outArchive.EndObject(tag);
             }
         }
 
@@ -173,11 +179,11 @@ namespace Serialization
             }
             else
             {
-                GET_TAG_NODE_OR_RET(tag);
+                CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-                m_outArchive.StartObject(node.elem);
+                m_outArchive.StartObject(tag);
                 obj.Serialize(*this);
-                m_outArchive.EndObject(node.elem);
+                m_outArchive.EndObject(tag);
             }            
         }
 
@@ -191,187 +197,205 @@ namespace Serialization
         template <typename T>
         void SerializeArrayVector(const char *tag, std::vector<T> &vec)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            int size = std::min(vec.size(), children.size());
+            int size = std::min((int)vec.size(), count);
             for (int i = 0; i < size; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 vec[i] = obj;
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
         void Serialize(const char *tag, std::vector<T> &vec)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 vec.emplace_back(obj);
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
         void Serialize(const char *tag, std::list<T> &ls)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 ls.emplace_back(obj);
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
         void Serialize(const char *tag, std::stack<T> &st)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 st.emplace(obj);
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
         void Serialize(const char *tag, std::deque<T> &deq)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 deq.emplace_back(obj);
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename _Kty, typename _Ty>
         void Serialize(const char *tag, std::map<_Kty, _Ty> &mp)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                if (m_outArchive.HasMember("key", children[i]) 
-                    && m_outArchive.HasMember("value", children[i]))
+                if (m_outArchive.ItemHasTag(i, "key")
+                    && m_outArchive.ItemHasTag(i, "value"))
                 {
                     _Kty key;
                     _Ty  value;
 
-                    m_outArchive.StartObject(children[i]);
+                    m_outArchive.StartItem(i);
 
                     Serialize("key", key);
                     Serialize("value", value);
                     mp.insert({ key, value });
 
-                    m_outArchive.EndObject(children[i]);
+                    m_outArchive.EndItem();
                 }
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
         void Serialize(const char *tag, std::set<T> &set)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 set.insert(obj);
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename _Kty, typename _Ty>
         void Serialize(const char *tag, std::unordered_map<_Kty, _Ty> &mp)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                if (m_outArchive.HasMember("key", children[i]) 
-                    && m_outArchive.HasMember("value", children[i]))
+                if (m_outArchive.ItemHasTag(i, "key")
+                    && m_outArchive.ItemHasTag(i, "value"))
                 {
                     _Kty key;
                     _Ty  value;
 
-                    m_outArchive.StartObject(children[i]);
+                    m_outArchive.StartItem(i);
 
                     Serialize("key", key);
                     Serialize("value", value);
                     mp.insert({ key, value });
 
-                    m_outArchive.EndObject(children[i]);
+                    m_outArchive.EndItem();
                 }
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
         void Serialize(const char *tag, std::unordered_set<T> &set)
         {
-            GET_TAG_NODE_OR_RET(tag);
+            CHECK_TAG_NODE_EXIST_OR_RET(tag);
 
-            auto &children = node.children;
+            int count = m_outArchive.StartArray(tag);
 
-            for (size_t i = 0; i < children.size(); i++)
+            for (int i = 0; i < count; i++)
             {
-                m_outArchive.StartObject(children[i]);
+                m_outArchive.StartItem(i);
 
                 T obj;
                 Serialize("item", obj);
                 set.insert(obj);
 
-                m_outArchive.EndObject(children[i]);
+                m_outArchive.EndItem();
             }
+
+            m_outArchive.EndArray(tag);
         }
 
         template <typename T>
@@ -381,7 +405,7 @@ namespace Serialization
             SerializeClass(nullptr, obj, 0);
         }
 
-#undef GET_TAG_NODE_OR_RET
+#undef CHECK_TAG_NODE_EXIST_OR_RET
 
     private:
         archive m_outArchive;
