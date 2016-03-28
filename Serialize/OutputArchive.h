@@ -111,7 +111,8 @@ namespace Serialization
 
         template<class T>
         auto SerializeClass(const char *tag, T &obj, int a)
-            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
+            -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, 
+                intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
         {
             m_outArchive.StartObject(tag);
             Serialization::Serialize(*this, obj);

@@ -164,7 +164,8 @@ namespace Serialization
 
         template<class T>
         auto SerializeClass(const char *tag, T &obj, long a)
-            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, intrusive_if<is_intrusive, std::is_class<T>::value>::yes, void())
+            -> decltype(intrusive_if<is_intrusive, std::is_class<T>::value>::yes_class, 
+                intrusive_if<is_intrusive, std::is_class<T>::value>::yes, void())
         {   
             if (!tag)
             {
