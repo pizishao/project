@@ -99,12 +99,12 @@ int main(int argc, char* argv[])
     //JsonOutPutArchive oAchive;
     //XmlOutPutArchive oAchive(SerialEncodeType::UTF8);
     Serialization::OutputArchive<Serialization::YamlOutputArchive, false> outputArchiveYaml;
-    //Serialization::OutputArchive<Serialization::JsonOutPutArchive, false> outputArchiveJson;
-    //Serialization::OutputArchive<Serialization::XmlOutPutArchive, false> outputArchiveXml;
+    Serialization::OutputArchive<Serialization::JsonOutPutArchive, false> outputArchiveJson;
+    Serialization::OutputArchive<Serialization::XmlOutPutArchive, false> outputArchiveXml;
 
     outputArchiveYaml << foo;
-    //outputArchiveJson << foo;
-    //outputArchiveXml << foo;
+    outputArchiveJson << foo;
+    outputArchiveXml << foo;
 
     /*decltype(intrusive_if<true, std::is_class<Student>::value>::yes_class, intrusive_if<true, std::is_class<Student>::value>::yes, void())*/
     
@@ -122,14 +122,14 @@ int main(int argc, char* argv[])
     //std::string s = oAchive.GetJsonText();
     
     std::string sYaml = outputArchiveYaml.c_str();
-    /*std::string sJson = outputArchiveJson.c_str();
-    std::string sXml = outputArchiveXml.c_str();*/
+    std::string sJson = outputArchiveJson.c_str();
+    std::string sXml = outputArchiveXml.c_str();
     foo.Clear();
 
     //Serialization::YamlInputArchive iAchive;
     //iAchive.Load(s);
 
-    /*Serialization::InputArchive<Serialization::JsonInPutArchive, false>    iArchiveJson;
+    Serialization::InputArchive<Serialization::JsonInPutArchive, false>    iArchiveJson;
     Serialization::InputArchive<Serialization::YamlInputArchive, false>    iArchiveYaml;
     Serialization::InputArchive<Serialization::XmlInPutArchive, false>     iArchiveXml;
     iArchiveJson.Load(sJson);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
 
     foo.Clear();
     iArchiveXml.Load(sXml);
-    iArchiveXml >> foo;*/
+    iArchiveXml >> foo;
 
      getchar();
 
