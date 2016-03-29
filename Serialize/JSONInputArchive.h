@@ -57,7 +57,7 @@ namespace Serialization
 
             JsonSeriNode node = m_stack.top();
 
-            rapidjson::Value &jVal = *node.elem;
+            JsonValue &jVal = *node.elem;
 
             if (jVal.HasMember(tag))
             {
@@ -77,11 +77,11 @@ namespace Serialization
             }
 
             JsonSeriNode parentNode = m_stack.top();
-            rapidjson::Value &jVal = *parentNode.elem;
+            JsonValue &jVal = *parentNode.elem;
 
             if (jVal.HasMember(tag))
             {
-                rapidjson::Value &tagValue = jVal[tag];
+                JsonValue &tagValue = jVal[tag];
                 node.elem = &tagValue;
                 if (tagValue.IsArray())
                 {
@@ -110,7 +110,7 @@ namespace Serialization
                 return false;
             }
 
-            rapidjson::Value &jVal = *parentNode.children[index];
+            JsonValue &jVal = *parentNode.children[index];
             
             if (jVal.HasMember(tag))
             {
