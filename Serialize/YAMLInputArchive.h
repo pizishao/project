@@ -17,31 +17,58 @@ namespace Serialization
     public:
         bool Load(const std::string yamltext)
         {
-            YAML::Node root = YAML::Load(yamltext);
-            m_stack.push(root);
+            YamlNode root = YAML::Load(yamltext);
+
+            YamlSeriNode node;
+            node.elem = root;
+
+            m_stack.push(node);
 
             return true;
         }
 
         bool LoadFromFile(std::string filename)
         {
-            YAML::Node root = YAML::LoadFile(filename);
-            m_stack.push(root);
+            YamlNode root = YAML::LoadFile(filename);
+            
+            YamlSeriNode node;
+            node.elem = root;
+
+            m_stack.push(node);
 
             return true;
         }
 
-        Node GetTagNode(const char *tag)
+        bool CheckTagNodeExist(const char *tag)
         {
-            Node node;
+            if (m_stack.empty())
+            {
+                return false;
+            }
+
+            YamlSeriNode parent = m_stack.top();
+            assert(!parent.elem.IsNull());
+            YamlNode subNode = parent.elem[tag];
+
+            if (!subNode.IsNull())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        YamlSeriNode GetTagNode(const char *tag)
+        {
+            YamlSeriNode node;
 
             if (m_stack.empty())
             {
                 return node;
             }
 
-            YamlNode parent = m_stack.top();
-            YamlNode subNode = parent[tag];
+            YamlSeriNode parent = m_stack.top();
+            YamlNode    subNode = parent.elem[tag];
 
             if (!subNode.IsNull())
             {
@@ -51,7 +78,7 @@ namespace Serialization
                     for (auto itr = subNode.begin(); itr != subNode.end(); itr++)
                     {
                         YamlNode childNode = *itr;
-                        node.children.push_back(Any(childNode));
+                        node.children.push_back(childNode);
                     }
                 }
             }
@@ -59,10 +86,22 @@ namespace Serialization
             return node;
         }
 
-        bool HasMember(const char *tag, Any &any)
+        bool ItemHasTag(int index, const char *tag)
         {
-            YamlNode node = any.AnyCast<YamlNode>();
-            YamlNode subNode = node[tag];
+            if (m_stack.empty())
+            {
+                return false;
+            }
+
+            YamlSeriNode parentNode = m_stack.top();
+
+            if (index >= (int)parentNode.children.size())
+            {
+                assert(false);
+                return false;
+            }
+
+            YamlNode subNode = parentNode.children[index][tag];
             if (!subNode.IsNull())
             {
                 return true;
@@ -71,22 +110,22 @@ namespace Serialization
             return false;
         }
 
-        void StartObject(Any &any)
+        void StartObject(const char *tag)
         {
-            if (any.IsNull())
+            if (!CheckTagNodeExist(tag))
             {
                 return;
             }
 
-            m_stack.push(any.AnyCast<YamlNode>());
+            YamlSeriNode node = GetTagNode(tag);
+            assert(!node.elem.IsNull());
+
+            m_stack.push(node);
         }
 
-        void EndObject(Any &any)
+        void EndObject(const char *tag)
         {
-            if (any.IsNull())
-            {
-                return;
-            }
+            (void)tag;
 
             if (m_stack.empty())
             {
@@ -94,12 +133,70 @@ namespace Serialization
                 return;
             }
 
-            assert(any.AnyCast<YamlNode>() == m_stack.top());
+            m_stack.pop();
+        }
+
+        int StartArray(const char *tag)
+        {
+            if (!CheckTagNodeExist(tag))
+            {
+                return 0;
+            }
+
+            YamlSeriNode node = GetTagNode(tag);
+            assert(!node.elem.IsNull());
+
+            m_stack.push(node);
+
+            return node.children.size();
+        }
+
+        void EndArray(const char *tag)
+        {
+            (void)tag;
+
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
 
             m_stack.pop();
         }
 
-#define GET_TAG_NODE_OR_RET(tag) Node node = GetTagNode(tag); if (node.elem.IsNull()) return;
+        void StartItem(int index)
+        {
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            YamlSeriNode parentNode = m_stack.top();
+
+            if (index >= (int)parentNode.children.size())
+            {
+                assert(false);
+                return;
+            }
+
+            YamlSeriNode subNode;
+            subNode.elem = parentNode.children[index];
+            m_stack.push(subNode);
+        }
+
+        void EndItem()
+        {
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            m_stack.pop();
+        }
+
+#define GET_TAG_NODE_OR_RET(tag) YamlSeriNode node = GetTagNode(tag); if (node.elem.IsNull()) return;
 
     public:
         template <typename T>
@@ -107,7 +204,7 @@ namespace Serialization
             Serialize(const char *tag, T &value)
         {            
             GET_TAG_NODE_OR_RET(tag);
-            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            YamlNode yamlNode = node.elem;
             value = yamlNode.as<T>();
         }
 
@@ -116,27 +213,27 @@ namespace Serialization
             Serialize(const char* tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            YamlNode yamlNode = node.elem;
             value = yamlNode.as<int>();
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            YamlNode yamlNode = node.elem;
             value = yamlNode.as<bool>();
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
             GET_TAG_NODE_OR_RET(tag);
-            YamlNode yamlNode = node.elem.AnyCast<YamlNode>();
+            YamlNode yamlNode = node.elem;
             str = yamlNode.as<std::string>();
         }
 
 #undef GET_TAG_NODE_OR_RET
 
     private:
-        std::stack<YamlNode>        m_stack;
+        std::stack<YamlSeriNode>        m_stack;
     };
 }

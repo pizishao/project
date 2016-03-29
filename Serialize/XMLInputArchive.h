@@ -29,13 +29,15 @@ namespace Serialization
                 return false;
             }
 
-            XmlNodePtr objNode = m_doc.first_node("root");
-            if (objNode)
+            XmlNodePtr rootNode = m_doc.first_node("root");
+            if (rootNode)
             {
-                XmlNodePtr trunkNode = objNode->first_node("object");
-                if (trunkNode)
+                XmlNodePtr objectNode = rootNode->first_node("object");
+                if (objectNode)
                 {
-                    m_stack.push(trunkNode);
+                    XmlSeriNode node;
+                    node.elem = objectNode;
+                    m_stack.push(node);
                 }
             }
 
@@ -57,22 +59,38 @@ namespace Serialization
             return Load(strstream.str());
         }
 
-        Node GetTagNode(const char *tag)
+        bool CheckTagNodeExist(const char *tag)
         {
-            Node node;
+            if (m_stack.empty())
+            {
+                return false;
+            }
+
+            XmlSeriNode parent = m_stack.top();
+            assert(parent.elem);
+            XmlNodePtr subNode = parent.elem->first_node(tag);
+
+            if (subNode)
+            {
+                return true;
+            }
+
+            return false;            
+        }
+
+        XmlSeriNode GetTagNode(const char *tag)
+        {
+            XmlSeriNode node;
 
             if (m_stack.empty())
             {
                 return node;
             }
 
-            XmlNodePtr parent = m_stack.top();
-            if (!parent)
-            {
-                return node;
-            }
+            XmlSeriNode parentNode = m_stack.top();
+            assert(parentNode.elem);
 
-            XmlNodePtr subNode = parent->first_node(tag);
+            XmlNodePtr subNode = parentNode.elem->first_node(tag);
             if (!subNode)
             {
                 return node;
@@ -84,16 +102,29 @@ namespace Serialization
                 childNode != nullptr;
                 childNode = childNode->next_sibling())
             {
-                node.children.push_back(Any(childNode));
+                node.children.push_back(childNode);
             }
-            
+
             return node;
         }
 
-        bool HasMember(const char *tag, Any &any)
+        bool ItemHasTag(int index, const char *tag)
         {
-            XmlNodePtr node = any.AnyCast<XmlNodePtr>();
-            if (node && node->first_node(tag))
+            if (m_stack.empty())
+            {
+                return false;
+            }
+
+            XmlSeriNode parentNode = m_stack.top();
+
+            if (index >= (int)parentNode.children.size())
+            {
+                assert(false);
+                return false;
+            }
+
+            XmlNodePtr subNode = parentNode.children[index]->first_node(tag);
+            if (subNode)
             {
                 return true;
             }
@@ -101,22 +132,22 @@ namespace Serialization
             return false;
         }
 
-        void StartObject(Any &any)
+        void StartObject(const char *tag)
         {
-            if (any.IsNull())
+            if (!CheckTagNodeExist(tag))
             {
                 return;
             }
 
-            m_stack.push(any.AnyCast<XmlNodePtr>());
+            XmlSeriNode node = GetTagNode(tag);
+            assert(node.elem);
+
+            m_stack.push(node);
         }
 
-        void EndObject(Any &any)
+        void EndObject(const char *tag)
         {
-            if (any.IsNull())
-            {
-                return;
-            }
+            (void)tag;
 
             if (m_stack.empty())
             {
@@ -124,17 +155,70 @@ namespace Serialization
                 return;
             }
 
-            if (m_stack.top() != any.AnyCast<XmlNodePtr>())
+            m_stack.pop();
+        }
+
+        int StartArray(const char *tag)
+        {
+            if (!CheckTagNodeExist(tag))
+            {
+                return 0;
+            }
+
+            XmlSeriNode node = GetTagNode(tag);
+            assert(node.elem);
+
+            m_stack.push(node);
+
+            return node.children.size();
+        }
+
+        void EndArray(const char *tag)
+        {
+            (void)tag;
+
+            if (m_stack.empty())
             {
                 assert(false);
                 return;
             }
 
+            m_stack.pop();
+        }
+
+        void StartItem(int index)
+        {
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
+
+            XmlSeriNode parentNode = m_stack.top();
+
+            if (index >= (int)parentNode.children.size())
+            {
+                assert(false);
+                return;
+            }
+
+            XmlSeriNode subNode;
+            subNode.elem = parentNode.children[index];
+            m_stack.push(subNode);
+        }
+
+        void EndItem()
+        {
+            if (m_stack.empty())
+            {
+                assert(false);
+                return;
+            }
 
             m_stack.pop();
         }
 
-#define GET_TAG_NODE_OR_RET(tag)  Node node = GetTagNode(tag); if (node.elem.IsNull()) return; 
+#define GET_TAG_NODE_OR_RET(tag)  XmlSeriNode node = GetTagNode(tag); if (!node.elem) return; 
 
     public:
         template <typename T>
@@ -142,7 +226,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoll(node.elem.AnyCast<XmlNodePtr>()->value());
+            value = (T)std::atoll(node.elem->value());
         }
 
         template <typename T>
@@ -150,7 +234,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoll(node.elem.AnyCast<XmlNodePtr>()->value());
+            value = (T)std::atoll(node.elem->value());
         }
 
         template <typename T>
@@ -158,7 +242,7 @@ namespace Serialization
             inline Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoi(node.elem.AnyCast<XmlNodePtr>()->value());
+            value = (T)std::atoi(node.elem->value());
         }
 
         template <typename T>
@@ -166,7 +250,7 @@ namespace Serialization
             inline   Serialize(const char *tag, T &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoi(node.elem.AnyCast<XmlNodePtr>()->value());
+            value = (T)std::atoi(node.elem->value());
         }
 
         template <typename T>
@@ -174,7 +258,7 @@ namespace Serialization
             inline Serialize(const char *tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atof(node.elem.AnyCast<XmlNodePtr>()->value());
+            value = (T)std::atof(node.elem->value());
         }
 
         template<typename T>
@@ -182,25 +266,25 @@ namespace Serialization
             Serialize(const char* tag, T& value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = (T)std::atoi(node.elem.AnyCast<XmlNodePtr>()->value());
+            value = (T)std::atoi(node.elem->value());
         }
 
         void inline Serialize(const char *tag, bool &value)
         {
             GET_TAG_NODE_OR_RET(tag);
-            value = std::atoi(node.elem.AnyCast<XmlNodePtr>()->value()) == 1;
+            value = std::atoi(node.elem->value()) == 1;
         }
 
         void inline Serialize(const char *tag, std::string &str)
         {
             GET_TAG_NODE_OR_RET(tag);
-            str = node.elem.AnyCast<XmlNodePtr>()->value();
+            str = node.elem->value();
         }
 
 #undef GET_TAG_NODE_OR_RET
 
     private:
         rapidxml::xml_document<>    m_doc;
-        std::stack<XmlNodePtr>      m_stack;
+        std::stack<XmlSeriNode>     m_stack;
     };
 }

@@ -5,5 +5,6 @@
 
 namespace Serialization
 {
-    typedef Node<YAML::Node>    YamlNode;
+    typedef YAML::Node          YamlNode;
+    typedef Node<YamlNode>      YamlSeriNode;
 }

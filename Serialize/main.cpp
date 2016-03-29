@@ -13,9 +13,9 @@
 #include "JSONInputArchive.h"
 #include "JSONOutputArchive.h"
 #include "XMLOutputArchive.h"
-//#include "XMLInputArchive.h"
+#include "XMLInputArchive.h"
 #include "YAMLOutputArchive.h"
-//#include "YAMLInputArchive.h"
+#include "YAMLInputArchive.h"
 
 #include "OutputArchive.h"
 #include "InputArchive.h"
@@ -74,31 +74,31 @@ int main(int argc, char* argv[])
     foo.un_set.insert(st2);
     foo.un_set.insert(st3);
 
-    //Serialization::OutputArchive<Serialization::YamlOutputArchive, false> outputArchiveYaml;
-    Serialization::OutputArchive<Serialization::JsonOutPutArchive, false> outputArchiveJson;
-    //Serialization::OutputArchive<Serialization::XmlOutPutArchive, false> outputArchiveXml;
+    Serialization::OutputArchive<Serialization::YamlOutputArchive, true> outputArchiveYaml;
+    Serialization::OutputArchive<Serialization::JsonOutPutArchive, true> outputArchiveJson;
+    Serialization::OutputArchive<Serialization::XmlOutPutArchive, true> outputArchiveXml;
 
-    //outputArchiveYaml << foo;
+    outputArchiveYaml << foo;
     outputArchiveJson << foo;
-    //outputArchiveXml << foo;
+    outputArchiveXml << foo;
     
-    //std::string sYaml = outputArchiveYaml.c_str();
+    std::string sYaml = outputArchiveYaml.c_str();
     std::string sJson = outputArchiveJson.c_str();
-    //std::string sXml = outputArchiveXml.c_str();
+    std::string sXml = outputArchiveXml.c_str();
     foo.Clear();
 
-    Serialization::InputArchive<Serialization::JsonInPutArchive, false>    iArchiveJson;
-    //Serialization::InputArchive<Serialization::YamlInputArchive, false>    iArchiveYaml;
-    //Serialization::InputArchive<Serialization::XmlInPutArchive, false>     iArchiveXml;
+    Serialization::InputArchive<Serialization::JsonInPutArchive, true>    iArchiveJson;
+    Serialization::InputArchive<Serialization::YamlInputArchive, true>    iArchiveYaml;
+    Serialization::InputArchive<Serialization::XmlInPutArchive, true>     iArchiveXml;
     iArchiveJson.Load(sJson);
     iArchiveJson >> foo;
-    /*foo.Clear();
+    foo.Clear();
     iArchiveYaml.Load(sYaml);
     iArchiveYaml >> foo;
 
     foo.Clear();
     iArchiveXml.Load(sXml);
-    iArchiveXml >> foo;*/
+    iArchiveXml >> foo;
 
      getchar();
 

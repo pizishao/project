@@ -9,15 +9,15 @@ struct Student
     float score;
     std::time_t t1;
 
-    /*template <typename Archive>
+    template <typename Archive>
     void Serialize(Archive &ar)
     {
-    ar.Serialize("sName", sName);
-    ar.Serialize("age", age);
-    ar.Serialize("score", score);
-    t1 = std::time(nullptr);
-    ar.Serialize("t1", t1);
-    }*/
+        ar.Serialize("sName", sName);
+        ar.Serialize("age", age);
+        ar.Serialize("score", score);
+        t1 = std::time(nullptr);
+        ar.Serialize("t1", t1);
+    }
 
     bool operator==(const Student &rhs) const
     {
@@ -63,6 +63,7 @@ struct Student
 
 
 
+/*
 namespace Serialization
 {
     template <typename Archive>
@@ -74,7 +75,7 @@ namespace Serialization
         stu.t1 = std::time(nullptr);
         ar.Serialize("t1", stu.t1);
     }
-}
+}*/
 
 namespace std
 {
@@ -103,18 +104,18 @@ struct Foo
     std::unordered_map<std::string, Student> un_mp;
     std::unordered_set<Student> un_set;
 
-    /*template <typename Archive>
+    template <typename Archive>
     void Serialize(Archive &ar)
     {
-    ar.Serialize("vec", vec);
-    ar.Serialize("ls", ls);
-    ar.Serialize("st", st);
-    ar.Serialize("deq", deq);
-    ar.Serialize("mp", mp);
-    ar.Serialize("set", set);
-    ar.Serialize("un_mp", un_mp);
-    ar.Serialize("un_set", un_set);
-    }*/
+        ar.Serialize("vec", vec);
+        ar.Serialize("ls", ls);
+        ar.Serialize("st", st);
+        ar.Serialize("deq", deq);
+        ar.Serialize("mp", mp);
+        ar.Serialize("set", set);
+        ar.Serialize("un_mp", un_mp);
+        ar.Serialize("un_set", un_set);
+    }
 
     void Clear()
     {
@@ -133,6 +134,7 @@ struct Foo
 
 
 
+/*
 namespace Serialization
 {
     template <typename Archive>
@@ -147,4 +149,4 @@ namespace Serialization
         ar.Serialize("un_mp", foo.un_mp);
         ar.Serialize("un_set", foo.un_set);
     }
-}
+}*/

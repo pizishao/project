@@ -26,7 +26,7 @@ namespace Serialization
                 return false;
             }
 
-            JsonNode node;
+            JsonSeriNode node;
             node.elem = &m_doc;
             m_stack.push(node);
 
@@ -52,11 +52,10 @@ namespace Serialization
         {
             if (m_stack.empty())
             {
-                assert(false);
                 return false;
             }
 
-            JsonNode node = m_stack.top();
+            JsonSeriNode node = m_stack.top();
 
             rapidjson::Value &jVal = *node.elem;
 
@@ -68,16 +67,16 @@ namespace Serialization
             return false;
         }
 
-        JsonNode GetTagNode(const char *tag)
+        JsonSeriNode GetTagNode(const char *tag)
         {
-            JsonNode node;
+            JsonSeriNode node;
 
             if (m_stack.empty())
             {
                 return node;
             }
 
-            JsonNode parentNode = m_stack.top();
+            JsonSeriNode parentNode = m_stack.top();
             rapidjson::Value &jVal = *parentNode.elem;
 
             if (jVal.HasMember(tag))
@@ -103,7 +102,7 @@ namespace Serialization
                 return false;
             }            
 
-            JsonNode parentNode = m_stack.top();
+            JsonSeriNode parentNode = m_stack.top();
 
             if (index >= (int)parentNode.children.size())
             {
@@ -128,7 +127,7 @@ namespace Serialization
                 return;
             }
 
-            JsonNode node = GetTagNode(tag);
+            JsonSeriNode node = GetTagNode(tag);
             assert(node.elem);
 
             m_stack.push(node);
@@ -154,7 +153,7 @@ namespace Serialization
                 return 0;
             }
 
-            JsonNode node = GetTagNode(tag);
+            JsonSeriNode node = GetTagNode(tag);
             assert(node.elem);
 
             m_stack.push(node);
@@ -183,7 +182,7 @@ namespace Serialization
                 return;
             }
 
-            JsonNode parentNode = m_stack.top();
+            JsonSeriNode parentNode = m_stack.top();
 
             if (index >= (int)parentNode.children.size())
             {
@@ -191,7 +190,7 @@ namespace Serialization
                 return;
             }
 
-            JsonNode subNode;
+            JsonSeriNode subNode;
             subNode.elem = parentNode.children[index];
             m_stack.push(subNode);
         }
@@ -207,7 +206,7 @@ namespace Serialization
             m_stack.pop();
         }
 
-#define GET_TAG_NODE_OR_RET(tag) JsonNode node = GetTagNode(tag); if (!node.elem) return;
+#define GET_TAG_NODE_OR_RET(tag) JsonSeriNode node = GetTagNode(tag); if (!node.elem) return;
 
     public:        
         template <typename T>
@@ -273,7 +272,7 @@ namespace Serialization
 #undef GET_TAG_NODE_OR_RET
 
     private:
-        std::stack<JsonNode>            m_stack;
+        std::stack<JsonSeriNode>            m_stack;
         rapidjson::Document             m_doc;
     };
 }

@@ -10,5 +10,5 @@
 
 namespace Serialization
 {
-    typedef Node<rapidjson::Value *>    JsonNode;
+    typedef Node<rapidjson::Value *>    JsonSeriNode;
 }
