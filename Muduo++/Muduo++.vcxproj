@@ -100,7 +100,7 @@
     <ClInclude Include="net\EventLoopThread.h" />
     <ClInclude Include="net\EventLoopThreadPool.h" />
     <ClInclude Include="net\InetAddress.h" />
-    <ClInclude Include="net\Pipe.h" />
+    <ClInclude Include="net\ChannelHolder.h" />
     <ClInclude Include="net\Poller.h" />
     <ClInclude Include="net\Selector.h" />
     <ClInclude Include="net\SocketOps.h" />

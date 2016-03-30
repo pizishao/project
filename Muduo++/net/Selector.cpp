@@ -19,7 +19,7 @@ namespace MuduoPlus
     {
     }
 
-    void Selector::poll(int timeoutMS, PipeList* activePipes)
+    void Selector::poll(int timeoutMS, ChannelHolderList &activeChannelHolders)
     {
         resetFDSet();
 
@@ -44,15 +44,15 @@ namespace MuduoPlus
             return;
         }
 
-        fillActivePipes(activePipes);
+        fillActiveChannelHolders(activeChannelHolders);
     }
 
-    void Selector::fillActivePipes(PipeList* activePipes) const
+    void Selector::fillActiveChannelHolders(ChannelHolderList &activeChannelHolders) const
     {
-        for (const auto& pipePair : pipes_)
+        for (const auto& pos : channelHolders_)
         {
-            Pipe    pipe = pipePair.second;
-            Channel *pChannel = pipe.channel_;
+            ChannelHolder    holder = pos.second;
+            Channel *pChannel = holder.channel_;
             int events = Channel::kNoneEvent;
 
             if (FD_ISSET(pChannel->fd(), &readfds_))
@@ -73,23 +73,23 @@ namespace MuduoPlus
             if (events)
             {
                 pChannel->setRecvEvents(events);
-                activePipes->push_back(pipe);
+                activeChannelHolders.push_back(holder);
             }
         }
     }
 
     void Selector::updateChannel(Channel* channel)
     {
-        if (pipes_.find(channel->fd()) == pipes_.end())
+        if (channelHolders_.find(channel->fd()) == channelHolders_.end())
         {
             auto weakOwner = channel->getOwner();
             auto owner = weakOwner.lock();
             //if (owner)
             {
-                Pipe pipe;
-                pipe.channel_ = channel;
-                pipe.ower_ = owner;
-                pipes_.insert({ channel->fd(), pipe});
+                ChannelHolder holder;
+                holder.channel_ = channel;
+                holder.ower_ = owner;
+                channelHolders_.insert({ channel->fd(), holder});
             }
             /*else
             {
@@ -109,12 +109,12 @@ namespace MuduoPlus
         int fd = channel->fd();
 
 #if DEBUG
-        auto found = pipes_.find(fd);
-        assert(found != pipes_.end());
+        auto found = channelHolders_.find(fd);
+        assert(found != channelHolders_.end());
         assert(found->second.channel_ == channel);
 #endif       
 
-        pipes_.erase(fd);
+        channelHolders_.erase(fd);
     }
 
     void Selector::resetFDSet()
@@ -123,9 +123,9 @@ namespace MuduoPlus
         FD_ZERO(&writefds_);
         FD_ZERO(&exceptfds_);
 
-        for (const auto& pipePair : pipes_)
+        for (const auto& pos : channelHolders_)
         {
-            Channel *pChannel = pipePair.second.channel_;
+            Channel *pChannel = pos.second.channel_;
 
             if (pChannel->interestEvents() & Channel::kReadEvent)
             {

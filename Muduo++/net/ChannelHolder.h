@@ -6,7 +6,7 @@ namespace MuduoPlus
 {
     class Channel;
 
-    struct Pipe
+    struct ChannelHolder
     {
         Channel                     *channel_;
         std::shared_ptr<void>       ower_;

@@ -4,7 +4,7 @@
 #include <map>
 
 #include "EventLoop.h"
-#include "Pipe.h"
+#include "ChannelHolder.h"
 
 namespace MuduoPlus
 {
@@ -13,12 +13,12 @@ namespace MuduoPlus
     class Poller
     {
     public:
-        typedef std::vector<Pipe> PipeList;
+        typedef std::vector<ChannelHolder> ChannelHolderList;
 
         Poller(EventLoop* loop);
         virtual ~Poller();
 
-        virtual void poll(int timeoutMs, PipeList* activeChannels) = 0;
+        virtual void poll(int timeoutMs, ChannelHolderList &activeChannelHolders) = 0;
 
         virtual void updateChannel(Channel* channel) = 0;
 
@@ -34,8 +34,8 @@ namespace MuduoPlus
         }
 
     protected:
-        typedef std::map<int, Pipe> PipeMap;
-        PipeMap pipes_;
+        typedef std::map<int, ChannelHolder>    ChannelHolderMap;
+        ChannelHolderMap                        channelHolders_;
 
     private:
         EventLoop* ownerLoop_;

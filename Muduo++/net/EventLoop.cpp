@@ -66,8 +66,8 @@ namespace MuduoPlus
 
         while (!quit_)
         {
-            activePipes_.clear();
-            poller_->poll(m_PollTimeoutMsec, &activePipes_);
+            activeChannelHolders_.clear();
+            poller_->poll(m_PollTimeoutMsec, activeChannelHolders_);
             /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
@@ -75,8 +75,8 @@ namespace MuduoPlus
             // TODO sort channel by priority          
 
             eventHandling_ = true;
-            for (PipeList::iterator it = activePipes_.begin();
-                it != activePipes_.end(); ++it)
+            for (ChannelHolderList::iterator it = activeChannelHolders_.begin();
+                it != activeChannelHolders_.end(); ++it)
             {
                 Channel *channel = it->channel_;
                 channel->handleEvent(pollReturnTime_);
@@ -170,7 +170,7 @@ namespace MuduoPlus
         {
 #if DEBUG
             bool bFind = false;
-            for (auto &pos : activePipes_)
+            for (auto &pos : activeChannelHolders_)
             {
                 if (pos.channel_ == channel)
                 {
@@ -264,8 +264,8 @@ namespace MuduoPlus
 
     void EventLoop::printActiveChannels() const
     {
-        for (PipeList::const_iterator it = activePipes_.begin();
-            it != activePipes_.end(); ++it)
+        for (ChannelHolderList::const_iterator it = activeChannelHolders_.begin();
+            it != activeChannelHolders_.end(); ++it)
         {
             const Channel* ch = it->channel_;
             //LOG_TRACE << "{" << ch->reventsToString() << "} ";

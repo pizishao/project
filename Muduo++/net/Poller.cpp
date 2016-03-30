@@ -16,7 +16,7 @@ namespace MuduoPlus
     bool Poller::hasChannel(Channel* channel) const
     {
         assertInLoopThread();
-        PipeMap::const_iterator it = pipes_.find(channel->fd());
-        return it != pipes_.end() && it->second.channel_ == channel;
+        ChannelHolderMap::const_iterator it = channelHolders_.find(channel->fd());
+        return it != channelHolders_.end() && it->second.channel_ == channel;
     }
 }

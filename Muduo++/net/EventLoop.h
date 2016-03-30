@@ -9,7 +9,7 @@
 #include "base/Timestamp.h"
 #include "CallBack.h"
 #include "TimerId.h"
-#include "Pipe.h"
+#include "ChannelHolder.h"
 
 namespace MuduoPlus
 {
@@ -79,7 +79,7 @@ namespace MuduoPlus
 
         void printActiveChannels() const;
 
-        typedef std::vector<Pipe>   PipeList;
+        typedef std::vector<ChannelHolder>   ChannelHolderList;
 
         bool                        looping_; 
         bool                        quit_; 
@@ -95,9 +95,9 @@ namespace MuduoPlus
         std::shared_ptr<Channel>    wakeupChannel_;
         //boost::any                  context_;
 
-        PipeList                    activePipes_;
+        ChannelHolderList           activeChannelHolders_;
 
-        std::mutex                  mutex_;
+        std::mutex                  mutex_;pe
         std::vector<Functor>        pendingFunctors_;
     };
 }
