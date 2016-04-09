@@ -27,7 +27,7 @@ namespace SocketOps
             return ResultCode::success;
         }
 
-        int e = GetErrorCode();
+        int e = GetLastErrorCode();
         if (ERR_CONNECT_RETRIABLE(e))
         {
             return ResultCode::retry;
@@ -53,7 +53,7 @@ namespace SocketOps
 
     bool listen(socket_t fd)
     {
-        if (listen(fd, SOMAXCONN) < 0)
+        if (::listen(fd, SOMAXCONN) < 0)
         {
             return false;
         }
@@ -71,7 +71,7 @@ namespace SocketOps
 
     int send(socket_t fd, const void* buff, int count)
     {
-        return send(fd, (char *)buff, count, 0);
+        return ::send(fd, (char *)buff, count, 0);
     }
 
     int secv(socket_t fd, char *buff, int count)
@@ -254,7 +254,7 @@ err:
 
     sockaddr_in getLocalAddr(int sockfd)
     {
-        struct sockaddr_in localaddr = {0);
+        struct sockaddr_in localaddr = { 0 };
         socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
 
         if (::getsockname(sockfd, (sockaddr *)(&localaddr), &addrlen) < 0)

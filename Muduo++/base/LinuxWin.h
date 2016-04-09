@@ -16,8 +16,8 @@ int     gettimeofday(struct timeval *tp, void *tzp);
 
 int         GetCurThreadID();
 
-int         GetErrorCode();
+int         GetLastErrorCode();
 std::string GetErrorText(int errcode);
-std::string GetCurrErrorText();
+std::string GetLastErrorText();
 
 

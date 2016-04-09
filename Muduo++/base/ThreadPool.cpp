@@ -24,14 +24,16 @@ namespace MuduoPlus
     {
         assert(threads_.empty());
         running_ = true;
+
         threads_.reserve(numThreads);
         for (int i = 0; i < numThreads; ++i)
         {
             char id[32];
             snprintf(id, sizeof id, "%d", i + 1);
-            threads_.push_back(std::make_shared<std::thread>(new std::thread(
-                std::bind(&ThreadPool::runInThread, this))));
+
+            threads_.push_back(std::make_shared<std::thread>(std::bind(&ThreadPool::runInThread, this)));
         }
+
         if (numThreads == 0 && threadInitCallback_)
         {
             threadInitCallback_();

@@ -8,7 +8,7 @@
 #include <ctime>
 #include <string>
 
-#include "pre.h"
+#include "TestCase.h"
 
 #include "JSONInputArchive.h"
 #include "JSONOutputArchive.h"
@@ -74,9 +74,9 @@ int main(int argc, char* argv[])
     foo.un_set.insert(st2);
     foo.un_set.insert(st3);
 
-    Serialization::OutputArchive<Serialization::YamlOutputArchive, true> outputArchiveYaml;
-    Serialization::OutputArchive<Serialization::JsonOutPutArchive, true> outputArchiveJson;
-    Serialization::OutputArchive<Serialization::XmlOutPutArchive, true> outputArchiveXml;
+    Serialization::OutputArchive<Serialization::YamlOutputArchive, false> outputArchiveYaml;
+    Serialization::OutputArchive<Serialization::JsonOutPutArchive, false> outputArchiveJson;
+    Serialization::OutputArchive<Serialization::XmlOutPutArchive, false> outputArchiveXml;
 
     outputArchiveYaml << foo;
     outputArchiveJson << foo;
@@ -87,9 +87,9 @@ int main(int argc, char* argv[])
     std::string sXml = outputArchiveXml.c_str();
     foo.Clear();
 
-    Serialization::InputArchive<Serialization::JsonInPutArchive, true>    iArchiveJson;
-    Serialization::InputArchive<Serialization::YamlInputArchive, true>    iArchiveYaml;
-    Serialization::InputArchive<Serialization::XmlInPutArchive, true>     iArchiveXml;
+    Serialization::InputArchive<Serialization::JsonInPutArchive, false>    iArchiveJson;
+    Serialization::InputArchive<Serialization::YamlInputArchive, false>    iArchiveYaml;
+    Serialization::InputArchive<Serialization::XmlInPutArchive, false>     iArchiveXml;
     iArchiveJson.Load(sJson);
     iArchiveJson >> foo;
     foo.Clear();

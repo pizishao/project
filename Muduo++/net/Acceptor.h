@@ -26,14 +26,15 @@ namespace MuduoPlus
             m_NewConnCallBack = cb;
         }
 
-        bool Listen();
+        void Listen();
+        bool listenning() const { return listenning_; }
 
     private:
         void HandleRead();
 
         bool                        m_bReuseport;
         InetAddress                 m_ListenAddr;
-
+        bool                        listenning_;
         EventLoop*                  m_pEventLoop;
         socket_t                    m_ListenFd;
         std::shared_ptr<Channel>    m_AcceptChannelPtr;

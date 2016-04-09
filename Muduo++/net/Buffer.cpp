@@ -43,7 +43,7 @@ namespace MuduoPlus
             }
             else
             {
-                int errorCode = GetErrorCode();
+                int errorCode = GetLastErrorCode();
                 return ERR_RW_RETRIABLE(errorCode);
             }
         }
@@ -63,7 +63,7 @@ namespace MuduoPlus
 
             if (n < 0)
             {
-                int errorCode = GetErrorCode();
+                int errorCode = GetLastErrorCode();
                 return ERR_RW_RETRIABLE(errorCode);
             }
             else if (n == 0) // connection lost

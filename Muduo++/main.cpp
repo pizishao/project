@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 
+#pragma comment(lib, "ws2_32.lib")
 
 int _tmain(int argc, _TCHAR* argv[])
 {

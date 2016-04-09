@@ -24,5 +24,7 @@ namespace MuduoPlus
         Buffer*, Timestamp) > MessageCallback;*/
 
     void defaultConnectionCallback(const TcpConnectionPtr& conn);
-    void defaultMessageCallback(const TcpConnectionPtr& conn, const char*);
+    void defaultMessageCallback(const TcpConnectionPtr& conn,
+        Buffer* buffer,
+        Timestamp receiveTime);
 }

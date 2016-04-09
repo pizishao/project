@@ -2,7 +2,7 @@
 
 #include "LinuxWin.h"
 
-int GetErrorCode()
+int GetLastErrorCode()
 {
 #ifdef WIN32
     return GetLastError();
@@ -29,9 +29,9 @@ std::string GetErrorText(int errcode)
 #endif    
 }
 
-std::string GetCurrErrorText()
+std::string GetLastErrorText()
 {
-    int errcode = GetErrorCode();
+    int errcode = GetLastErrorCode();
 
 #ifdef WIN32
     LPVOID buffer;
@@ -67,7 +67,7 @@ int gettimeofday(struct timeval *tp, void *tzp)
     tm.tm_isdst = -1;
     clock       = mktime(&tm);
 
-    tp->tv_sec  = clock;
+    tp->tv_sec  = (long)clock;
     tp->tv_usec = wtm.wMilliseconds * 1000;
 
     return (0);

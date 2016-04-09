@@ -11,7 +11,6 @@
 
 namespace MuduoPlus
 {
-
     TcpServer::TcpServer(EventLoop* loop,
         const InetAddress& listenAddr,
         const std::string& nameArg,
@@ -52,13 +51,13 @@ namespace MuduoPlus
     }
 
     void TcpServer::start()
-    {
-        if (started_.getAndSet(1) == 0)
+    {       
+        if (started_.fetch_and(1) == 0)
         {
             threadPool_->start(threadInitCallback_);
             assert(!acceptor_->listenning());
             loop_->runInLoop(
-                std::bind(&Acceptor::listen, acceptor_.get()));
+                std::bind(&Acceptor::Listen, acceptor_.get()));
         }
     }
 

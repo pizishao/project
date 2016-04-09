@@ -11,6 +11,7 @@ namespace MuduoPlus
         m_ListenAddr    = listenAddr;
         m_bReuseport    = reuseport;
         m_ListenFd      = -1;
+        listenning_     = false;
     }
 
     Acceptor::~Acceptor()
@@ -20,35 +21,35 @@ namespace MuduoPlus
         SocketOps::closeSocket(m_ListenFd);
     }
 
-    bool Acceptor::Listen()
+    void Acceptor::Listen()
     {
         socket_t fd = SocketOps::createSocket();
 
         if (fd == -1)
         {           
             LOG_PRINT(LogType_Error, "create socket failed:%s %s:%d", 
-                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
-            return false;
-        }
-
-        if (!SocketOps::setSocketNoneBlocking(fd))
-        {
-            LOG_PRINT(LogType_Error, "enable socket noneBlocking failed:%s %s:%d", 
-                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
-            goto err;
-        }
+                GetLastErrorText().c_str(), __FUNCTION__, __LINE__);
+            return;
+        }        
 
         if (!SocketOps::bindSocket(fd, &m_ListenAddr.getSockAddr()))
         {
             LOG_PRINT(LogType_Error, "bind socket failed:%s %s:%d", 
-                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
+                GetLastErrorText().c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
         if (!SocketOps::listen(fd))
         {
             LOG_PRINT(LogType_Error, "listen socket failed:%s %s:%d", 
-                GetCurrErrorText().c_str(), __FUNCTION__, __LINE__);
+                GetLastErrorText().c_str(), __FUNCTION__, __LINE__);
+            goto err;
+        }
+
+        if (!SocketOps::setSocketNoneBlocking(fd))
+        {
+            LOG_PRINT(LogType_Error, "enable socket noneBlocking failed:%s %s:%d",
+                GetLastErrorText().c_str(), __FUNCTION__, __LINE__);
             goto err;
         }
 
@@ -58,13 +59,14 @@ namespace MuduoPlus
         m_AcceptChannelPtr = std::make_shared<Channel>(m_pEventLoop, m_ListenFd);
         m_AcceptChannelPtr->setReadCallback(std::bind(&Acceptor::HandleRead, this));
         m_AcceptChannelPtr->setOwner(shared_from_this());
-        m_AcceptChannelPtr->enableReading();
+        m_AcceptChannelPtr->enableReading(); 
+        listenning_ = true;
 
-        return true;
+        return;
 
     err:
         SocketOps::closeSocket(fd);
-        return false;
+        return;
     }
 
     void Acceptor::HandleRead()
@@ -93,7 +95,7 @@ namespace MuduoPlus
             }
         }
 
-        int errorCode = GetErrorCode();
+        int errorCode = GetLastErrorCode();
         if (!ERR_ACCEPT_RETRIABLE(errorCode)) 
         {
             LOG_PRINT(LogType_Error, "accept socket failed:%s %s:%d",

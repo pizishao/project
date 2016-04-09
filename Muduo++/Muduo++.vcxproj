@@ -52,7 +52,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -68,7 +68,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -96,6 +96,7 @@
     <ClInclude Include="net\CallBack.h" />
     <ClInclude Include="net\Channel.h" />
     <ClInclude Include="net\Connector.h" />
+    <ClInclude Include="net\Epoller.h" />
     <ClInclude Include="net\EventLoop.h" />
     <ClInclude Include="net\EventLoopThread.h" />
     <ClInclude Include="net\EventLoopThreadPool.h" />
@@ -104,6 +105,7 @@
     <ClInclude Include="net\Poller.h" />
     <ClInclude Include="net\Selector.h" />
     <ClInclude Include="net\SocketOps.h" />
+    <ClInclude Include="net\TcpClient.h" />
     <ClInclude Include="net\TcpConnection.h" />
     <ClInclude Include="net\TcpServer.h" />
     <ClInclude Include="net\Timer.h" />
@@ -122,12 +124,14 @@
     <ClCompile Include="net\Buffer.cpp" />
     <ClCompile Include="net\Channel.cpp" />
     <ClCompile Include="net\Connector.cpp" />
+    <ClCompile Include="net\Epoller.cpp" />
     <ClCompile Include="net\EventLoop.cpp" />
     <ClCompile Include="net\EventLoopThread.cpp" />
     <ClCompile Include="net\EventLoopThreadPool.cpp" />
     <ClCompile Include="net\Poller.cpp" />
     <ClCompile Include="net\Selector.cpp" />
     <ClCompile Include="net\SocketOps.cpp" />
+    <ClCompile Include="net\TcpClient.cpp" />
     <ClCompile Include="net\TcpConnection.cpp" />
     <ClCompile Include="net\TcpServer.cpp" />
     <ClCompile Include="net\Timer.cpp" />

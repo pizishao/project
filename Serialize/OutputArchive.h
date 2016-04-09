@@ -120,7 +120,7 @@ namespace Serialization
         }
 
         template<class T>
-        static auto FakeSerializeClass(const char *tag, T &obj, long a)
+        static auto SerializeClassTrait(const char *tag, T &obj, long a)
             -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, 
                 intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes, void())
         {
@@ -128,7 +128,7 @@ namespace Serialization
         }
 
         template<class T>
-        static auto FakeSerializeClass(const char *tag, T &obj, int a)
+        static auto SerializeClassTrait(const char *tag, T &obj, int a)
             -> decltype(intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::yes_class, 
                 intrusive_if<OutputArchive::is_intrusive, std::is_class<T>::value>::no, void())
         {
@@ -147,7 +147,7 @@ namespace Serialization
 
         template <typename T>
         auto Serialize(const char *tag, T &obj)
-            -> decltype(FakeSerializeClass(tag, obj, 0))
+            -> decltype(SerializeClassTrait(tag, obj, 0))
         {
             SerializeClass(tag, obj, 0);
         }
@@ -296,7 +296,7 @@ namespace Serialization
 
         template <typename T>
         auto operator << (T &obj)
-            -> decltype(FakeSerializeClass(nullptr, obj, 0))
+            -> decltype(SerializeClassTrait(nullptr, obj, 0))
         {
             SerializeClass(nullptr, obj, 0);
         }

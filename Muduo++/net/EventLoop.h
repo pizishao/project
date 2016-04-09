@@ -97,7 +97,7 @@ namespace MuduoPlus
 
         ChannelHolderList           activeChannelHolders_;
 
-        std::mutex                  mutex_;pe
+        std::mutex                  mutex_;
         std::vector<Functor>        pendingFunctors_;
     };
 }

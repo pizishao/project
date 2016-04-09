@@ -5,6 +5,17 @@
 
 namespace MuduoPlus
 {
+    void defaultConnectionCallback(const TcpConnectionPtr& conn)
+    {
+        LOG_PRINT(LogType_Info, "%s -> %s is %s", conn->localAddress().toIpPort().c_str(),
+            conn->peerAddress().toIpPort().c_str(), conn->connected() ? "UP" : "DOWN");
+    }
+
+    void defaultMessageCallback(const TcpConnectionPtr&, Buffer* buf, Timestamp receiveTime)
+    {
+        buf->retrieveAll();
+    }
+
     TcpConnection::TcpConnection(EventLoop* loop,
         const std::string& nameArg,
         int sockfd,
@@ -107,7 +118,7 @@ namespace MuduoPlus
             }
             else // sendCount < 0
             {
-                if (!ERR_RW_RETRIABLE(GetErrorCode()))
+                if (!ERR_RW_RETRIABLE(GetLastErrorCode()))
                 {
                     sockErrorOccurred_ = true;
                     faultError = true;                    
@@ -338,7 +349,7 @@ namespace MuduoPlus
             }
             else
             {
-                if (!ERR_RW_RETRIABLE(GetErrorCode()))
+                if (!ERR_RW_RETRIABLE(GetLastErrorCode()))
                 {
                     sockErrorOccurred_ = true;
                     LOG_PRINT(LogType_Error, "TcpConnection::handleWrite");
