@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "traits.h"
-#include "RapidxmlWrap.h"
+#include "RapidxmlHeader.h"
 
 namespace Serialization
 {

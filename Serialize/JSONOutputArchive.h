@@ -2,7 +2,7 @@
 
 #include "common.h"
 #include "traits.h"
-#include "RapidjsonWrap.h"
+#include "RapidjsonHeader.h"
 
 namespace Serialization
 {

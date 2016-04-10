@@ -6,10 +6,9 @@
 
 #include "common.h"
 
-typedef rapidxml::xml_node<>*       XmlNodePtr;
-typedef rapidxml::xml_attribute<>*  XmlAttributePtr;
-
 namespace Serialization
 {
+    typedef rapidxml::xml_node<>*       XmlNodePtr;
+    typedef rapidxml::xml_attribute<>*  XmlAttributePtr;
     typedef Node<XmlNodePtr>            XmlSeriNode;
 }
