@@ -13,13 +13,13 @@ namespace MuduoPlus
         state_(kDisconnected),
         retryDelayMs_(kInitRetryDelayMs)
     {
-        LOG_DEBUG << "ctor[" << this << "]";
+        //LOG_DEBUG << "ctor[" << this << "]";
     }
 
     Connector::~Connector()
     {
-        LOG_DEBUG << "dtor[" << this << "]";
-        assert(!channel_);
+        /*LOG_DEBUG << "dtor[" << this << "]";
+        assert(!channel_);*/
     }
 
     void Connector::start()
@@ -38,7 +38,7 @@ namespace MuduoPlus
         }
         else
         {
-            LOG_DEBUG << "do not connect";
+            //LOG_DEBUG << "do not connect";
         }
     }
 
@@ -62,7 +62,7 @@ namespace MuduoPlus
 
     void Connector::connect()
     {
-        int sockfd = sockets::createNonblockingOrDie(serverAddr_.family());
+        /*int sockfd = sockets::createNonblockingOrDie(serverAddr_.family());
         int ret = sockets::connect(sockfd, serverAddr_.getSockAddr());
         int savedErrno = (ret == 0) ? 0 : errno;
         switch (savedErrno)
@@ -98,7 +98,7 @@ namespace MuduoPlus
             sockets::close(sockfd);
             // connectErrorCallback_();
             break;
-        }
+        }*/
     }
 
     void Connector::restart()
@@ -112,7 +112,7 @@ namespace MuduoPlus
 
     void Connector::connecting(int sockfd)
     {
-        setState(kConnecting);
+        /*setState(kConnecting);
         assert(!channel_);
         channel_.reset(new Channel(loop_, sockfd));
         channel_->setWriteCallback(
@@ -122,7 +122,7 @@ namespace MuduoPlus
 
         // channel_->tie(shared_from_this()); is not working,
         // as channel_ is not managed by shared_ptr
-        channel_->enableWriting();
+        channel_->enableWriting();*/
     }
 
     int Connector::removeAndResetChannel()
@@ -142,7 +142,7 @@ namespace MuduoPlus
 
     void Connector::handleWrite()
     {
-        LOG_TRACE << "Connector::handleWrite " << state_;
+        /*LOG_TRACE << "Connector::handleWrite " << state_;
 
         if (state_ == kConnecting)
         {
@@ -176,24 +176,24 @@ namespace MuduoPlus
         {
             // what happened?
             assert(state_ == kDisconnected);
-        }
+        }*/
     }
 
     void Connector::handleError()
     {
-        LOG_ERROR << "Connector::handleError state=" << state_;
+        /*LOG_ERROR << "Connector::handleError state=" << state_;
         if (state_ == kConnecting)
         {
             int sockfd = removeAndResetChannel();
             int err = sockets::getSocketError(sockfd);
             LOG_TRACE << "SO_ERROR = " << err << " " << strerror_tl(err);
             retry(sockfd);
-        }
+        }*/
     }
 
     void Connector::retry(int sockfd)
     {
-        sockets::close(sockfd);
+        /*sockets::close(sockfd);
         setState(kDisconnected);
         if (connect_)
         {
@@ -206,6 +206,6 @@ namespace MuduoPlus
         else
         {
             LOG_DEBUG << "do not connect";
-        }
+        }*/
     }
 }
