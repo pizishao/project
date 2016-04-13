@@ -137,7 +137,7 @@ namespace MuduoPlus
                 FD_SET(pChannel->fd(), &writefds_);
             }
 
-            if (pChannel->interestEvents() & Channel::kCloseEvent)
+            //if (pChannel->interestEvents() & Channel::kCloseEvent)
             {
                 FD_SET(pChannel->fd(), &exceptfds_);
             }

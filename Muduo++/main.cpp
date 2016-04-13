@@ -68,7 +68,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     MuduoPlus::LogPrinter = LogPrintFunc;
     MuduoPlus::EventLoop loop;
-    MuduoPlus::InetAddress listenAddr("192.168.2.189", 2007);
+    MuduoPlus::InetAddress listenAddr("192.168.0.2", 2007);
     EchoServer server(&loop, listenAddr);
     server.start();
     loop.loop();

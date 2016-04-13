@@ -372,8 +372,8 @@ namespace MuduoPlus
 
     void TcpConnection::handleFinish()
     {
-        setState(kDisconnected);
-        channel_->disableAll();        
+        /*setState(kDisconnected);
+        channel_->disableAll();*/        
 
         if (sockErrorOccurred_ /*&& closeCallback_*/)
         {
