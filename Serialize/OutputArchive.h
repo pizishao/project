@@ -185,48 +185,48 @@ namespace Serialization
         template <typename T>
         void Serialize(const char *tag, std::stack<T> &st)
         {
-            std::stack<T> tmpStack;
+            std::stack<T> reverseStack;
             while (!st.empty())
             {
-                tmpStack.emplace(st.top());
+                reverseStack.emplace(st.top());
                 st.pop();
             }
 
             m_outArchive.StartArray(tag);
 
-            while (!tmpStack.empty())
+            while (!reverseStack.empty())
             {
                 m_outArchive.StartObject(nullptr);
-                Serialize("item", tmpStack.top());
+                Serialize("item", reverseStack.top());
                 m_outArchive.EndObject(nullptr);
 
-                st.emplace(tmpStack.top());
-                tmpStack.pop();
+                st.emplace(reverseStack.top());
+                reverseStack.pop();
             }
 
             m_outArchive.EndArray(tag);
         }
 
         template <typename T>
-        void Serialize(const char *tag, std::deque<T> &deq)
+        void Serialize(const char *tag, std::deque<T> &queue)
         {
-            std::deque<T> tmpDeq;
-            while (!deq.empty())
+            std::deque<T> reverseQueue;
+            while (!queue.empty())
             {
-                tmpDeq.emplace_back(deq.front());
-                deq.pop_front();
+                reverseQueue.emplace_back(queue.front());
+                queue.pop_front();
             }
 
             m_outArchive.StartArray(tag);
 
-            while (!tmpDeq.empty())
+            while (!reverseQueue.empty())
             {
                 m_outArchive.StartObject(nullptr);
-                Serialize("item", tmpDeq.front());
+                Serialize("item", reverseQueue.front());
                 m_outArchive.EndObject(nullptr);
 
-                deq.emplace_back(tmpDeq.front());
-                tmpDeq.pop_front();
+                queue.emplace_back(reverseQueue.front());
+                reverseQueue.pop_front();
             }
 
             m_outArchive.EndArray(tag);
