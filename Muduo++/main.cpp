@@ -1,7 +1,8 @@
 // Andy.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+#include <stdarg.h>
+
 #include "base/Logger.h"
 #include "net/TcpServer.h"
 #include "net/EventLoop.h"
@@ -58,19 +59,25 @@ void LogPrintFunc(MuduoPlus::LogType type, const char *format, ...)
     printf("\n");
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
+#ifdef WIN32
     WORD wVersionRequested;
     WSADATA wsaData;
     int err;
     wVersionRequested = MAKEWORD(1, 1);
     err = WSAStartup(wVersionRequested, &wsaData);
+#endif    
 
     MuduoPlus::LogPrinter = LogPrintFunc;
     MuduoPlus::EventLoop loop;
-    MuduoPlus::InetAddress listenAddr("192.168.0.2", 2007);
+    MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
     EchoServer server(&loop, listenAddr);
     server.start();
+    /*loop.runEvery(1, [=]()
+    {
+        printf("on timer\n");
+    });*/
     loop.loop();
 	return 0;
 }

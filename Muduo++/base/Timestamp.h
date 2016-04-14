@@ -72,7 +72,7 @@ namespace MuduoPlus
         double milliSecondFromNow()
         {
             Timestamp nowStamp = Timestamp::now();
-            int64_t diff = nowStamp.microSecondsSinceEpoch() - microSecondsSinceEpoch();
+            int64_t diff = microSecondsSinceEpoch() - nowStamp.microSecondsSinceEpoch();
             return static_cast<double>(diff) / Timestamp::kMicroSecPerMilliSec;
         }
 

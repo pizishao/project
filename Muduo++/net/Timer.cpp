@@ -2,7 +2,7 @@
 
 namespace MuduoPlus
 {
-    std::atomic_int64_t Timer::s_numCreated_ = 0;
+    std::atomic<int64_t> Timer::s_numCreated_;
 
     void Timer::restart(Timestamp now)
     {

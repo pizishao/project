@@ -17,5 +17,5 @@ namespace MuduoPlus
     typedef void(*LogPrintFunc)(LogType type, const char *format, ...);
     extern  LogPrintFunc LogPrinter;
 
-#define LOG_PRINT(type, format, ...)    if (LogPrinter) LogPrinter(type, format, __VA_ARGS__)
+#define LOG_PRINT(type, format, ...)    if (LogPrinter) LogPrinter(type, format, ##__VA_ARGS__)
 }

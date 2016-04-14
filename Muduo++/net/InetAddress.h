@@ -2,6 +2,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <memory.h>
 
 #include "base/LinuxWin.h"
 

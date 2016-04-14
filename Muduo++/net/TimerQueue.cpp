@@ -1,3 +1,5 @@
+#include <limits.h>
+
 #include "TimerQueue.h"
 #include "EventLoop.h"
 

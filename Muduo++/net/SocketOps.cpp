@@ -149,9 +149,10 @@ namespace SocketOps
             return -1;
         }
 
+/*
 #ifndef WIN32
         return socketpair(AF_UNIX, SOCK_STREAM, protocol, fdPair);
-#endif
+#endif*/
         socket_t listener = -1;
         socket_t connector = -1;
         socket_t acceptor = -1;
@@ -224,6 +225,11 @@ namespace SocketOps
             || listen_addr.sin_family != connect_addr.sin_family
             || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
             || listen_addr.sin_port != connect_addr.sin_port)
+        {
+            goto err;
+        }
+
+        if (!setSocketNoneBlocking(acceptor))
         {
             goto err;
         }

@@ -8,7 +8,8 @@ namespace SocketOps
 {
     inline uint64_t hostToNetwork64(uint64_t host64)
     {
-        return htonll(host64);
+        //return htonll(host64);
+        return host64;
     }
 
     inline uint32_t hostToNetwork32(uint32_t host32)
@@ -23,7 +24,8 @@ namespace SocketOps
 
     inline uint64_t networkToHost64(uint64_t net64)
     {
-        return ntohll(net64);
+        //return ntohll(net64);
+        return net64;
     }
 
     inline uint32_t networkToHost32(uint32_t net32)

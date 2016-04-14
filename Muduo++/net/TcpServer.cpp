@@ -26,6 +26,7 @@ namespace MuduoPlus
     {
         acceptor_->setNewConnectionCallback(
             std::bind(&TcpServer::newConnection, this, std::placeholders::_1, std::placeholders::_2));
+        started_ = 0;
     }
 
     TcpServer::~TcpServer()

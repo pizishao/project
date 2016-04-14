@@ -50,6 +50,8 @@ namespace MuduoPlus
         void disableReading() { interestEvents_ &= ~kReadEvent; update(); }
         void enableWriting() { interestEvents_ |= kWriteEvent; update(); }
         void disableWriting() { interestEvents_ &= ~kWriteEvent; update(); }
+        void enableErroring() { interestEvents_ |= kErrorEvent; update(); }
+        void disableErroring() { interestEvents_ &= ~kErrorEvent; update(); }
         void disableAll() { interestEvents_ = kNoneEvent; update(); }
         bool isWriting() const { return interestEvents_ & kWriteEvent; }
         bool isReading() const { return interestEvents_ & kReadEvent; }
@@ -67,7 +69,7 @@ namespace MuduoPlus
         static const int kNoneEvent;
         static const int kReadEvent;
         static const int kWriteEvent;
-        static const int kCloseEvent;
+        static const int kErrorEvent;
 
     private:
 

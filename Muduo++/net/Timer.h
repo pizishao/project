@@ -37,6 +37,6 @@ namespace MuduoPlus
         const bool                  repeat_;
         const int64_t               sequence_;
 
-        static std::atomic_int64_t  s_numCreated_;
+        static std::atomic<int64_t>  s_numCreated_;
     };
 }

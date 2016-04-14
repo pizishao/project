@@ -5,13 +5,19 @@
 #include <windows.h>
 #include <ws2tcpip.h>
 #else
+#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <netinet/in6.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <poll.h>
+#include <sys/epoll.h>
+#include <arpa/inet.h>
+#include <sys/syscall.h>
+#include <netinet/tcp.h>
+
 #endif
 
 //#include <assert.h>

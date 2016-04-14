@@ -1,10 +1,17 @@
+#include <limits.h>
+
 #include "base/LinuxWin.h"
 
 #include "EventLoop.h"
 #include "Channel.h"
 #include "TimerQueue.h"
 #include "SocketOps.h"
+
+#ifdef WIN32
 #include "Selector.h"
+#else
+#include "Epoller.h"
+#endif
 
 namespace MuduoPlus
 {
@@ -31,7 +38,7 @@ namespace MuduoPlus
 #ifdef WIN32
         poller_.reset(new Selector(this));
 #else
-        poller_(Poller::newDefaultPoller(this));
+        poller_.reset(new Epoller(this));
 #endif
 
         memset(wakeupFdPair_, 0, sizeof(wakeupFdPair_));
@@ -84,6 +91,8 @@ namespace MuduoPlus
 
             eventHandling_ = false;
             doPendingFunctors();
+
+            CheckTimeOut();
         }
 
         //LOG_TRACE << "EventLoop " << this << " stop looping";
@@ -153,6 +162,7 @@ namespace MuduoPlus
 
         m_PollTimeoutMsec = msec;
         m_PrevTimeOutStamp = Timestamp::now();
+        wakeup();
     }
 
     void EventLoop::updateChannel(Channel* channel)
@@ -235,12 +245,22 @@ namespace MuduoPlus
 
     void EventLoop::handleRead()
     {
-        unsigned char buf[1024] = {0};
+        unsigned char buf[1024] = { 0 };
 #ifdef WIN32
-        while (recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
-            ;
+        /* while (recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
+             ;*/
+        while (true)
+        {
+            int recvBytes = recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0);            
+            if (recvBytes <= 0)
+            {
+                break;
+            }
+
+            printf("handleRead()\n");
+        }
 #else
-        while (read(recv(wakeupFdPair_[1], (char*)buf, sizeof(buf)) > 0))
+        while (read(wakeupFdPair_[1], (char*)buf, sizeof(buf)) > 0)
             ;
 #endif
     }
