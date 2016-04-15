@@ -6,6 +6,7 @@
 #include "Channel.h"
 #include "TimerQueue.h"
 #include "SocketOps.h"
+#include "base/Logger.h"
 
 #ifdef WIN32
 #include "Selector.h"
@@ -43,14 +44,14 @@ namespace MuduoPlus
 
         memset(wakeupFdPair_, 0, sizeof(wakeupFdPair_));
         SocketOps::createSocketPair(wakeupFdPair_);
-        wakeupChannel_.reset(new Channel(this, wakeupFdPair_[1]));
 
-        wakeupChannel_->setReadCallback(
-            std::bind(&EventLoop::handleRead, this));
+        wakeupChannel_.reset(new Channel(this, wakeupFdPair_[1]));
+        wakeupChannel_->setReadCallback(std::bind(&EventLoop::handleRead, this));
         // we are always reading the wakeupfd
         wakeupChannel_->enableReading();
 
-        m_PollTimeoutMsec = INT_MAX;
+        pollTimeoutMsec_ = INT_MAX;
+        prevTimeOutStamp_ = Timestamp::now();
     }
 
     EventLoop::~EventLoop()
@@ -59,8 +60,9 @@ namespace MuduoPlus
             << " destructs in thread " << CurrentThread::tid();*/
         wakeupChannel_->disableAll();
         wakeupChannel_->remove();
-        /*::close(wakeupFd_);
-        t_loopInThisThread = NULL;*/
+        SocketOps::closeSocket(wakeupFdPair_[0]);
+        SocketOps::closeSocket(wakeupFdPair_[1]);
+        /*t_loopInThisThread = NULL;*/
     }
 
     void EventLoop::loop()
@@ -74,7 +76,7 @@ namespace MuduoPlus
         while (!quit_)
         {
             activeChannelHolders_.clear();
-            poller_->poll(m_PollTimeoutMsec, activeChannelHolders_);
+            poller_->poll(pollTimeoutMsec_, activeChannelHolders_);
             /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
@@ -82,17 +84,19 @@ namespace MuduoPlus
             // TODO sort channel by priority          
 
             eventHandling_ = true;
-            for (ChannelHolderList::iterator it = activeChannelHolders_.begin();
-                it != activeChannelHolders_.end(); ++it)
+            /*for (ChannelHolderList::iterator it = activeChannelHolders_.begin();
+                it != activeChannelHolders_.end(); ++it)*/
+            pollReturnTime_ = Timestamp::now();
+            for (auto &pos : activeChannelHolders_)
             {
-                Channel *channel = it->channel_;
-                channel->handleEvent(pollReturnTime_);
+                Channel *pChannel = pos.channel_;
+                pChannel->handleEvent(pollReturnTime_);
             }
 
             eventHandling_ = false;
             doPendingFunctors();
 
-            CheckTimeOut();
+            checkTimeOut();
         }
 
         //LOG_TRACE << "EventLoop " << this << " stop looping";
@@ -156,12 +160,12 @@ namespace MuduoPlus
         return timerQueue_->cancel(timerId);
     }
 
-    void EventLoop::ResetTimer(int msec)
+    void EventLoop::resetPollTimeOut(int msec)
     {
         assert(msec >= 0);
 
-        m_PollTimeoutMsec = msec;
-        m_PrevTimeOutStamp = Timestamp::now();
+        pollTimeoutMsec_ = msec;
+        prevTimeOutStamp_ = Timestamp::now();
         wakeup();
     }
 
@@ -169,6 +173,7 @@ namespace MuduoPlus
     {
         assert(channel->ownerLoop() == this);
         assertInLoopThread();
+
         poller_->updateChannel(channel);
     }
 
@@ -176,6 +181,7 @@ namespace MuduoPlus
     {
         assert(channel->ownerLoop() == this);
         assertInLoopThread();
+
         if (eventHandling_)
         {
 #if DEBUG
@@ -191,6 +197,7 @@ namespace MuduoPlus
             assert(bFind);
 #endif
         }
+
         poller_->removeChannel(channel);
     }
 
@@ -198,6 +205,7 @@ namespace MuduoPlus
     {
         assert(channel->ownerLoop() == this);
         assertInLoopThread();
+
         return poller_->hasChannel(channel);
     }
 
@@ -206,17 +214,12 @@ namespace MuduoPlus
         /*LOG_FATAL << "EventLoop::abortNotInLoopThread - EventLoop " << this
             << " was created in threadId_ = " << threadId_
             << ", current thread id = " << CurrentThread::tid();*/
+        LOG_PRINT(LogType_Fatal, "EventLoop::abortNotInLoopThread - EventLoop %p was created in "
+            "threadId_ = %u, current thread id = %u", threadId_, GetCurThreadID());
     }
 
     void EventLoop::wakeup()
     {
-        /*uint64_t one = 1;
-        ssize_t n = sockets::write(wakeupFd_, &one, sizeof one);
-        if (n != sizeof one)
-        {
-            LOG_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
-        }*/
-
         char buf[1] = { 0 };
         int r;
 
@@ -226,20 +229,20 @@ namespace MuduoPlus
         r = write(wakeupFdPair_[0], buf, 1);
 #endif
 
-        if (r < 0 && errno != EAGAIN)
+        if (r < 0 && GetLastErrorCode() != EAGAIN)
         {
             assert(false);
         }
     }
 
-    void EventLoop::CheckTimeOut()
+    void EventLoop::checkTimeOut()
     {
         Timestamp nowStamp = Timestamp::now();
 
-        if ((long)millisecondDifference(nowStamp, m_PrevTimeOutStamp) >= m_PollTimeoutMsec)
+        if ((long)millisecondDifference(nowStamp, prevTimeOutStamp_) >= pollTimeoutMsec_)
         {
-            timerQueue_->TimeOut();
-            m_PrevTimeOutStamp = nowStamp;
+            timerQueue_->timeOut();
+            prevTimeOutStamp_ = nowStamp;
         }
     }
 
@@ -247,18 +250,8 @@ namespace MuduoPlus
     {
         unsigned char buf[1024] = { 0 };
 #ifdef WIN32
-        /* while (recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
-             ;*/
-        while (true)
-        {
-            int recvBytes = recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0);            
-            if (recvBytes <= 0)
-            {
-                break;
-            }
-
-            printf("handleRead()\n");
-        }
+        while (recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
+            ;
 #else
         while (read(wakeupFdPair_[1], (char*)buf, sizeof(buf)) > 0)
             ;
@@ -275,10 +268,11 @@ namespace MuduoPlus
             functors.swap(pendingFunctors_);
         }
 
-        for (size_t i = 0; i < functors.size(); ++i)
+        for (size_t i = 0; i < functors.size(); i++)
         {
             functors[i]();
         }
+
         callingPendingFunctors_ = false;
     }
 

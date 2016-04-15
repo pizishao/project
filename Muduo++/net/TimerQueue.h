@@ -24,7 +24,7 @@ namespace MuduoPlus
 
         TimerId addTimer(const TimerCallback& cb, Timestamp when, double interval);
         void    cancel(TimerId timerId);
-        void    TimeOut();
+        void    timeOut();
 
     private:
 

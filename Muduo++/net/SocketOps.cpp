@@ -146,7 +146,7 @@ namespace SocketOps
     {
         if (!fdPair)
         {
-            return -1;
+            return false;
         }
 
 /*
@@ -156,21 +156,21 @@ namespace SocketOps
         socket_t listener = -1;
         socket_t connector = -1;
         socket_t acceptor = -1;
-        struct sockaddr_in listen_addr = {0};
-        struct sockaddr_in connect_addr = {0};
+        struct sockaddr_in listenAddr = {0};
+        struct sockaddr_in connectAddr = {0};
         socklen_t size = 0;
 
         listener = socket(AF_INET, SOCK_STREAM, 0);
         if (listener < 0)
         {
-            return -1;
+            return false;
         }
 
-        listen_addr.sin_family = AF_INET;
-        listen_addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-        listen_addr.sin_port = 0;	/* kernel chooses port.	 */
-        if (::bind(listener, (struct sockaddr *) &listen_addr,
-            sizeof(listen_addr)) < 0)
+        listenAddr.sin_family = AF_INET;
+        listenAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        listenAddr.sin_port = 0;	/* kernel chooses port.	 */
+        if (::bind(listener, (struct sockaddr *) &listenAddr,
+            sizeof(listenAddr)) < 0)
         {
             goto err;
         }
@@ -187,44 +187,44 @@ namespace SocketOps
         }
 
         /* We want to find out the port number to connect to.  */
-        size = sizeof(connect_addr);
-        if (getsockname(listener, (struct sockaddr *) &connect_addr, &size) < 0)
+        size = sizeof(connectAddr);
+        if (getsockname(listener, (struct sockaddr *) &connectAddr, &size) < 0)
         {
             goto err;
         }
 
-        if (size != sizeof(connect_addr))
+        if (size != sizeof(connectAddr))
         {
             goto err;
         }
 
-        if (connect(connector, (struct sockaddr *) &connect_addr,
-            sizeof(connect_addr)) == -1)
+        if (connect(connector, (struct sockaddr *) &connectAddr,
+            sizeof(connectAddr)) < 0)
         {
             goto err;
         }
 
-        size = sizeof(listen_addr);
-        acceptor = accept(listener, (struct sockaddr *) &listen_addr, &size);
+        size = sizeof(listenAddr);
+        acceptor = accept(listener, (struct sockaddr *) &listenAddr, &size);
         if (acceptor < 0)
         {
             goto err;
         }
 
-        if (size != sizeof(listen_addr))
+        if (size != sizeof(listenAddr))
         {
             goto err;
         }
 
-        if (getsockname(connector, (struct sockaddr *) &connect_addr, &size) < 0)
+        if (getsockname(connector, (struct sockaddr *) &connectAddr, &size) < 0)
         {
             goto err;
         }
 
-        if (size != sizeof(connect_addr)
-            || listen_addr.sin_family != connect_addr.sin_family
-            || listen_addr.sin_addr.s_addr != connect_addr.sin_addr.s_addr
-            || listen_addr.sin_port != connect_addr.sin_port)
+        if (size != sizeof(connectAddr)
+            || listenAddr.sin_family != connectAddr.sin_family
+            || listenAddr.sin_addr.s_addr != connectAddr.sin_addr.s_addr
+            || listenAddr.sin_port != connectAddr.sin_port)
         {
             goto err;
         }
@@ -237,7 +237,7 @@ namespace SocketOps
         closeSocket(listener);
         fdPair[0] = connector;
         fdPair[1] = acceptor;
-        return 0;
+        return true;
 
 err:
         if (listener > 0)
@@ -255,7 +255,7 @@ err:
             closeSocket(acceptor);
         }
 
-        return -1;
+        return false;
     }
 
     sockaddr_in getLocalAddr(int sockfd)

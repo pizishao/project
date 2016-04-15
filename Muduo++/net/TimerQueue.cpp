@@ -15,10 +15,10 @@ namespace MuduoPlus
     TimerQueue::~TimerQueue()
     {
         // do not remove channel, since we're in EventLoop::dtor();
-        for (TimerList::iterator it = timers_.begin();
-            it != timers_.end(); ++it)
+
+        for (auto &pos : timers_)
         {
-            delete it->second;
+            delete pos.second;
         }
     }
 
@@ -26,16 +26,18 @@ namespace MuduoPlus
         Timestamp when,
         double interval)
     {
-        Timer* timer = new Timer(cb, when, interval);
-        loop_->runInLoop(
-            std::bind(&TimerQueue::addTimerInLoop, this, timer));
-        return TimerId(timer, timer->sequence());
+        Timer* pTimer = new Timer(cb, when, interval);
+
+        loop_->runInLoop(std::bind(&TimerQueue::addTimerInLoop, 
+            this, pTimer));
+
+        return TimerId(pTimer, pTimer->sequence());
     }
 
     void TimerQueue::cancel(TimerId timerId)
     {
-        loop_->runInLoop(
-            std::bind(&TimerQueue::cancelInLoop, this, timerId));
+        loop_->runInLoop(std::bind(&TimerQueue::cancelInLoop, 
+            this, timerId));
     }
 
     void TimerQueue::addTimerInLoop(Timer* timer)
@@ -47,27 +49,30 @@ namespace MuduoPlus
         {
             Timestamp stamp = timer->expiration();
 
-            if ((int)stamp.milliSecondFromNow() <= INT_MAX)
+            if ((int64_t)stamp.milliSecondFromNow() <= INT_MAX)
             {
-                loop_->ResetTimer((int)stamp.milliSecondFromNow());
+                loop_->resetPollTimeOut((int)stamp.milliSecondFromNow());
             }
             else
             {
-                loop_->ResetTimer(INT_MAX);
+                loop_->resetPollTimeOut(INT_MAX);
             }
         }
     }
 
     void TimerQueue::cancelInLoop(TimerId timerId)
     {
-        loop_->assertInLoopThread();
         assert(timers_.size() == activeTimers_.size());
+        loop_->assertInLoopThread();
+
         ActiveTimer timer(timerId.timer_, timerId.sequence_);
         ActiveTimerSet::iterator it = activeTimers_.find(timer);
+
         if (it != activeTimers_.end())
         {
             size_t n = timers_.erase(Entry(it->first->expiration(), it->first));
-            assert(n == 1); (void)n;
+            assert(n == 1); 
+            (void)n;
             delete it->first; // FIXME: no delete please
             activeTimers_.erase(it);
         }
@@ -75,10 +80,11 @@ namespace MuduoPlus
         {
             cancelingTimers_.insert(timer);
         }
+
         assert(timers_.size() == activeTimers_.size());
     }
 
-    void TimerQueue::TimeOut()
+    void TimerQueue::timeOut()
     {
         loop_->assertInLoopThread();
         Timestamp now(Timestamp::now());
@@ -87,12 +93,14 @@ namespace MuduoPlus
 
         callingExpiredTimers_ = true;
         cancelingTimers_.clear();
+
         // safe to callback outside critical section
         for (std::vector<Entry>::iterator it = expired.begin();
             it != expired.end(); ++it)
         {
             it->second->run();
         }
+
         callingExpiredTimers_ = false;
 
         reset(expired, now);
@@ -101,10 +109,13 @@ namespace MuduoPlus
     std::vector<TimerQueue::Entry> TimerQueue::getExpired(Timestamp now)
     {
         assert(timers_.size() == activeTimers_.size());
+
         std::vector<Entry> expired;
         Entry sentry(now, reinterpret_cast<Timer*>(UINTPTR_MAX));
         TimerList::iterator end = timers_.lower_bound(sentry);
+
         assert(end == timers_.end() || now < end->first);
+
         std::copy(timers_.begin(), end, back_inserter(expired));
         timers_.erase(timers_.begin(), end);
 
@@ -113,10 +124,12 @@ namespace MuduoPlus
         {
             ActiveTimer timer(it->second, it->second->sequence());
             size_t n = activeTimers_.erase(timer);
-            assert(n == 1); (void)n;
+            assert(n == 1); 
+            (void)n;
         }
 
         assert(timers_.size() == activeTimers_.size());
+
         return expired;
     }
 
@@ -148,14 +161,18 @@ namespace MuduoPlus
 
         if (nextExpire.valid())
         {
-            if ((int)nextExpire.milliSecondFromNow() <= INT_MAX)
+            if ((int64_t)nextExpire.milliSecondFromNow() <= INT_MAX)
             {
-               loop_->ResetTimer((int)nextExpire.milliSecondFromNow());
+               loop_->resetPollTimeOut((int)nextExpire.milliSecondFromNow());
             }
             else
             {
-                loop_->ResetTimer(INT_MAX);
+                loop_->resetPollTimeOut(INT_MAX);
             }                       
+        }
+        else
+        {
+            loop_->resetPollTimeOut(INT_MAX);
         }
     }
 
@@ -172,9 +189,10 @@ namespace MuduoPlus
         }
 
         {
-            std::pair<TimerList::iterator, bool> result
-                = timers_.insert(Entry(when, timer));
-            assert(result.second); (void)result;
+            std::pair<TimerList::iterator, bool> result = 
+                timers_.insert(Entry(when, timer));
+            assert(result.second); 
+            (void)result;
         }
 
         {
@@ -184,6 +202,7 @@ namespace MuduoPlus
         }
 
         assert(timers_.size() == activeTimers_.size());
+
         return earliestChanged;
     }
 }

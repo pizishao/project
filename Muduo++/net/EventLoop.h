@@ -37,7 +37,7 @@ namespace MuduoPlus
         TimerId runAfter(double delay, const TimerCallback& cb);
         TimerId runEvery(double interval, const TimerCallback& cb);
         void    cancel(TimerId timerId);
-        void    ResetTimer(int msec);
+        void    resetPollTimeOut(int msec);
 
         void wakeup();
         void updateChannel(Channel* channel);
@@ -73,7 +73,7 @@ namespace MuduoPlus
 
     private:
         void abortNotInLoopThread();
-        void CheckTimeOut();
+        void checkTimeOut();
         void handleRead();
         void doPendingFunctors();
 
@@ -86,8 +86,8 @@ namespace MuduoPlus
         bool                        eventHandling_; 
         bool                        callingPendingFunctors_; 
         const int                   threadId_;
-        int                         m_PollTimeoutMsec;
-        Timestamp                   m_PrevTimeOutStamp;
+        int                         pollTimeoutMsec_;
+        Timestamp                   prevTimeOutStamp_;
         Timestamp                   pollReturnTime_;
         std::shared_ptr<Poller>     poller_;
         std::shared_ptr<TimerQueue> timerQueue_;
