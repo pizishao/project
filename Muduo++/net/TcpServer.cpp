@@ -58,7 +58,7 @@ namespace MuduoPlus
             threadPool_->start(threadInitCallback_);
             assert(!acceptor_->listenning());
             loop_->runInLoop(
-                std::bind(&Acceptor::Listen, acceptor_.get()));
+                std::bind(&Acceptor::listen, acceptor_.get()));
         }
     }
 

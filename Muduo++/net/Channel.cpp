@@ -14,9 +14,8 @@ namespace MuduoPlus
     Channel::Channel(EventLoop* loop, int fd)
         : loop_(loop),
         fd_(fd),
-        interestEvents_(0),
-        recvEvents_(0),
-        index_(-1)
+        interestEvents_(kNoneEvent),
+        recvEvents_(kNoneEvent)
     {
     }
 

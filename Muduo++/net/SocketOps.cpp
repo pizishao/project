@@ -149,10 +149,17 @@ namespace SocketOps
             return false;
         }
 
-/*
 #ifndef WIN32
-        return socketpair(AF_UNIX, SOCK_STREAM, protocol, fdPair);
-#endif*/
+        if (socketpair(AF_UNIX, SOCK_STREAM, 0, fdPair) >= 0)
+        {
+            setSocketNoneBlocking(fdPair[0]);
+            setSocketNoneBlocking(fdPair[1]);
+
+            return true;
+        }
+        
+        return false;
+#endif
         socket_t listener = -1;
         socket_t connector = -1;
         socket_t acceptor = -1;
@@ -229,6 +236,11 @@ namespace SocketOps
             goto err;
         }
 
+        if (!setSocketNoneBlocking(connector))
+        {
+            goto err;
+        }
+
         if (!setSocketNoneBlocking(acceptor))
         {
             goto err;
@@ -237,6 +249,7 @@ namespace SocketOps
         closeSocket(listener);
         fdPair[0] = connector;
         fdPair[1] = acceptor;
+
         return true;
 
 err:

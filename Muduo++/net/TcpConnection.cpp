@@ -49,6 +49,8 @@ namespace MuduoPlus
         LOG_PRINT(LogType_Info, "TcpConnection::dtor[%s] at %p fd=%d", name_.c_str(), this,
             channel_->fd());    
         assert(state_ == kDisconnected);
+
+        SocketOps::closeSocket(fd_);
     }
 
     void TcpConnection::send(const void* data, int len)

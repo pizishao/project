@@ -17,7 +17,7 @@ namespace MuduoPlus
 
     Epoller::~Epoller()
     {
-
+        SocketOps::closeSocket(epollfd_);
     }
 
     void Epoller::poll(int timeoutMs, ChannelHolderList &activeChannelHolders)
@@ -32,7 +32,7 @@ namespace MuduoPlus
 
         if (numEvents > 0)
         {
-            LOG_PRINT(LogType_Info, "%u events happended", numEvents);
+            LOG_PRINT(LogType_Info, "epoll_wait %u events happended", numEvents);
             fillActiveChannelHolders(numEvents, activeChannelHolders);
 
             if ((size_t)numEvents == events_.size())
@@ -42,7 +42,7 @@ namespace MuduoPlus
         }
         else if (numEvents == 0)
         {
-            LOG_PRINT(LogType_Info, "nothing happended");
+            LOG_PRINT(LogType_Info, "epoll_wait nothing happended");
         }
         else
         {
@@ -66,7 +66,7 @@ namespace MuduoPlus
 
             if (epoll_ctl(epollfd_, EPOLL_CTL_MOD, pChannel->fd(), &event) < 0)
             {
-                LOG_PRINT(LogType_Fatal, "EPOLL_CTL_MOD failed");
+                LOG_PRINT(LogType_Error, "EPOLL_CTL_MOD failed:%s", GetLastErrorText().c_str());
             }
         }
         else
@@ -77,7 +77,8 @@ namespace MuduoPlus
 
             if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, pChannel->fd(), &event) < 0)
             {
-                LOG_PRINT(LogType_Fatal, "EPOLL_CTL_ADD failed");
+                LOG_PRINT(LogType_Error, "EPOLL_CTL_ADD failed:%s", GetLastErrorText().c_str());
+                return;
             }
 
             auto weakOwner = pChannel->getOwner();
@@ -103,22 +104,20 @@ namespace MuduoPlus
 
         if (epoll_ctl(epollfd_, EPOLL_CTL_DEL, pChannel->fd(), &event) < 0)
         {
-            LOG_PRINT(LogType_Fatal, "EPOLL_CTL_DEL failed");
+            LOG_PRINT(LogType_Error, "EPOLL_CTL_DEL failed %s", GetLastErrorText().c_str());
         }
     }
 
     int Epoller::getChannelEpEvents(Channel* pChannel)
     {
-        int events = EPOLLET;
-
         if (pChannel->interestEvents() & Channel::kReadEvent)
         {
-            events |= EPOLLIN;
+            events |= POLLIN;
         }
 
         if (pChannel->interestEvents() & Channel::kWriteEvent)
         {
-            events |= POLLIN;
+            events |= POLLOUT;
         }
 
         if (pChannel->interestEvents() & Channel::kErrorEvent)
@@ -135,40 +134,40 @@ namespace MuduoPlus
         for (int i = 0; i < numEvents; i++)
         {
             socket_t fd = events_[i].data.fd;
-            ChannelHolderMap::const_iterator it = channelHolders_.find(fd);
+            auto it = channelHolders_.find(fd);
 
             if (it != channelHolders_.end())
             {
                 ChannelHolder holder = it->second;
                 Channel *pChannel = holder.channel_;
 
-                int events = Channel::kNoneEvent;
+                int recvEvents = Channel::kNoneEvent;
                 auto epEvents = events_[i].events;
 
                 if (epEvents & (POLLIN | POLLPRI | POLLRDHUP))
                 {
-                    events |= Channel::kReadEvent;
+                    recvEvents |= Channel::kReadEvent;
                 }
 
                 if (epEvents & POLLOUT)
                 {
-                    events |= Channel::kWriteEvent;
+                    recvEvents |= Channel::kWriteEvent;
                 }
 
                 if (epEvents & (POLLERR | POLLHUP))
                 {
-                    events |= Channel::kErrorEvent;
+                    recvEvents |= Channel::kErrorEvent;
                 }
 
-                if (events)
+                if (recvEvents)
                 {
-                    pChannel->setRecvEvents(events);
+                    pChannel->setRecvEvents(recvEvents);
                     activeChannelHolders.push_back(holder);
                 }
             } 
             else
             {
-                assert(!"it != channelHolders_.end()");
+                LOG_PRINT(LogType_Error, "can not find fd[%d] associate channel", fd);
             }            
         }
     }

@@ -30,7 +30,7 @@ namespace MuduoPlus
 
         void assertInLoopThread() const
         {
-            //ownerLoop_->assertInLoopThread();
+            ownerLoop_->assertInLoopThread();
         }
 
     protected:

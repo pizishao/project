@@ -43,7 +43,7 @@ namespace MuduoPlus
 
         int  fd() const { return fd_; }
         int  interestEvents() const { return interestEvents_; }
-        void setRecvEvents(int revt) { recvEvents_ = revt; } // used by pollers
+        void setRecvEvents(int events) { recvEvents_ = events; } // used by pollers
         bool isNoneEvent() const { return interestEvents_ == kNoneEvent; }
 
         void enableReading() { interestEvents_ |= kReadEvent; update(); }
@@ -55,10 +55,6 @@ namespace MuduoPlus
         void disableAll() { interestEvents_ = kNoneEvent; update(); }
         bool isWriting() const { return interestEvents_ & kWriteEvent; }
         bool isReading() const { return interestEvents_ & kReadEvent; }
-
-        // for Poller
-        int index() { return index_; }
-        void set_index(int idx) { index_ = idx; }
 
         EventLoop* ownerLoop() { return loop_; }
         void remove();
@@ -80,7 +76,6 @@ namespace MuduoPlus
         const int  fd_;
         int        interestEvents_;
         int        recvEvents_; // it's the received event types of epoll or select
-        int        index_;      // used by Poller.
 
         std::weak_ptr<void> owner_;
         bool addedToLoop_;

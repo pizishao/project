@@ -74,10 +74,10 @@ int main(int argc, char* argv[])
     MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
     EchoServer server(&loop, listenAddr);
     server.start();
-    /*loop.runEvery(1, [=]()
+    loop.runEvery(1, [=]()
     {
         printf("on timer\n");
-    });*/
+    });
     loop.loop();
 	return 0;
 }

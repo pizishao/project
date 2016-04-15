@@ -4,6 +4,7 @@
 #include "Selector.h"
 #include "Poller.h"
 #include "Channel.h"
+#include "base/Logger.h"
 
 namespace MuduoPlus
 {
@@ -38,7 +39,7 @@ namespace MuduoPlus
         {
             if (iRet < 0)
             {
-                assert(false);
+                LOG_PRINT(LogType_Fatal, "select failed:%s", GetLastErrorText().c_str());
             }
 
             return;

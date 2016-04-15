@@ -23,21 +23,21 @@ namespace MuduoPlus
 
         void setNewConnectionCallback(const NewConnCallback& cb)
         {
-            m_NewConnCallBack = cb;
+            newConnCallBack_ = cb;
         }
 
-        void Listen();
+        void listen();
         bool listenning() const { return listenning_; }
 
     private:
-        void HandleRead();
+        void handleRead();
 
-        bool                        m_bReuseport;
-        InetAddress                 m_ListenAddr;
+        bool                        isReuseport_;
+        InetAddress                 listenAddr_;
         bool                        listenning_;
-        EventLoop*                  m_pEventLoop;
-        socket_t                    m_ListenFd;
-        std::shared_ptr<Channel>    m_AcceptChannelPtr;
-        NewConnCallback             m_NewConnCallBack;
+        EventLoop*                  loop_;
+        socket_t                    listenFd_;
+        std::shared_ptr<Channel>    acceptChannelPtr_;
+        NewConnCallback             newConnCallBack_;
     };
 }
