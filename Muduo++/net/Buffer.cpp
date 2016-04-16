@@ -87,10 +87,10 @@ namespace MuduoPlus
 #endif                
     }
 
-    bool Buffer::sendFd(int fd, int len)
+    /*bool Buffer::sendFd(int fd, int len)
     {
         while (true)
         {
         }
-    }
+    }*/
 }

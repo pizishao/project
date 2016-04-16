@@ -366,7 +366,7 @@ namespace MuduoPlus
         /// It may implement with readv(2)
         /// @return result of read(2), @c errno is saved
         bool readFd(int fd);
-        bool sendFd(int fd, int len);
+        //bool sendFd(int fd, int len);
 
     private:
 
