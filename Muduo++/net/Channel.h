@@ -31,7 +31,7 @@ namespace MuduoPlus
             writeCallback_ = cb;
         }
 
-        void setCloseCallback(const EventCallback& cb)
+        void setErrorCallback(const EventCallback& cb)
         {
             closeCallback_ = cb;
         }

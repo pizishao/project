@@ -37,8 +37,8 @@ namespace MuduoPlus
             std::bind(&TcpConnection::handleRead, this, std::placeholders::_1));
         channel_->setWriteCallback(
             std::bind(&TcpConnection::handleWrite, this));
-        channel_->setCloseCallback(
-            std::bind(&TcpConnection::handleClose, this));
+        channel_->setErrorCallback(
+            std::bind(&TcpConnection::handleError, this));
         channel_->setFinishCallback(std::bind(&TcpConnection::handleFinish, this));
 
         SocketOps::setKeepAlive(fd_, true);
@@ -92,7 +92,7 @@ namespace MuduoPlus
         sendInLoop(vecData->data(), vecData->size());
     }
 
-    void TcpConnection::sendInLoop(const void* data, size_t len)
+    void TcpConnection::sendInLoop(const void* data, int len)
     {        
         loop_->assertInLoopThread();
 
@@ -102,9 +102,8 @@ namespace MuduoPlus
             return;
         }
 
-        size_t sendCount = 0;
-        size_t left = len;
-        bool faultError = false;
+        int sendCount = 0;
+        int remainCount = len;
 
         // if no thing in output queue, try writing directly
         if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
@@ -112,8 +111,8 @@ namespace MuduoPlus
             sendCount = SocketOps::send(channel_->fd(), data, len);
             if (sendCount >= 0)
             {
-                left = len - sendCount;
-                if (left == 0 && writeCompleteCallback_)
+                remainCount = len - sendCount;
+                if (remainCount == 0 && writeCompleteCallback_)
                 {
                     loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                 }
@@ -122,27 +121,36 @@ namespace MuduoPlus
             {
                 if (!ERR_RW_RETRIABLE(GetLastErrorCode()))
                 {
+                    LOG_PRINT(LogType_Error, "fd[%d] send failed:%s", 
+                        fd_, GetLastErrorText().c_str());
                     sockErrorOccurred_ = true;
-                    faultError = true;                    
                 }
             }
         }
 
-        assert(left <= len);
-        if (!faultError && left > 0)
+        assert(remainCount <= len);
+        if (!sockErrorOccurred_ && remainCount > 0)
         {
             size_t oldLen = outputBuffer_.readableBytes();
-            if (oldLen + left >= highWaterMark_
+            if (oldLen + remainCount >= highWaterMark_
                 && oldLen < highWaterMark_
                 && highWaterMarkCallback_)
             {
-                loop_->queueInLoop(std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + left));
+                loop_->queueInLoop(std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + remainCount));
             }
 
-            outputBuffer_.append(static_cast<const char*>(data)+sendCount, left);
+            outputBuffer_.append(static_cast<const char*>(data)+sendCount, remainCount);
             if (!channel_->isWriting())
             {
                 channel_->enableWriting();
+            }
+        }
+
+        if (!sockErrorOccurred_)
+        {
+            if (remainCount == 0)
+            {
+                LOG_PRINT(LogType_Debug, "send over");
             }
         }
     }
@@ -289,6 +297,7 @@ namespace MuduoPlus
         loop_->assertInLoopThread();
         channel_->setOwner(selfPtr);
         channel_->enableReading();
+        channel_->enableErroring();
 
         connectionCallback_(selfPtr);
     }
@@ -347,6 +356,8 @@ namespace MuduoPlus
                     {
                         shutdownInLoop();
                     }
+
+                    LOG_PRINT(LogType_Error, "TcpConnection::send all data");
                 }
             }
             else
@@ -364,7 +375,7 @@ namespace MuduoPlus
         }
     }
 
-    void TcpConnection::handleClose()
+    void TcpConnection::handleError()
     {
         loop_->assertInLoopThread();
         assert(state_ == kConnected || state_ == kDisconnecting);

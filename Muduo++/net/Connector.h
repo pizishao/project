@@ -51,7 +51,7 @@ namespace MuduoPlus
         InetAddress serverAddr_;
         bool connect_; // atomic
         States state_;  // FIXME: use atomic variable
-        std::unique_ptr<Channel> channel_;
+        std::unique_ptr<Channel> channelPtr_;
         NewConnectionCallback newConnectionCallback_;
         int retryDelayMs_;
     };

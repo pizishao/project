@@ -99,10 +99,10 @@ namespace MuduoPlus
         enum StateE { kDisconnected, kConnecting, kConnected, kDisconnecting };
         void handleRead(Timestamp receiveTime);
         void handleWrite();
-        void handleClose();
+        void handleError();
         void handleFinish();
         void sendInLoop(std::shared_ptr<vector_char> vecData);
-        void sendInLoop(const void* data, size_t len);
+        void sendInLoop(const void* data, int len);
         void shutdownInLoop();
         // void shutdownAndForceCloseInLoop(double seconds);
         void forceCloseInLoop();

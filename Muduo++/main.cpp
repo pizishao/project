@@ -6,6 +6,8 @@
 #include "base/Logger.h"
 #include "net/TcpServer.h"
 #include "net/EventLoop.h"
+#include "net/TcpConnection.h"
+#include "net/TcpClient.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -44,7 +46,9 @@ private:
         LOG_INFO << conn->name() << " echo " << msg.size() << " bytes, "
             << "data received at " << time.toString();
         conn->send(msg);*/
-        printf("on message!\n");
+        std::string s = buf->retrieveAllAsString();
+        printf("on message:%s\n", s.c_str());
+        conn->send(s.c_str(), s.size() + 1);
     }
 
     MuduoPlus::TcpServer server_;
@@ -59,25 +63,55 @@ void LogPrintFunc(MuduoPlus::LogType type, const char *format, ...)
     printf("\n");
 }
 
+void onConnection(const MuduoPlus::TcpConnectionPtr& conn)
+{
+    printf("connection arrived!\n");
+    /*LOG_INFO << "EchoServer - " << conn->peerAddress().toIpPort() << " -> "
+    << conn->localAddress().toIpPort() << " is "
+    << (conn->connected() ? "UP" : "DOWN");*/
+    conn->send("hello wrold", strlen("hello wrold") + 1);
+}
+
+void onMessage(const MuduoPlus::TcpConnectionPtr& conn,
+    MuduoPlus::Buffer* buf,
+    MuduoPlus::Timestamp time)
+{
+    /*muduo::string msg(buf->retrieveAllAsString());
+    LOG_INFO << conn->name() << " echo " << msg.size() << " bytes, "
+    << "data received at " << time.toString();
+    conn->send(msg);*/
+    std::string s = buf->retrieveAllAsString();
+    printf("on message:%s\n", s.c_str());
+    conn->send(s.c_str(), s.size() + 1);
+}
+
 int main(int argc, char* argv[])
 {
 #ifdef WIN32
     WORD wVersionRequested;
     WSADATA wsaData;
     int err;
-    wVersionRequested = MAKEWORD(1, 1);
+    wVersionRequested = MAKEWORD(2, 2);
     err = WSAStartup(wVersionRequested, &wsaData);
 #endif    
 
     MuduoPlus::LogPrinter = LogPrintFunc;
     MuduoPlus::EventLoop loop;
-    MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
+
+    /*MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
     EchoServer server(&loop, listenAddr);
-    server.start();
-    loop.runEvery(1, [=]()
+    server.start();*/
+
+    MuduoPlus::InetAddress serverAddr("192.168.0.51", 2007);
+    MuduoPlus::TcpClient client(&loop, serverAddr, "lsy");
+    client.setConnectionCallback(onConnection);
+    client.setMessageCallback(onMessage);
+    client.connect();
+
+    /*loop.runEvery(1, [=]()
     {
         printf("on timer\n");
-    });
+    });*/
     loop.loop();
 	return 0;
 }

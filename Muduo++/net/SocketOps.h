@@ -40,7 +40,7 @@ namespace SocketOps
 
     socket_t    createSocket();
     void        closeSocket(socket_t fd);
-    ResultCode  connect(socket_t fd, const struct sockaddr *sa);
+    int         connect(socket_t fd, const struct sockaddr *sa);
     bool        bindSocket(socket_t fd, const struct sockaddr *sa);
     bool        listen(socket_t fd);
     socket_t    accept(socket_t fd, struct sockaddr *addr);
@@ -53,6 +53,8 @@ namespace SocketOps
     void        setTcpNoDelay(int fd, bool on);
     int         reuseListenSocket(socket_t fd);
     int         createSocketPair(socket_t fdPair[2]);
+    sockaddr_in getPeerAddr(int sockfd);
     sockaddr_in getLocalAddr(int sockfd);
+    int         getSocketError(socket_t fd);
 
 }

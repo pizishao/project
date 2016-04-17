@@ -110,6 +110,8 @@ namespace MuduoPlus
 
     int Epoller::getChannelEpEvents(Channel* pChannel)
     {
+        int events = 0;
+
         if (pChannel->interestEvents() & Channel::kReadEvent)
         {
             events |= POLLIN;
@@ -161,8 +163,13 @@ namespace MuduoPlus
 
                 if (recvEvents)
                 {
+                    LOG_PRINT(LogType_Debug, "recvEvents:%d", recvEvents);
                     pChannel->setRecvEvents(recvEvents);
                     activeChannelHolders.push_back(holder);
+                }
+                else
+                {
+                    LOG_PRINT(LogType_Debug, "none wait events");
                 }
             } 
             else

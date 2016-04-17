@@ -88,7 +88,9 @@ namespace MuduoPlus
                 break;
             }
 
+            SocketOps::setSocketNoneBlocking(newFd);
             peerAddr.setSockAddr(addr);
+
             if (newConnCallBack_)
             {               
                 newConnCallBack_(newFd, peerAddr);

@@ -87,7 +87,7 @@ namespace MuduoPlus
         bool                        callingPendingFunctors_; 
         const int                   threadId_;
         int                         pollTimeoutMsec_;
-        Timestamp                   prevTimeOutStamp_;
+        Timestamp                   sentryCheckTimeStamp_;
         Timestamp                   pollReturnTime_;
         std::shared_ptr<Poller>     poller_;
         std::shared_ptr<TimerQueue> timerQueue_;

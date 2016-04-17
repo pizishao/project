@@ -51,7 +51,7 @@ namespace MuduoPlus
         wakeupChannel_->enableReading();
 
         pollTimeoutMsec_ = INT_MAX;
-        prevTimeOutStamp_ = Timestamp::now();
+        sentryCheckTimeStamp_ = Timestamp::now();
     }
 
     EventLoop::~EventLoop()
@@ -165,7 +165,8 @@ namespace MuduoPlus
         assert(msec >= 0);
 
         pollTimeoutMsec_ = msec;
-        prevTimeOutStamp_ = Timestamp::now();
+        sentryCheckTimeStamp_ = Timestamp::now();
+
         wakeup();
     }
 
@@ -238,12 +239,15 @@ namespace MuduoPlus
     void EventLoop::checkTimeOut()
     {
         Timestamp nowStamp = Timestamp::now();
+        long durationMsec = millisecondDifference(nowStamp, sentryCheckTimeStamp_);
 
-        if ((long)millisecondDifference(nowStamp, prevTimeOutStamp_) >= pollTimeoutMsec_)
+        if ((long)durationMsec >= pollTimeoutMsec_)
         {
             timerQueue_->timeOut();
-            prevTimeOutStamp_ = nowStamp;
         }
+
+        sentryCheckTimeStamp_ = nowStamp;
+        pollTimeoutMsec_ -= durationMsec;
     }
 
     void EventLoop::handleRead()

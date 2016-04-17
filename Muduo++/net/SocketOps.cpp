@@ -1,6 +1,7 @@
 #include "base/LinuxWin.h"
 #include "SocketOps.h"
 #include "base/Logger.h"
+#include <string.h>
 
 namespace SocketOps
 {
@@ -20,25 +21,9 @@ namespace SocketOps
 #endif
     }
 
-    ResultCode connect(socket_t fd, const struct sockaddr *sa)
+    int connect(socket_t fd, const struct sockaddr *sa)
     {
-        if (connect(fd, sa, sizeof(*sa)) >= 0)
-        {
-            return ResultCode::success;
-        }
-
-        int e = GetLastErrorCode();
-        if (ERR_CONNECT_RETRIABLE(e))
-        {
-            return ResultCode::retry;
-        }
-
-        /*if (ERR_CONNECT_REFUSED(e))
-        {
-            return ResultCode::fail;
-        }*/
-
-        return ResultCode::fail;
+        return ::connect(fd, sa, sizeof(*sa));
     }
 
     bool bindSocket(socket_t fd, const struct sockaddr *sa)
@@ -271,6 +256,21 @@ err:
         return false;
     }
 
+    sockaddr_in getPeerAddr(int sockfd)
+    {
+        struct sockaddr_in peeraddr;
+        memset(&peeraddr, 0, sizeof(peeraddr));
+
+        socklen_t addrlen = static_cast<socklen_t>(sizeof(peeraddr));
+
+        if (::getpeername(sockfd, (sockaddr*)(&peeraddr), &addrlen) < 0)
+        {
+            assert(false);
+        }
+
+        return peeraddr;
+    }
+
     sockaddr_in getLocalAddr(int sockfd)
     {
         struct sockaddr_in localaddr = { 0 };
@@ -284,4 +284,21 @@ err:
         return localaddr;
     }
 
+    int getSocketError(socket_t fd)
+    {
+        int optval;
+        socklen_t optlen = static_cast<socklen_t>(sizeof optval);
+#ifdef WIN32
+        if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&optval, &optlen) < 0)
+#else
+        if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
+#endif        
+        {
+            return GetLastErrorCode();
+        }
+        else
+        {
+            return optval;
+        }
+    }
 }

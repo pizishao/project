@@ -23,5 +23,6 @@ namespace MuduoPlus
         FD_SET readfds_;
         FD_SET writefds_;
         FD_SET exceptfds_;
+        EventLoop *loop_;
     };
 }

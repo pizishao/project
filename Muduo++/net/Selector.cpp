@@ -9,7 +9,7 @@
 namespace MuduoPlus
 {
     Selector::Selector(EventLoop* loop)
-        : Poller(loop)
+        : Poller(loop), loop_(loop)
     {
         FD_ZERO(&readfds_);
         FD_ZERO(&writefds_);
@@ -101,6 +101,8 @@ namespace MuduoPlus
         {
             // do nothing
         }
+
+        //loop_->wakeup();
     }
 
     void Selector::removeChannel(Channel* channel)
