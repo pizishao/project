@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 
+#include "base/define.h"
 #include "base/NonCopyable.h"
 #include "net/TcpConnection.h"
 
@@ -28,7 +29,7 @@ namespace MuduoPlus
 
         TcpConnectionPtr connection()
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             return connection_;
         }
 

@@ -1,5 +1,6 @@
 #include "EventLoopThread.h"
 #include "EventLoop.h"
+#include "base/define.h"
 
 namespace MuduoPlus
 {
@@ -31,7 +32,7 @@ namespace MuduoPlus
         //threadPtr.start();
 
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             while (loop_ == NULL)
             {
                 std::unique_lock<std::mutex> uniLock(mutex_);
@@ -52,7 +53,7 @@ namespace MuduoPlus
         }
 
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             loop_ = &loop;
             cond_.notify_one();
         }

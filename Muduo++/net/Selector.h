@@ -17,12 +17,12 @@ namespace MuduoPlus
     private:
         static const int kInitEventListSize = 16;
 
-        void resetFDSet();
+        void resetFdSet();
         void fillActiveChannelHolders(ChannelHolderList &activeChannelHolders) const;
 
-        FD_SET readfds_;
-        FD_SET writefds_;
-        FD_SET exceptfds_;
+        FD_SET readFds_;
+        FD_SET writeFds_;
+        FD_SET exceptFds_;
         EventLoop *loop_;
     };
 }

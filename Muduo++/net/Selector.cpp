@@ -11,9 +11,9 @@ namespace MuduoPlus
     Selector::Selector(EventLoop* loop)
         : Poller(loop), loop_(loop)
     {
-        FD_ZERO(&readfds_);
-        FD_ZERO(&writefds_);
-        FD_ZERO(&exceptfds_);
+        FD_ZERO(&readFds_);
+        FD_ZERO(&writeFds_);
+        FD_ZERO(&exceptFds_);
     }
 
     Selector::~Selector()
@@ -22,7 +22,7 @@ namespace MuduoPlus
 
     void Selector::poll(int timeoutMS, ChannelHolderList &activeChannelHolders)
     {
-        resetFDSet();
+        resetFdSet();
 
         timeval tv = {0};
 
@@ -33,7 +33,7 @@ namespace MuduoPlus
         tv.tv_usec = msec * 1000;
 
         // zero if the time limit expired, or SOCKET_ERROR if an error occurred
-        int iRet = select(0, &readfds_, &writefds_, &exceptfds_, &tv); 
+        int iRet = select(0, &readFds_, &writeFds_, &exceptFds_, &tv); 
 
         if (iRet <= 0)
         {
@@ -56,17 +56,17 @@ namespace MuduoPlus
             Channel *pChannel = holder.channel_;
             int events = Channel::kNoneEvent;
 
-            if (FD_ISSET(pChannel->fd(), &readfds_))
+            if (FD_ISSET(pChannel->fd(), &readFds_))
             {
                 events |= Channel::kReadEvent;
             }
 
-            if (FD_ISSET(pChannel->fd(), &writefds_))
+            if (FD_ISSET(pChannel->fd(), &writeFds_))
             {
                 events |= Channel::kWriteEvent;
             }
 
-            if (FD_ISSET(pChannel->fd(), &exceptfds_))
+            if (FD_ISSET(pChannel->fd(), &exceptFds_))
             {
                 events |= Channel::kErrorEvent;
             }
@@ -120,11 +120,11 @@ namespace MuduoPlus
         channelHolders_.erase(fd);
     }
 
-    void Selector::resetFDSet()
+    void Selector::resetFdSet()
     {
-        FD_ZERO(&readfds_);
-        FD_ZERO(&writefds_);
-        FD_ZERO(&exceptfds_);
+        FD_ZERO(&readFds_);
+        FD_ZERO(&writeFds_);
+        FD_ZERO(&exceptFds_);
 
         for (const auto& pos : channelHolders_)
         {
@@ -132,17 +132,17 @@ namespace MuduoPlus
 
             if (pChannel->interestEvents() & Channel::kReadEvent)
             {
-                FD_SET(pChannel->fd(), &readfds_);
+                FD_SET(pChannel->fd(), &readFds_);
             }
 
             if (pChannel->interestEvents() & Channel::kWriteEvent)
             {
-                FD_SET(pChannel->fd(), &writefds_);
+                FD_SET(pChannel->fd(), &writeFds_);
             }
 
             if (pChannel->interestEvents() & Channel::kErrorEvent)
             {
-                FD_SET(pChannel->fd(), &exceptfds_);
+                FD_SET(pChannel->fd(), &exceptFds_);
             }
         }
     }

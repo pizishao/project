@@ -7,6 +7,7 @@
 #include "TimerQueue.h"
 #include "SocketOps.h"
 #include "base/Logger.h"
+#include "base/define.h"
 
 #ifdef WIN32
 #include "Selector.h"
@@ -130,7 +131,7 @@ namespace MuduoPlus
     void EventLoop::queueInLoop(const Functor& cb)
     {
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             pendingFunctors_.push_back(cb);
         }
 
@@ -239,7 +240,7 @@ namespace MuduoPlus
     void EventLoop::checkTimeOut()
     {
         Timestamp nowStamp = Timestamp::now();
-        long durationMsec = millisecondDifference(nowStamp, sentryCheckTimeStamp_);
+        long durationMsec = (long)millisecondDifference(nowStamp, sentryCheckTimeStamp_);
 
         if ((long)durationMsec >= pollTimeoutMsec_)
         {
@@ -268,7 +269,7 @@ namespace MuduoPlus
         callingPendingFunctors_ = true;
 
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            LockGuarder(mutex_);
             functors.swap(pendingFunctors_);
         }
 

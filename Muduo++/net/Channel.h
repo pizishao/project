@@ -53,8 +53,8 @@ namespace MuduoPlus
         void enableErroring() { interestEvents_ |= kErrorEvent; update(); }
         void disableErroring() { interestEvents_ &= ~kErrorEvent; update(); }
         void disableAll() { interestEvents_ = kNoneEvent; update(); }
-        bool isWriting() const { return interestEvents_ & kWriteEvent; }
-        bool isReading() const { return interestEvents_ & kReadEvent; }
+        bool isWriting() const { return (interestEvents_ & kWriteEvent) != 0 ? true : false; }
+        bool isReading() const { return (interestEvents_ & kReadEvent) != 0 ? true : false; }
 
         EventLoop* ownerLoop() { return loop_; }
         void remove();

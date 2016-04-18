@@ -2,6 +2,7 @@
 #include "EventLoop.h"
 #include "Connector.h"
 #include "base/Logger.h"
+#include "base/define.h"
 
 namespace MuduoPlus
 {
@@ -46,7 +47,7 @@ namespace MuduoPlus
         TcpConnectionPtr conn;
         bool unique = false;
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             unique = connection_.unique();
             conn = connection_;
         }
@@ -86,7 +87,7 @@ namespace MuduoPlus
         connect_ = false;
 
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
 
             if (connection_)
             {
@@ -125,7 +126,7 @@ namespace MuduoPlus
         conn->setCloseCallback(
             std::bind(&TcpClient::removeConnection, this, std::placeholders::_1)); // FIXME: unsafe
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             connection_ = conn;
         }
         conn->connectEstablished();
@@ -137,7 +138,7 @@ namespace MuduoPlus
         assert(loop_ == conn->getLoop());
 
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             assert(connection_ == conn);
             connection_.reset();
         }

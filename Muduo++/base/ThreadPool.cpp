@@ -2,6 +2,7 @@
 
 #include "LinuxWin.h"
 #include "ThreadPool.h"
+#include "define.h"
 
 namespace MuduoPlus
 {
@@ -43,7 +44,7 @@ namespace MuduoPlus
     void ThreadPool::stop()
     {
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             running_ = false;
             notEmpty_.notify_all();
         }
@@ -56,7 +57,7 @@ namespace MuduoPlus
 
     size_t ThreadPool::queueSize()
     {
-        std::lock_guard<std::mutex> lockGuard(mutex_);
+        LockGuarder(mutex_);
         return queue_.size();
     }
 
@@ -68,7 +69,7 @@ namespace MuduoPlus
         }
         else
         {
-            std::lock_guard<std::mutex> lockGuard(mutex_);
+            LockGuarder(mutex_);
             while (isFull())
             {
                 std::unique_lock<std::mutex> uniLock(mutex_);
@@ -83,7 +84,7 @@ namespace MuduoPlus
 
     ThreadPool::Task ThreadPool::take()
     {
-        std::lock_guard<std::mutex> lockGuard(mutex_);
+        LockGuarder(mutex_);
         // always use a while-loop, due to spurious wakeup
         while (queue_.empty() && running_)
         {
