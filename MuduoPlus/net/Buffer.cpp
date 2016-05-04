@@ -7,7 +7,7 @@
 // Author: Shuo Chen (chenshuo at chenshuo dot com)
 //
 
-#include "base/Platform.h"
+#include "base/define.h"
 #include "base/LinuxWin.h"
 #include "Buffer.h"
 

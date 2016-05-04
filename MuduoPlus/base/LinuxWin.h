@@ -5,7 +5,7 @@
 #include <string>
 #include <assert.h>
 
-#include "Platform.h"
+#include "define.h"
 
 #ifdef WIN32
 

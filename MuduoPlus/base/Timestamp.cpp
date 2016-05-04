@@ -1,7 +1,7 @@
 #include <inttypes.h>
 
 #include "Timestamp.h"
-#include "Platform.h"
+#include "define.h"
 #include "LinuxWin.h"
 
 using namespace MuduoPlus;

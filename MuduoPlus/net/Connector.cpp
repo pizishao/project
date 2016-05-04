@@ -113,9 +113,9 @@ namespace MuduoPlus
         assert(!channelPtr_);
         channelPtr_.reset(new Channel(loop_, sockfd));
         channelPtr_->setWriteCallback(
-            std::bind(&Connector::handleWrite, this)); // FIXME: unsafe
+            std::bind(&Connector::handleWrite, this));
         channelPtr_->setErrorCallback(
-            std::bind(&Connector::handleError, this)); // FIXME: unsafe
+            std::bind(&Connector::handleError, this));
 
         // channelPtr_->tie(shared_from_this()); is not working,
         // as channelPtr_ is not managed by shared_ptr

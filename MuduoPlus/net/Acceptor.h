@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-#include "base/Platform.h"
+#include "base/define.h"
 #include "Channel.h"
 #include "InetAddress.h"
 

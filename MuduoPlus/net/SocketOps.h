@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "base/Platform.h"
+#include "base/define.h"
 
 namespace SocketOps
 {
