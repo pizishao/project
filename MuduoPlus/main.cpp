@@ -98,15 +98,15 @@ int main(int argc, char* argv[])
     MuduoPlus::LogPrinter = LogPrintFunc;
     MuduoPlus::EventLoop loop;
 
-    /*MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
+    MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
     EchoServer server(&loop, listenAddr);
-    server.start();*/
+    server.start();
 
-    MuduoPlus::InetAddress serverAddr("192.168.0.51", 2007);
+    /*MuduoPlus::InetAddress serverAddr("192.168.0.51", 2007);
     MuduoPlus::TcpClient client(&loop, serverAddr, "lsy");
     client.setConnectionCallback(onConnection);
     client.setMessageCallback(onMessage);
-    client.connect();
+    client.connect();*/
 
     /*loop.runEvery(1, [=]()
     {

@@ -112,6 +112,7 @@ namespace Serialization
 
     private:
         rapidjson::StringBuffer                     s;
-        rapidjson::Writer<rapidjson::StringBuffer>  writer;
+        //rapidjson::Writer<rapidjson::StringBuffer>  writer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer>       writer;
     };
 }
