@@ -68,8 +68,9 @@ void onConnection(const MuduoPlus::TcpConnectionPtr& conn)
     printf("connection arrived!\n");
     /*LOG_INFO << "EchoServer - " << conn->peerAddress().toIpPort() << " -> "
     << conn->localAddress().toIpPort() << " is "
-    << (conn->connected() ? "UP" : "DOWN");*/
-    conn->send("hello wrold", strlen("hello wrold") + 1);
+    << (conn->connected() ? "UP" : "DOWN");*/    
+    conn->send("hellowrold", strlen("hellowrold"));
+    conn->gracefulClose();
 }
 
 void onMessage(const MuduoPlus::TcpConnectionPtr& conn,
@@ -98,15 +99,15 @@ int main(int argc, char* argv[])
     MuduoPlus::LogPrinter = LogPrintFunc;
     MuduoPlus::EventLoop loop;
 
-    MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
+    /*MuduoPlus::InetAddress listenAddr("0.0.0.0", 2007);
     EchoServer server(&loop, listenAddr);
-    server.start();
+    server.start();*/
 
-    /*MuduoPlus::InetAddress serverAddr("192.168.0.51", 2007);
+    MuduoPlus::InetAddress serverAddr("120.25.100.182", 9527);
     MuduoPlus::TcpClient client(&loop, serverAddr, "lsy");
     client.setConnectionCallback(onConnection);
     client.setMessageCallback(onMessage);
-    client.connect();*/
+    client.connect();
 
     /*loop.runEvery(1, [=]()
     {

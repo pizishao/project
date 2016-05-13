@@ -151,6 +151,11 @@ namespace MuduoPlus
             if (remainCount == 0)
             {
                 LOG_PRINT(LogType_Debug, "send over");
+
+                if (state_ == kDisconnecting)
+                {
+                    shutdownInLoop();
+                }
             }
         }
     }
@@ -160,17 +165,22 @@ namespace MuduoPlus
         if (state_ == kConnected)
         {
             setState(kDisconnecting);
-            /*auto selfPtr = shared_from_this();
+            auto selfPtr = shared_from_this();
 
             loop_->runInLoop([=]()
             {
                 selfPtr->shutdownInLoop();
-            });*/
+            });
         }
     }
 
     void TcpConnection::shutdownInLoop()
     {
+        if (state_ == kConnected && channel_->isWriting())
+        {
+            return;
+        }
+
         loop_->assertInLoopThread();
         assert(!channel_->isWriting());
         userClosed_ = true;
