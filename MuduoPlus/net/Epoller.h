@@ -18,7 +18,6 @@ namespace MuduoPlus
     private:
         static const int kInitEventListSize = 16;
 
-        int  getChannelEpEvents(Channel* pChannel);
         void fillActiveChannelHolders(int numEvents, ChannelHolderList 
             &activeChannelHolders) const;
 

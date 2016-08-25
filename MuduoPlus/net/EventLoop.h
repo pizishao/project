@@ -39,6 +39,7 @@ namespace MuduoPlus
         void    cancel(TimerId timerId);
         void    resetPollTimeOut(int msec);
 
+        bool IsPollReturn() const { return isPollReturn_; }
         void wakeup();
         void updateChannel(Channel* channel);
         void removeChannel(Channel* channel);
@@ -82,12 +83,13 @@ namespace MuduoPlus
         typedef std::vector<ChannelHolder>   ChannelHolderList;
 
         bool                        looping_; 
-        bool                        quit_; 
+        bool                        isPollReturn_;
+        bool                        quit_;
         bool                        eventHandling_; 
         bool                        callingPendingFunctors_; 
         const int                   threadId_;
         int                         pollTimeoutMsec_;
-        Timestamp                   sentryCheckTimeStamp_;
+        Timestamp                   timeOutCheckStamp_;
         Timestamp                   pollReturnTime_;
         std::shared_ptr<Poller>     poller_;
         std::shared_ptr<TimerQueue> timerQueue_;

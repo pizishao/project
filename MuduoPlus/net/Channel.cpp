@@ -15,7 +15,7 @@ namespace MuduoPlus
         : loop_(loop),
         fd_(fd),
         interestEvents_(kNoneEvent),
-        recvEvents_(kNoneEvent)
+        trigerEvents_(kNoneEvent)
     {
     }
 
@@ -50,6 +50,30 @@ namespace MuduoPlus
         return owner_;
     }
 
+#ifndef WIN32
+    int  Channel::getEpEvents()
+    {
+        int events = 0;
+
+        if (interestEvents_ & Channel::kReadEvent)
+        {
+            events |= POLLIN;
+        }
+
+        if (interestEvents_ & Channel::kWriteEvent)
+        {
+            events |= POLLOUT;
+        }
+
+        if (interestEvents_ & Channel::kErrorEvent)
+        {
+            events |= EPOLLRDHUP; /*  epoll_wait will always wait for EPOLLERR¡¢EPOLLHUP event */
+        }
+
+        return events;
+    }
+#endif    
+
     void Channel::handleEvent(Timestamp receiveTime)
     {
         handleEventWithGuard(receiveTime);
@@ -57,7 +81,7 @@ namespace MuduoPlus
 
     void Channel::handleEventWithGuard(Timestamp receiveTime)
     {
-        if (recvEvents_ & kReadEvent)
+        if (trigerEvents_ & kReadEvent)
         {
             if (readCallback_)
             {
@@ -65,7 +89,7 @@ namespace MuduoPlus
             }
         }
 
-        if (recvEvents_ & kWriteEvent)
+        if (trigerEvents_ & kWriteEvent)
         {
             if (writeCallback_)
             {
@@ -73,7 +97,7 @@ namespace MuduoPlus
             }
         }
 
-        if (recvEvents_ & kErrorEvent)
+        if (trigerEvents_ & kErrorEvent)
         {
             if (closeCallback_)
             {

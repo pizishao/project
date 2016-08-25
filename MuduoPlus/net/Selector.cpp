@@ -73,7 +73,7 @@ namespace MuduoPlus
 
             if (events)
             {
-                pChannel->setRecvEvents(events);
+                pChannel->setTrigerEvents(events);
                 activeChannelHolders.push_back(holder);
             }
         }
@@ -85,24 +85,21 @@ namespace MuduoPlus
         {
             auto weakOwner = channel->getOwner();
             auto owner = weakOwner.lock();
-            //if (owner)
-            {
-                ChannelHolder holder;
-                holder.channel_ = channel;
-                holder.ower_ = owner;
-                channelHolders_.insert({ channel->fd(), holder});
-            }
-            /*else
-            {
-                assert(false);
-            }*/
+            assert(owner);
+            ChannelHolder holder;
+            holder.channel_ = channel;
+            holder.ower_ = owner;
+            channelHolders_.insert({ channel->fd(), holder });
         } 
         else
         {
             // do nothing
         }
 
-        //loop_->wakeup();
+        if (!loop_->IsPollReturn())
+        {
+            loop_->wakeup();
+        }
     }
 
     void Selector::removeChannel(Channel* channel)

@@ -43,7 +43,7 @@ namespace MuduoPlus
 
         int  fd() const { return fd_; }
         int  interestEvents() const { return interestEvents_; }
-        void setRecvEvents(int events) { recvEvents_ = events; } // used by pollers
+        void setTrigerEvents(int events) { trigerEvents_ = events; } // used by pollers
         bool isNoneEvent() const { return interestEvents_ == kNoneEvent; }
 
         void enableReading() { interestEvents_ |= kReadEvent; update(); }
@@ -53,6 +53,10 @@ namespace MuduoPlus
         void enableErroring() { interestEvents_ |= kErrorEvent; update(); }
         void disableErroring() { interestEvents_ &= ~kErrorEvent; update(); }
         void disableAll() { interestEvents_ = kNoneEvent; update(); }
+#ifndef WIN32
+        int  getEpEvents();
+#endif // !WIN32
+        
         bool isWriting() const { return (interestEvents_ & kWriteEvent) != 0 ? true : false; }
         bool isReading() const { return (interestEvents_ & kReadEvent) != 0 ? true : false; }
 
@@ -75,7 +79,7 @@ namespace MuduoPlus
         EventLoop* loop_;
         const int  fd_;
         int        interestEvents_;
-        int        recvEvents_; // it's the received event types of epoll or select
+        int        trigerEvents_; // it's the triger event types of epoll or select
 
         std::weak_ptr<void> owner_;
         bool addedToLoop_;

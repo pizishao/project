@@ -62,7 +62,7 @@ namespace MuduoPlus
         {
             epoll_event event;
             event.data.fd = pChannel->fd();
-            event.events = getChannelEpEvents(pChannel);            
+            event.events = pChannel->getEpEvents();            
 
             if (epoll_ctl(epollfd_, EPOLL_CTL_MOD, pChannel->fd(), &event) < 0)
             {
@@ -73,7 +73,7 @@ namespace MuduoPlus
         {
             epoll_event event;
             event.data.fd = pChannel->fd();
-            event.events = getChannelEpEvents(pChannel);
+            event.events = pChannel->getEpEvents();
 
             if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, pChannel->fd(), &event) < 0)
             {
@@ -83,6 +83,7 @@ namespace MuduoPlus
 
             auto weakOwner = pChannel->getOwner();
             auto owner = weakOwner.lock();
+            assert(owner);
 
             ChannelHolder holder;
             holder.channel_ = pChannel;
@@ -100,34 +101,12 @@ namespace MuduoPlus
 
         epoll_event event;
         event.data.fd = pChannel->fd();
-        event.events = getChannelEpEvents(pChannel);
+        event.events = pChannel->getEpEvents();
 
         if (epoll_ctl(epollfd_, EPOLL_CTL_DEL, pChannel->fd(), &event) < 0)
         {
             LOG_PRINT(LogType_Error, "EPOLL_CTL_DEL failed %s", GetLastErrorText().c_str());
         }
-    }
-
-    int Epoller::getChannelEpEvents(Channel* pChannel)
-    {
-        int events = 0;
-
-        if (pChannel->interestEvents() & Channel::kReadEvent)
-        {
-            events |= POLLIN;
-        }
-
-        if (pChannel->interestEvents() & Channel::kWriteEvent)
-        {
-            events |= POLLOUT;
-        }
-
-        if (pChannel->interestEvents() & Channel::kErrorEvent)
-        {
-            events |= EPOLLRDHUP; /*  epoll_wait will always wait for EPOLLERR¡¢EPOLLHUP event */
-        }
-
-        return events;
     }
 
     void Epoller::fillActiveChannelHolders(int numEvents, ChannelHolderList 

@@ -20,6 +20,7 @@ namespace MuduoPlus
 
     EventLoop::EventLoop()
         : looping_(false),
+        isPollReturn_(false),
         quit_(false),
         eventHandling_(false),
         callingPendingFunctors_(false),
@@ -52,7 +53,7 @@ namespace MuduoPlus
         wakeupChannel_->enableReading();
 
         pollTimeoutMsec_ = INT_MAX;
-        sentryCheckTimeStamp_ = Timestamp::now();
+        timeOutCheckStamp_ = Timestamp::now();
     }
 
     EventLoop::~EventLoop()
@@ -77,7 +78,9 @@ namespace MuduoPlus
         while (!quit_)
         {
             activeChannelHolders_.clear();
+            isPollReturn_ = false;
             poller_->poll(pollTimeoutMsec_, activeChannelHolders_);
+            isPollReturn_ = true;
             /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
@@ -166,9 +169,12 @@ namespace MuduoPlus
         assert(msec >= 0);
 
         pollTimeoutMsec_ = msec;
-        sentryCheckTimeStamp_ = Timestamp::now();
+        timeOutCheckStamp_ = Timestamp::now();
 
-        wakeup();
+        if (!isPollReturn_)
+        {
+            wakeup();
+        }
     }
 
     void EventLoop::updateChannel(Channel* channel)
@@ -240,14 +246,14 @@ namespace MuduoPlus
     void EventLoop::checkTimeOut()
     {
         Timestamp nowStamp = Timestamp::now();
-        long durationMsec = (long)millisecondDifference(nowStamp, sentryCheckTimeStamp_);
+        long durationMsec = (long)millisecondDifference(nowStamp, timeOutCheckStamp_);
 
         if ((long)durationMsec >= pollTimeoutMsec_)
         {
             timerQueue_->timeOut();
         }
 
-        sentryCheckTimeStamp_ = nowStamp;
+        timeOutCheckStamp_ = nowStamp;
         pollTimeoutMsec_ -= durationMsec;
     }
 
