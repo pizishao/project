@@ -9,7 +9,7 @@ public class ThreadNotifier
 {
     Queue<Action> actionQueue = new Queue<Action>();
 
-    void Post(Action task)
+    public void Post(Action task)
     {
         lock (actionQueue)
         {
@@ -17,7 +17,7 @@ public class ThreadNotifier
         }
     }
 
-    void Dispatch()
+    public void Update()
     {
         lock (actionQueue)
         {
