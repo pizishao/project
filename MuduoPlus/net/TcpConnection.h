@@ -7,6 +7,7 @@
 #include "base/types.h"
 #include "base/NonCopyable.h"
 #include "base/Timestamp.h"
+#include "base/any.h"
 
 #include "CallBack.h"
 #include "InetAddress.h"
@@ -43,6 +44,7 @@ namespace MuduoPlus
 
         // void send(string&& message); // C++11
         void send(const void* data, int len);
+        void send(std::string str);
         //void send(Buffer* message);  // this one will swap data
         void gracefulClose(); // NOT thread safe, no simultaneous calling
         // void shutdownAndForceCloseAfter(double seconds); // NOT thread safe, no simultaneous calling
@@ -52,6 +54,9 @@ namespace MuduoPlus
         void startRead();
         void stopRead();
         bool isReading() const { return reading_; }; // NOT thread safe, may race with start/stopReadInLoop 
+
+        void*   getContextData() const { return contextData; }
+        void    setContextData(void * val) { contextData = val; }
 
         void setConnectionCallback(const ConnectionCallback& cb)
         {
@@ -90,10 +95,15 @@ namespace MuduoPlus
             closeCallback_ = cb;
         }
 
+        void setDestroyCallBack(std::function<void()> cb)
+        {
+            destroyCallBack = cb;
+        }
+
         // called when TcpServer accepts a new connection
         void connectEstablished();   // should be called only once
         // called when TcpServer has removed me from its map
-        void connectDestroyed();  // should be called only once
+        void connectDestroyed();  // should be called only once        
 
     private:
         enum StateE { kDisconnected, kConnecting, kConnected, kDisconnecting };
@@ -131,6 +141,10 @@ namespace MuduoPlus
         Buffer inputBuffer_;
         Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
         bool    reading_;
+        //Any     context_;
+
+        void    *contextData;    
+        std::function<void()> destroyCallBack;
     };
 
     typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;

@@ -85,7 +85,7 @@ namespace MuduoPlus
         {
             auto weakOwner = channel->getOwner();
             auto owner = weakOwner.lock();
-            assert(owner);
+            //assert(owner);
             ChannelHolder holder;
             holder.channel_ = channel;
             holder.ower_ = owner;

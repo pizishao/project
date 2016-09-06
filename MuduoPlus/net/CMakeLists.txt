@@ -16,6 +16,9 @@ set(NET_SRCS
 	TcpServer.cpp
 	Timer.cpp
 	TimerQueue.cpp
+	HttpContext.cpp
+	HttpResponse.cpp
+	HttpServer.cpp
 )
 
 set(NET_HEADERS
@@ -37,6 +40,10 @@ set(NET_HEADERS
 	Timer.h
 	TimerId.h
 	TimerQueue.h	
+	HttpContext.h
+	HttpRequest.h
+	HttpResponse.h
+	HttpServer.h
 )
 
 if(WIN32)

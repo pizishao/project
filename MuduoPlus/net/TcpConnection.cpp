@@ -51,6 +51,11 @@ namespace MuduoPlus
         assert(state_ == kDisconnected);
 
         SocketOps::closeSocket(fd_);
+
+        if (destroyCallBack)
+        {
+            destroyCallBack();
+        }
     }
 
     void TcpConnection::send(const void* data, int len)
@@ -77,6 +82,11 @@ namespace MuduoPlus
                 });
             }
         }
+    }
+
+    void TcpConnection::send(std::string str)
+    {
+        send(str.data(), str.size());
     }
 
     void TcpConnection::sendInLoop(std::shared_ptr<vector_char> vecData)

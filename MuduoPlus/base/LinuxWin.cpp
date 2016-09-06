@@ -5,10 +5,12 @@
 int GetLastErrorCode()
 {
 #ifdef WIN32
-    return GetLastError();
+    int errorCode = GetLastError();
 #else
-    return errno;
+    errorCode = errno;
 #endif
+
+    return errorCode;
 }
 
 std::string GetErrorText(int errcode)

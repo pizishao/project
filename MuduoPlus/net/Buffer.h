@@ -163,6 +163,15 @@ namespace MuduoPlus
             return result;
         }
 
+        void append(std::string str)
+        {
+            size_t len = str.size();
+
+            ensureWritableBytes(len);
+            std::copy(str.data(), str.data() + len, beginWrite());
+            hasWritten(len);
+        }
+
         void append(const char* /*restrict*/ data, size_t len)
         {
             ensureWritableBytes(len);
