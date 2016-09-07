@@ -8,7 +8,7 @@ namespace MuduoPlus
 {
     class Buffer;
 
-    class HttpContext : public NonCopyable
+    class HttpContext
     {
     public:
         enum HttpRequestParseState

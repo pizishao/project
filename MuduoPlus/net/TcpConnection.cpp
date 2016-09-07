@@ -51,11 +51,6 @@ namespace MuduoPlus
         assert(state_ == kDisconnected);
 
         SocketOps::closeSocket(fd_);
-
-        if (destroyCallBack)
-        {
-            destroyCallBack();
-        }
     }
 
     void TcpConnection::send(const void* data, int len)
@@ -65,31 +60,30 @@ namespace MuduoPlus
             return;
         }
 
+        send(StringPiece(static_cast<const char*>(data), len));
+    }
+
+    void TcpConnection::send(const StringPiece& message)
+    {
         if (state_ == kConnected)
         {
             if (loop_->isInLoopThread())
             {
-                sendInLoop(data, len);
+                sendInLoop(message);
             }
             else
             {
-                auto vecData = std::make_shared<vector_char>((char *)data, (char *)data + len);
                 auto selfPtr = shared_from_this();
 
                 loop_->runInLoop([=]()
                 {
-                    selfPtr->sendInLoop(vecData);
+                    selfPtr->sendInLoop(message.as_string());
                 });
             }
         }
     }
 
-    void TcpConnection::send(std::string str)
-    {
-        send(str.data(), str.size());
-    }
-
-    void TcpConnection::sendInLoop(std::shared_ptr<vector_char> vecData)
+    /*void TcpConnection::sendInLoop(std::shared_ptr<vector_char> vecData)
     {        
         loop_->assertInLoopThread();
 
@@ -100,10 +94,20 @@ namespace MuduoPlus
         }
 
         sendInLoop(vecData->data(), vecData->size());
+    }*/
+
+    void TcpConnection::sendInLoop(const StringPiece& message)
+    {
+        sendInLoop(message.data(), message.size());
     }
 
     void TcpConnection::sendInLoop(const void* data, int len)
     {        
+        if (len <= 0)
+        {
+            return;
+        }
+
         loop_->assertInLoopThread();
 
         if (state_ == kDisconnected)

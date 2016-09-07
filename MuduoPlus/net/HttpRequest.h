@@ -9,7 +9,7 @@
 
 namespace MuduoPlus
 {
-    class HttpRequest : public NonCopyable
+    class HttpRequest
     {
     public:
         enum Method

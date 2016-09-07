@@ -8,6 +8,7 @@
 #include "base/NonCopyable.h"
 #include "base/Timestamp.h"
 #include "base/any.h"
+#include "base/StringPiece.h"
 
 #include "CallBack.h"
 #include "InetAddress.h"
@@ -44,7 +45,7 @@ namespace MuduoPlus
 
         // void send(string&& message); // C++11
         void send(const void* data, int len);
-        void send(std::string str);
+        void send(const StringPiece& message);
         //void send(Buffer* message);  // this one will swap data
         void gracefulClose(); // NOT thread safe, no simultaneous calling
         // void shutdownAndForceCloseAfter(double seconds); // NOT thread safe, no simultaneous calling
@@ -55,8 +56,8 @@ namespace MuduoPlus
         void stopRead();
         bool isReading() const { return reading_; }; // NOT thread safe, may race with start/stopReadInLoop 
 
-        void*   getContextData() const { return contextData; }
-        void    setContextData(void * val) { contextData = val; }
+        Any&    getContext()        { return context_; }
+        void    setContext(Any val) { context_ = val; }
 
         void setConnectionCallback(const ConnectionCallback& cb)
         {
@@ -95,11 +96,6 @@ namespace MuduoPlus
             closeCallback_ = cb;
         }
 
-        void setDestroyCallBack(std::function<void()> cb)
-        {
-            destroyCallBack = cb;
-        }
-
         // called when TcpServer accepts a new connection
         void connectEstablished();   // should be called only once
         // called when TcpServer has removed me from its map
@@ -111,7 +107,7 @@ namespace MuduoPlus
         void handleWrite();
         void handleError();
         void handleFinish();
-        void sendInLoop(std::shared_ptr<vector_char> vecData);
+        void sendInLoop(const StringPiece& message);
         void sendInLoop(const void* data, int len);
         void shutdownInLoop();
         // void shutdownAndForceCloseInLoop(double seconds);
@@ -141,10 +137,7 @@ namespace MuduoPlus
         Buffer inputBuffer_;
         Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
         bool    reading_;
-        //Any     context_;
-
-        void    *contextData;    
-        std::function<void()> destroyCallBack;
+        Any     context_;        
     };
 
     typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;

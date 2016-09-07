@@ -48,11 +48,7 @@ namespace MuduoPlus
     {
         if (conn->connected())
         {
-            HttpContext *context = new HttpContext();
-            conn->setContextData(context);
-            conn->setDestroyCallBack([=](){
-                delete context;
-            });
+            conn->setContext(HttpContext());
         }
     }
 
@@ -60,18 +56,18 @@ namespace MuduoPlus
         Buffer* buf,
         Timestamp receiveTime)
     {
-        HttpContext *context = (HttpContext*)(conn->getContextData());
+        HttpContext &context = conn->getContext().AnyCast<HttpContext>();
 
-        if (!context->parseRequest(buf, receiveTime))
+        if (!context.parseRequest(buf, receiveTime))
         {
             conn->send("HTTP/1.1 400 Bad Request\r\n\r\n");
             conn->gracefulClose();
         }
 
-        if (context->gotAll())
+        if (context.gotAll())
         {
-            onRequest(conn, context->request());
-            context->reset();
+            onRequest(conn, context.request());
+            context.reset();
         }
     }
 
