@@ -15,7 +15,7 @@ ADD_SUBDIRECTORY(net)
 ADD_SUBDIRECTORY(base) 
 
 ADD_EXECUTABLE(MuduoPlus ${ROOT_SRCS} ${ROOT_HEADERS})
-1
+
 if(WIN32)
      target_link_libraries(MuduoPlus ws2_32.lib net base)
 else()
