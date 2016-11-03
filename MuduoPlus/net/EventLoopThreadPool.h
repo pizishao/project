@@ -19,7 +19,10 @@ namespace MuduoPlus
 
         EventLoopThreadPool(EventLoop* baseLoop, const std::string& nameArg);
         ~EventLoopThreadPool();
-        void setThreadNum(int numThreads) { numThreads_ = numThreads; }
+        void setThreadNum(int numThreads)
+        {
+            numThreads_ = numThreads;
+        }
         void start(const ThreadInitCallback& cb = ThreadInitCallback());
 
         // valid after calling start()

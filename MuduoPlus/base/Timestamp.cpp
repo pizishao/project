@@ -1,8 +1,8 @@
 #include <inttypes.h>
 
-#include "Timestamp.h"
-#include "define.h"
-#include "LinuxWin.h"
+#include "base/Timestamp.h"
+#include "base/define.h"
+#include "base/LinuxWin.h"
 
 using namespace MuduoPlus;
 
@@ -15,7 +15,7 @@ std::string Timestamp::toString() const
     int64_t microseconds = microSecondsSinceEpoch_ % kMicroSecPerSec;
     (void)seconds;
     (void)microseconds;
-    //snprintf(buf, sizeof(buf) - 1, "%" PRId64 ".%06" PRId64 "", seconds, microseconds);
+    snprintf(buf, sizeof(buf) - 1, "%ld.%ld", seconds, microseconds);
     return buf;
 }
 
@@ -29,22 +29,23 @@ std::string Timestamp::toFormattedString(bool showMicroseconds) const
     gmtime_s(&tm_time, &seconds);
 #else
     gmtime_r(&seconds, &tm_time);
-#endif    
+#endif
 
-    if (showMicroseconds)
+    if(showMicroseconds)
     {
         int microseconds = static_cast<int>(microSecondsSinceEpoch_ % kMicroSecPerSec);
         snprintf(buf, sizeof(buf), "%4d%02d%02d %02d:%02d:%02d.%06d",
-            tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-            tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
-            microseconds);
+                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec,
+                 microseconds);
     }
     else
     {
         snprintf(buf, sizeof(buf), "%4d%02d%02d %02d:%02d:%02d",
-            tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
-            tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
+                 tm_time.tm_year + 1900, tm_time.tm_mon + 1, tm_time.tm_mday,
+                 tm_time.tm_hour, tm_time.tm_min, tm_time.tm_sec);
     }
+
     return buf;
 }
 

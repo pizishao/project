@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "LinuxWin.h"
+#include "base/LinuxWin.h"
 
 int GetLastErrorCode()
 {
@@ -18,17 +18,17 @@ std::string GetErrorText(int errcode)
 #ifdef WIN32
     LPVOID buffer;
     ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        nullptr,
-        errcode,
-        0,
-        (LPTSTR)&buffer,
-        0,
-        nullptr);
+                    nullptr,
+                    errcode,
+                    0,
+                    (LPTSTR)&buffer,
+                    0,
+                    nullptr);
 
     return (char *)buffer;
 #else
     return (strerror(errcode));
-#endif    
+#endif
 }
 
 std::string GetLastErrorText()
@@ -38,17 +38,20 @@ std::string GetLastErrorText()
 #ifdef WIN32
     LPVOID buffer;
     ::FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        nullptr,
-        errcode,
-        0,
-        (LPTSTR)&buffer,
-        0,
-        nullptr);
+                    nullptr,
+                    errcode,
+                    0,
+                    (LPTSTR)&buffer,
+                    0,
+                    nullptr);
 
-    return (char *)buffer;
+    std::string s = (char *)buffer;
+    LocalFree(buffer);
+
+    return s;
 #else
     return (strerror(errcode));
-#endif    
+#endif
 }
 
 #ifdef WIN32
@@ -76,7 +79,7 @@ int gettimeofday(struct timeval *tp, void *tzp)
 }
 #endif
 
-int GetCurThreadID()
+int GetCurrThreadID()
 {
 #ifdef WIN32
     return GetCurrentThreadId();

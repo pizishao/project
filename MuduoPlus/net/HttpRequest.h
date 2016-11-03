@@ -23,7 +23,7 @@ namespace MuduoPlus
 
         HttpRequest()
             : method_(kInvalid),
-            version_(kUnknown)
+              version_(kUnknown)
         {
         }
 
@@ -41,23 +41,24 @@ namespace MuduoPlus
         {
             assert(method_ == kInvalid);
             std::string m(start, end);
-            if (m == "GET")
+
+            if(m == "GET")
             {
                 method_ = kGet;
             }
-            else if (m == "POST")
+            else if(m == "POST")
             {
                 method_ = kPost;
             }
-            else if (m == "HEAD")
+            else if(m == "HEAD")
             {
                 method_ = kHead;
             }
-            else if (m == "PUT")
+            else if(m == "PUT")
             {
                 method_ = kPut;
             }
-            else if (m == "DELETE")
+            else if(m == "DELETE")
             {
                 method_ = kDelete;
             }
@@ -65,6 +66,7 @@ namespace MuduoPlus
             {
                 method_ = kInvalid;
             }
+
             return method_ != kInvalid;
         }
 
@@ -76,26 +78,33 @@ namespace MuduoPlus
         const char* methodString() const
         {
             const char* result = "UNKNOWN";
-            switch (method_)
+
+            switch(method_)
             {
-            case kGet:
-                result = "GET";
-                break;
-            case kPost:
-                result = "POST";
-                break;
-            case kHead:
-                result = "HEAD";
-                break;
-            case kPut:
-                result = "PUT";
-                break;
-            case kDelete:
-                result = "DELETE";
-                break;
-            default:
-                break;
+                case kGet:
+                    result = "GET";
+                    break;
+
+                case kPost:
+                    result = "POST";
+                    break;
+
+                case kHead:
+                    result = "HEAD";
+                    break;
+
+                case kPut:
+                    result = "PUT";
+                    break;
+
+                case kDelete:
+                    result = "DELETE";
+                    break;
+
+                default:
+                    break;
             }
+
             return result;
         }
 
@@ -133,15 +142,19 @@ namespace MuduoPlus
         {
             std::string field(start, colon);
             ++colon;
-            while (colon < end && isspace(*colon))
+
+            while(colon < end && isspace(*colon))
             {
                 ++colon;
             }
+
             std::string value(colon, end);
-            while (!value.empty() && isspace(value[value.size() - 1]))
+
+            while(!value.empty() && isspace(value[value.size() - 1]))
             {
                 value.resize(value.size() - 1);
             }
+
             headers_[field] = value;
         }
 
@@ -149,10 +162,12 @@ namespace MuduoPlus
         {
             std::string result;
             std::map<std::string, std::string>::const_iterator it = headers_.find(field);
-            if (it != headers_.end())
+
+            if(it != headers_.end())
             {
                 result = it->second;
             }
+
             return result;
         }
 

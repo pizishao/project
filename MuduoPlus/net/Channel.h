@@ -36,31 +36,80 @@ namespace MuduoPlus
             closeCallback_ = cb;
         }
 
-        void setFinishCallback(const EventCallback& cb)
+        void setEndCallback(const EventCallback& cb)
         {
-            finishCallback_ = cb;
+            endCallback_ = cb;
         }
 
-        int  fd() const { return fd_; }
-        int  interestEvents() const { return interestEvents_; }
-        void setTrigerEvents(int events) { trigerEvents_ = events; } // used by pollers
-        bool isNoneEvent() const { return interestEvents_ == kNoneEvent; }
+        int  fd() const
+        {
+            return fd_;
+        }
+        int  interestEvents() const
+        {
+            return interestEvents_;
+        }
+        void setTrigeredEvents(int events)
+        {
+            trigeredEvents_ = events;    // used by pollers
+        }
+        bool isNoneEvent() const
+        {
+            return interestEvents_ == kNoneEvent;
+        }
 
-        void enableReading() { interestEvents_ |= kReadEvent; update(); }
-        void disableReading() { interestEvents_ &= ~kReadEvent; update(); }
-        void enableWriting() { interestEvents_ |= kWriteEvent; update(); }
-        void disableWriting() { interestEvents_ &= ~kWriteEvent; update(); }
-        void enableErroring() { interestEvents_ |= kErrorEvent; update(); }
-        void disableErroring() { interestEvents_ &= ~kErrorEvent; update(); }
-        void disableAll() { interestEvents_ = kNoneEvent; update(); }
+        void enableReading()
+        {
+            interestEvents_ |= kReadEvent;
+            update();
+        }
+        void disableReading()
+        {
+            interestEvents_ &= ~kReadEvent;
+            update();
+        }
+        void enableWriting()
+        {
+            interestEvents_ |= kWriteEvent;
+            update();
+        }
+        void disableWriting()
+        {
+            interestEvents_ &= ~kWriteEvent;
+            update();
+        }
+        void enableErroring()
+        {
+            interestEvents_ |= kErrorEvent;
+            update();
+        }
+        void disableErroring()
+        {
+            interestEvents_ &= ~kErrorEvent;
+            update();
+        }
+        void disableAll()
+        {
+            interestEvents_ = kNoneEvent;
+            update();
+        }
 #ifndef WIN32
         int  getEpEvents();
 #endif // !WIN32
-        
-        bool isWriting() const { return (interestEvents_ & kWriteEvent) != 0 ? true : false; }
-        bool isReading() const { return (interestEvents_ & kReadEvent) != 0 ? true : false; }
 
-        EventLoop* ownerLoop() { return loop_; }
+        bool isWriting() const
+        {
+            return (interestEvents_ & kWriteEvent) != 0 ? true : false;
+        }
+        bool isReading() const
+        {
+            return (interestEvents_ & kReadEvent) != 0 ? true : false;
+        }
+
+        EventLoop* ownerLoop()
+        {
+            return loop_;
+        }
         void remove();
 
         void setOwner(std::weak_ptr<void> ptr);
@@ -79,7 +128,7 @@ namespace MuduoPlus
         EventLoop* loop_;
         const int  fd_;
         int        interestEvents_;
-        int        trigerEvents_; // it's the triger event types of epoll or select
+        int        trigeredEvents_; // it's the triger event types of epoll or select
 
         std::weak_ptr<void> owner_;
         bool addedToLoop_;
@@ -87,6 +136,6 @@ namespace MuduoPlus
         ReadEventCallback   readCallback_;
         EventCallback       writeCallback_;
         EventCallback       closeCallback_;
-        EventCallback       finishCallback_;
+        EventCallback       endCallback_;
     };
 }

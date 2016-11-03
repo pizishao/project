@@ -12,17 +12,17 @@
 namespace MuduoPlus
 {
     TcpServer::TcpServer(EventLoop* loop,
-        const InetAddress& listenAddr,
-        const std::string& nameArg,
-        Option option)
+                         const InetAddress& listenAddr,
+                         const std::string& nameArg,
+                         Option option)
         : loop_(loop),
-        ipPort_(listenAddr.toIpPort()),
-        name_(nameArg),
-        acceptor_(new Acceptor(loop, listenAddr, option == kReusePort)),
-        threadPool_(new EventLoopThreadPool(loop, name_)),
-        connectionCallback_(defaultConnectionCallback),
-        messageCallback_(defaultMessageCallback),
-        nextConnId_(1)
+          ipPort_(listenAddr.toIpPort()),
+          name_(nameArg),
+          acceptor_(new Acceptor(loop, listenAddr, option == kReusePort)),
+          threadPool_(new EventLoopThreadPool(loop, name_)),
+          connectionCallback_(defaultConnectionCallback),
+          messageCallback_(defaultMessageCallback),
+          nextConnId_(1)
     {
         acceptor_->setNewConnectionCallback(
             std::bind(&TcpServer::newConnection, this, std::placeholders::_1, std::placeholders::_2));
@@ -34,8 +34,8 @@ namespace MuduoPlus
         loop_->assertInLoopThread();
         LOG_PRINT(LogType_Info, "TcpServer::~TcpServer [%s] destructing", name_.c_str());
 
-        for (ConnectionMap::iterator it(connections_.begin());
-            it != connections_.end(); ++it)
+        for(ConnectionMap::iterator it(connections_.begin());
+                it != connections_.end(); ++it)
         {
             TcpConnectionPtr conn = it->second;
             it->second.reset();
@@ -52,8 +52,8 @@ namespace MuduoPlus
     }
 
     void TcpServer::start()
-    {       
-        if (started_.fetch_and(1) == 0)
+    {
+        if(started_.fetch_and(1) == 0)
         {
             threadPool_->start(threadInitCallback_);
             assert(!acceptor_->listenning());
@@ -72,15 +72,15 @@ namespace MuduoPlus
         std::string connName = name_ + buf;
 
         LOG_PRINT(LogType_Info, "TcpServer::newConnection [%s] - new connection [%s] from %s",
-            name_.c_str(), connName.c_str(), peerAddr.toIpPort().c_str());
+                  name_.c_str(), connName.c_str(), peerAddr.toIpPort().c_str());
         InetAddress localAddr(SocketOps::getLocalAddr(sockfd));
         // FIXME poll with zero timeout to double confirm the new connection
         // FIXME use make_shared if necessary
         TcpConnectionPtr conn(new TcpConnection(ioLoop,
-            connName,
-            sockfd,
-            localAddr,
-            peerAddr));
+                                                connName,
+                                                sockfd,
+                                                localAddr,
+                                                peerAddr));
         connections_[connName] = conn;
         conn->setConnectionCallback(connectionCallback_);
         conn->setMessageCallback(messageCallback_);
@@ -100,12 +100,12 @@ namespace MuduoPlus
     {
         loop_->assertInLoopThread();
         LOG_PRINT(LogType_Info, "TcpServer::removeConnectionInLoop [%s] - connection %s",
-            name_.c_str(), conn->name().c_str());
+                  name_.c_str(), conn->name().c_str());
         size_t n = connections_.erase(conn->name());
         (void)n;
         assert(n == 1);
-        EventLoop* ioLoop = conn->getLoop();
-        ioLoop->queueInLoop(
+        EventLoop* loop = conn->getLoop();
+        loop->queueInLoop(
             std::bind(&TcpConnection::connectDestroyed, conn));
     }
 }

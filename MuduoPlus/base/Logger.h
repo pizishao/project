@@ -7,8 +7,8 @@ namespace MuduoPlus
 
     enum LogType
     {
-        LogType_Debug,
         LogType_Info,
+        LogType_Debug,
         LogType_Warn,
         LogType_Error,
         LogType_Fatal,

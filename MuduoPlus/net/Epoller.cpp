@@ -6,10 +6,10 @@ namespace MuduoPlus
 {
     Epoller::Epoller(EventLoop* loop)
         : Poller(loop),
-        epollfd_(::epoll_create1(EPOLL_CLOEXEC)),
-        events_(kInitEventListSize)
+          epollfd_(::epoll_create1(EPOLL_CLOEXEC)),
+          events_(kInitEventListSize)
     {
-        if (epollfd_ < 0)
+        if(epollfd_ < 0)
         {
             LOG_PRINT(LogType_Fatal, "create epollfd failed");
         }
@@ -24,30 +24,30 @@ namespace MuduoPlus
     {
         LOG_PRINT(LogType_Info, "fd total count %u", channelHolders_.size());
 
-        int numEvents = ::epoll_wait(epollfd_, &events_[0], 
-            static_cast<int>(events_.size()),
-            timeoutMs);
-        
+        int numEvents = ::epoll_wait(epollfd_, &events_[0],
+                                     static_cast<int>(events_.size()),
+                                     timeoutMs);
+
         int errorCode = GetLastErrorCode();
 
-        if (numEvents > 0)
+        if(numEvents > 0)
         {
             LOG_PRINT(LogType_Info, "epoll_wait %u events happended", numEvents);
             fillActiveChannelHolders(numEvents, activeChannelHolders);
 
-            if ((size_t)numEvents == events_.size())
+            if((size_t)numEvents == events_.size())
             {
                 events_.resize(events_.size() * 2);
             }
         }
-        else if (numEvents == 0)
+        else if(numEvents == 0)
         {
             LOG_PRINT(LogType_Info, "epoll_wait nothing happended");
         }
         else
         {
             // error happens, log uncommon ones
-            if (errorCode != EINTR)
+            if(errorCode != EINTR)
             {
                 LOG_PRINT(LogType_Error, "epoll_wait failed");
             }
@@ -58,13 +58,13 @@ namespace MuduoPlus
     {
         Poller::assertInLoopThread();
 
-        if (hasChannel(pChannel))
+        if(hasChannel(pChannel))
         {
             epoll_event event;
             event.data.fd = pChannel->fd();
-            event.events = pChannel->getEpEvents();            
+            event.events = pChannel->getEpEvents();
 
-            if (epoll_ctl(epollfd_, EPOLL_CTL_MOD, pChannel->fd(), &event) < 0)
+            if(epoll_ctl(epollfd_, EPOLL_CTL_MOD, pChannel->fd(), &event) < 0)
             {
                 LOG_PRINT(LogType_Error, "EPOLL_CTL_MOD failed:%s", GetLastErrorText().c_str());
             }
@@ -75,7 +75,7 @@ namespace MuduoPlus
             event.data.fd = pChannel->fd();
             event.events = pChannel->getEpEvents();
 
-            if (epoll_ctl(epollfd_, EPOLL_CTL_ADD, pChannel->fd(), &event) < 0)
+            if(epoll_ctl(epollfd_, EPOLL_CTL_ADD, pChannel->fd(), &event) < 0)
             {
                 LOG_PRINT(LogType_Error, "EPOLL_CTL_ADD failed:%s", GetLastErrorText().c_str());
                 return;
@@ -103,21 +103,21 @@ namespace MuduoPlus
         event.data.fd = pChannel->fd();
         event.events = pChannel->getEpEvents();
 
-        if (epoll_ctl(epollfd_, EPOLL_CTL_DEL, pChannel->fd(), &event) < 0)
+        if(epoll_ctl(epollfd_, EPOLL_CTL_DEL, pChannel->fd(), &event) < 0)
         {
             LOG_PRINT(LogType_Error, "EPOLL_CTL_DEL failed %s", GetLastErrorText().c_str());
         }
     }
 
-    void Epoller::fillActiveChannelHolders(int numEvents, ChannelHolderList 
-        &activeChannelHolders) const
+    void Epoller::fillActiveChannelHolders(int numEvents, ChannelHolderList
+                                           &activeChannelHolders) const
     {
-        for (int i = 0; i < numEvents; i++)
+        for(int i = 0; i < numEvents; i++)
         {
             socket_t fd = events_[i].data.fd;
             auto it = channelHolders_.find(fd);
 
-            if (it != channelHolders_.end())
+            if(it != channelHolders_.end())
             {
                 ChannelHolder holder = it->second;
                 Channel *pChannel = holder.channel_;
@@ -125,22 +125,22 @@ namespace MuduoPlus
                 int recvEvents = Channel::kNoneEvent;
                 auto epEvents = events_[i].events;
 
-                if (epEvents & (POLLIN | POLLPRI | POLLRDHUP))
+                if(epEvents & (POLLIN | POLLPRI | POLLRDHUP))
                 {
                     recvEvents |= Channel::kReadEvent;
                 }
 
-                if (epEvents & POLLOUT)
+                if(epEvents & POLLOUT)
                 {
                     recvEvents |= Channel::kWriteEvent;
                 }
 
-                if (epEvents & (POLLERR | POLLHUP))
+                if(epEvents & (POLLERR | POLLHUP))
                 {
                     recvEvents |= Channel::kErrorEvent;
                 }
 
-                if (recvEvents)
+                if(recvEvents)
                 {
                     LOG_PRINT(LogType_Debug, "recvEvents:%d", recvEvents);
                     pChannel->setRecvEvents(recvEvents);
@@ -150,11 +150,11 @@ namespace MuduoPlus
                 {
                     LOG_PRINT(LogType_Debug, "none wait events");
                 }
-            } 
+            }
             else
             {
                 LOG_PRINT(LogType_Error, "can not find fd[%d] associate channel", fd);
-            }            
+            }
         }
     }
 }

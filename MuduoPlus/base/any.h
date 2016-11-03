@@ -1,4 +1,5 @@
 #pragma once
+
 #include <memory>
 #include <typeindex>
 #include <exception>
@@ -10,10 +11,13 @@ struct Any
     Any(const Any& that) : m_ptr(that.Clone()), m_tpIndex(that.m_tpIndex) {}
     Any(Any && that) : m_ptr(std::move(that.m_ptr)), m_tpIndex(that.m_tpIndex) {}
 
-    template<typename U, class = typename std::enable_if<!std::is_same<typename std::decay<U>::type, Any>::value, U>::type> Any(U && value) : m_ptr(new Derived < typename std::decay<U>::type>(std::forward<U>(value))),
-        m_tpIndex(std::type_index(typeid(typename std::decay<U>::type))){}
+    template < typename U, class = typename std::enable_if < !std::is_same<typename std::decay<U>::type, Any>::value, U >::type > Any(U && value) : m_ptr(new Derived < typename std::decay<U>::type>(std::forward<U>(value))),
+        m_tpIndex(std::type_index(typeid(typename std::decay<U>::type))) {}
 
-    bool IsNull() const { return !bool(m_ptr); }
+    bool IsNull() const
+    {
+        return !bool(m_ptr);
+    }
 
     template<class U> bool Is() const
     {
@@ -23,20 +27,22 @@ struct Any
     template<class U>
     U& AnyCast()
     {
-        if (!Is<U>())
+        if(!Is<U>())
         {
             std::cout << "can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
             throw std::logic_error{ "bad cast" };
         }
 
-        auto derived = dynamic_cast<Derived<U>*> (m_ptr.get());
+        auto derived = dynamic_cast<Derived<U>*>(m_ptr.get());
         return derived->m_value;
     }
 
     Any& operator=(const Any& a)
     {
-        if (m_ptr == a.m_ptr)
+        if(m_ptr == a.m_ptr)
+        {
             return *this;
+        }
 
         m_ptr = a.Clone();
         m_tpIndex = a.m_tpIndex;
@@ -69,8 +75,10 @@ private:
 
     BasePtr Clone() const
     {
-        if (m_ptr != nullptr)
+        if(m_ptr != nullptr)
+        {
             return m_ptr->Clone();
+        }
 
         return nullptr;
     }

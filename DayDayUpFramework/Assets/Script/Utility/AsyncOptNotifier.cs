@@ -10,7 +10,10 @@ public class AsyncOptNotifier
 {
     // The async operation watcher list.
     private LinkedList<AsyncOperationer> asyncOperationers = new LinkedList<AsyncOperationer>();
-    private LinkedList<AsyncOperationer> safeAsyncOperationers = new LinkedList<AsyncOperationer>();
+    private LinkedList<AsyncOperationer> awaitAsyncOperationers = new LinkedList<AsyncOperationer>();
+
+    private LinkedList<AsyncWWW> asyncWWWList = new LinkedList<AsyncWWW>();
+    private LinkedList<AsyncWWW> awaitAsyncWWWList = new LinkedList<AsyncWWW>();
 
 
     /// <summary>
@@ -29,7 +32,7 @@ public class AsyncOptNotifier
         opt.ProgressDelegate = progressDelegate;
         opt.CompleteDelegate = completeDelegate;
         opt.LastProgress = 0.0f;
-        this.safeAsyncOperationers.AddLast(opt);
+        this.awaitAsyncOperationers.AddLast(opt);
     }
 
     public void WaitAsync(
@@ -41,7 +44,16 @@ public class AsyncOptNotifier
         opt.ProgressDelegate = null;
         opt.CompleteDelegate = completeDelegate;
         opt.LastProgress = 0.0f;
-        this.safeAsyncOperationers.AddLast(opt);
+        this.awaitAsyncOperationers.AddLast(opt);
+    }
+
+    public void WaitWWW(WWW www, Action<string> onComplete)
+    {
+        AsyncWWW asyncWWW = new AsyncWWW();
+        asyncWWW.www = www;
+        asyncWWW.CompleteDelegate = onComplete;
+
+        awaitAsyncWWWList.AddLast(asyncWWW);
     }
 
     /// <summary>
@@ -49,12 +61,19 @@ public class AsyncOptNotifier
     /// </summary>
     public void Update()
     {
-        foreach (var linkNode in safeAsyncOperationers)
+        foreach (var linkNode in awaitAsyncOperationers)
         {
             asyncOperationers.AddLast(linkNode);
         }
 
-        safeAsyncOperationers.Clear();
+        awaitAsyncOperationers.Clear();
+
+        foreach (var item in awaitAsyncWWWList)
+        {
+            asyncWWWList.AddLast(item);
+        }
+
+        awaitAsyncWWWList.Clear();
 
         var operationerLinkNode = this.asyncOperationers.First;
         while (null != operationerLinkNode)
@@ -96,6 +115,29 @@ public class AsyncOptNotifier
 
             operationerLinkNode = nextOperationerLinkNode;
         }
+
+        var asyncWWWLinkNode = this.asyncWWWList.First;
+        while (asyncWWWLinkNode != null)
+        {
+            var nextAsyncWWWLinkNode = asyncWWWLinkNode.Next;
+            var asyncWWW = asyncWWWLinkNode.Value;
+
+            if (asyncWWW.www.isDone)
+            {
+                asyncWWWList.Remove(asyncWWWLinkNode);
+
+                try
+                {
+                    asyncWWW.CompleteDelegate(asyncWWW.www.error);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.ToString());
+                }                
+            }
+
+            asyncWWWLinkNode = nextAsyncWWWLinkNode;
+        }
     }
 
     private class AsyncOperationer
@@ -107,5 +149,20 @@ public class AsyncOptNotifier
         public Action CompleteDelegate { get; set; }
 
         public float LastProgress { get; set; }
+    }
+
+    private class AsyncWWW
+    {
+        public WWW www
+        {
+            get;
+            set;
+        }
+
+        public Action<string> CompleteDelegate
+        {
+            get;
+            set;
+        }
     }
 }

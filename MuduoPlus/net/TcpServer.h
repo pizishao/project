@@ -15,10 +15,10 @@ namespace MuduoPlus
     class EventLoop;
     class EventLoopThreadPool;
 
-    ///
-    /// TCP server, supports single-threaded and thread-pool models.
-    ///
-    /// This is an interface class, so don't expose too much details.
+///
+/// TCP server, supports single-threaded and thread-pool models.
+///
+/// This is an interface class, so don't expose too much details.
     class TcpServer : NonCopyable
     {
     public:
@@ -31,14 +31,23 @@ namespace MuduoPlus
 
         //TcpServer(EventLoop* loop, const InetAddress& listenAddr);
         TcpServer(EventLoop* loop,
-            const InetAddress& listenAddr,
-            const std::string& nameArg,
-            Option option = kNoReusePort);
+                  const InetAddress& listenAddr,
+                  const std::string& nameArg,
+                  Option option = kNoReusePort);
         ~TcpServer();  // force out-line dtor, for scoped_ptr members.
 
-        const std::string& ipPort() const { return ipPort_; }
-        const std::string& name() const { return name_; }
-        EventLoop* getLoop() const { return loop_; }
+        const std::string& ipPort() const
+        {
+            return ipPort_;
+        }
+        const std::string& name() const
+        {
+            return name_;
+        }
+        EventLoop* getLoop() const
+        {
+            return loop_;
+        }
 
         /// Set the number of threads for handling input.
         ///

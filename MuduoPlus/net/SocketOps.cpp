@@ -28,7 +28,7 @@ namespace SocketOps
 
     bool bindSocket(socket_t fd, const struct sockaddr *sa)
     {
-        if (bind(fd, sa, sizeof(*sa)) < 0)
+        if(bind(fd, sa, sizeof(*sa)) < 0)
         {
             return false;
         }
@@ -38,7 +38,7 @@ namespace SocketOps
 
     bool listen(socket_t fd)
     {
-        if (::listen(fd, SOMAXCONN) < 0)
+        if(::listen(fd, SOMAXCONN) < 0)
         {
             return false;
         }
@@ -67,22 +67,28 @@ namespace SocketOps
     bool setSocketNoneBlocking(socket_t fd)
     {
 #ifdef WIN32
-    {
-        u_long nonblocking = 1;
-        if (ioctlsocket(fd, FIONBIO, &nonblocking) == SOCKET_ERROR) {
-            return false;
+        {
+            u_long nonblocking = 1;
+
+            if(ioctlsocket(fd, FIONBIO, &nonblocking) == SOCKET_ERROR)
+            {
+                return false;
+            }
         }
-    }
 #else
-    {
-        int flags;
-        if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
-            return false;
+        {
+            int flags;
+
+            if((flags = fcntl(fd, F_GETFL, NULL)) < 0)
+            {
+                return false;
+            }
+
+            if(fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+            {
+                return false;
+            }
         }
-        if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-            return false;
-        }
-    }
 #endif
 
         return true;
@@ -92,7 +98,7 @@ namespace SocketOps
     {
         int val = on ? 1 : 0;
 
-        if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char *)&val, sizeof(val)) < 0)
+        if(setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char *)&val, sizeof(val)) < 0)
         {
             assert(false);
         }
@@ -100,7 +106,7 @@ namespace SocketOps
 
     void shutdownWrite(int fd)
     {
-        if (shutdown(fd, SHUT_WR) < 0)
+        if(shutdown(fd, SHUT_WR) < 0)
         {
             assert(false);
         }
@@ -109,8 +115,9 @@ namespace SocketOps
     void setTcpNoDelay(int fd, bool on)
     {
         int optval = on ? 1 : 0;
-        if (::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
-            (char *)&optval, sizeof(optval)) < 0)
+
+        if(::setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+                        (char *)&optval, sizeof(optval)) < 0)
         {
             assert(false);
         }
@@ -121,7 +128,7 @@ namespace SocketOps
 #ifndef WIN32
         int one = 1;
         return setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&one,
-            (socklen_t)sizeof(one));
+                          (socklen_t)sizeof(one));
 #else
         return 0;
 #endif
@@ -129,20 +136,21 @@ namespace SocketOps
 
     int createSocketPair(socket_t fdPair[2])
     {
-        if (!fdPair)
+        if(!fdPair)
         {
             return false;
         }
 
 #ifndef WIN32
-        if (socketpair(AF_UNIX, SOCK_STREAM, 0, fdPair) >= 0)
+
+        if(socketpair(AF_UNIX, SOCK_STREAM, 0, fdPair) >= 0)
         {
             setSocketNoneBlocking(fdPair[0]);
             setSocketNoneBlocking(fdPair[1]);
 
             return true;
         }
-        
+
         return false;
 #endif
         socket_t listener = -1;
@@ -153,7 +161,8 @@ namespace SocketOps
         socklen_t size = 0;
 
         listener = socket(AF_INET, SOCK_STREAM, 0);
-        if (listener < 0)
+
+        if(listener < 0)
         {
             return false;
         }
@@ -161,72 +170,76 @@ namespace SocketOps
         listenAddr.sin_family = AF_INET;
         listenAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
         listenAddr.sin_port = 0;	/* kernel chooses port.	 */
-        if (::bind(listener, (struct sockaddr *) &listenAddr,
-            sizeof(listenAddr)) < 0)
+
+        if(::bind(listener, (struct sockaddr *) &listenAddr,
+                  sizeof(listenAddr)) < 0)
         {
             goto err;
         }
 
-        if (::listen(listener, 1) < 0)
+        if(::listen(listener, 1) < 0)
         {
             goto err;
         }
 
         connector = socket(AF_INET, SOCK_STREAM, 0);
-        if (connector < 0)
+
+        if(connector < 0)
         {
             goto err;
         }
 
         /* We want to find out the port number to connect to.  */
         size = sizeof(connectAddr);
-        if (getsockname(listener, (struct sockaddr *) &connectAddr, &size) < 0)
+
+        if(getsockname(listener, (struct sockaddr *) &connectAddr, &size) < 0)
         {
             goto err;
         }
 
-        if (size != sizeof(connectAddr))
+        if(size != sizeof(connectAddr))
         {
             goto err;
         }
 
-        if (connect(connector, (struct sockaddr *) &connectAddr,
-            sizeof(connectAddr)) < 0)
+        if(connect(connector, (struct sockaddr *) &connectAddr,
+                   sizeof(connectAddr)) < 0)
         {
             goto err;
         }
 
         size = sizeof(listenAddr);
         acceptor = accept(listener, (struct sockaddr *) &listenAddr, &size);
-        if (acceptor < 0)
+
+        if(acceptor < 0)
         {
             goto err;
         }
 
-        if (size != sizeof(listenAddr))
+        if(size != sizeof(listenAddr))
         {
             goto err;
         }
 
-        if (getsockname(connector, (struct sockaddr *) &connectAddr, &size) < 0)
+        if(getsockname(connector, (struct sockaddr *) &connectAddr, &size) < 0)
         {
             goto err;
         }
 
-        if (size != sizeof(connectAddr)
-            || listenAddr.sin_family != connectAddr.sin_family
-            || listenAddr.sin_addr.s_addr != connectAddr.sin_addr.s_addr
-            || listenAddr.sin_port != connectAddr.sin_port)
+        if(size != sizeof(connectAddr)
+                || listenAddr.sin_family != connectAddr.sin_family
+                || listenAddr.sin_addr.s_addr != connectAddr.sin_addr.s_addr
+                || listenAddr.sin_port != connectAddr.sin_port)
         {
             goto err;
         }
 
-        if (!setSocketNoneBlocking(connector))
+        if(!setSocketNoneBlocking(connector))
         {
             goto err;
         }
 
-        if (!setSocketNoneBlocking(acceptor))
+        if(!setSocketNoneBlocking(acceptor))
         {
             goto err;
         }
@@ -238,17 +251,18 @@ namespace SocketOps
         return true;
 
 err:
-        if (listener > 0)
+
+        if(listener > 0)
         {
             closeSocket(listener);
         }
 
-        if (connector > 0)
+        if(connector > 0)
         {
             closeSocket(connector);
         }
 
-        if (acceptor > 0)
+        if(acceptor > 0)
         {
             closeSocket(acceptor);
         }
@@ -263,7 +277,7 @@ err:
 
         socklen_t addrlen = static_cast<socklen_t>(sizeof(peeraddr));
 
-        if (::getpeername(sockfd, (sockaddr*)(&peeraddr), &addrlen) < 0)
+        if(::getpeername(sockfd, (sockaddr*)(&peeraddr), &addrlen) < 0)
         {
             assert(false);
         }
@@ -276,7 +290,7 @@ err:
         struct sockaddr_in localaddr = { 0 };
         socklen_t addrlen = static_cast<socklen_t>(sizeof localaddr);
 
-        if (::getsockname(sockfd, (sockaddr *)(&localaddr), &addrlen) < 0)
+        if(::getsockname(sockfd, (sockaddr *)(&localaddr), &addrlen) < 0)
         {
             assert(false);
         }
@@ -289,10 +303,11 @@ err:
         int optval;
         socklen_t optlen = static_cast<socklen_t>(sizeof optval);
 #ifdef WIN32
-        if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&optval, &optlen) < 0)
+
+        if(::getsockopt(fd, SOL_SOCKET, SO_ERROR, (char *)&optval, &optlen) < 0)
 #else
-        if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
-#endif        
+        if(::getsockopt(fd, SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0)
+#endif
         {
             return GetLastErrorCode();
         }

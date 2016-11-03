@@ -1,21 +1,21 @@
 #include <algorithm>
 
-#include "LinuxWin.h"
-#include "ThreadPool.h"
-#include "define.h"
+#include "base/LinuxWin.h"
+#include "base/ThreadPool.h"
+#include "base/define.h"
 
 namespace MuduoPlus
 {
     ThreadPool::ThreadPool(const std::string& nameArg)
-        :name_(nameArg),
-        maxQueueSize_(0),
-        running_(false)
+        : name_(nameArg),
+          maxQueueSize_(0),
+          running_(false)
     {
     }
 
     ThreadPool::~ThreadPool()
     {
-        if (running_)
+        if(running_)
         {
             stop();
         }
@@ -27,15 +27,16 @@ namespace MuduoPlus
         running_ = true;
 
         threads_.reserve(numThreads);
-        for (int i = 0; i < numThreads; ++i)
+
+        for(int i = 0; i < numThreads; ++i)
         {
-            char id[32];
+            char id[32] = {0};
             snprintf(id, sizeof id, "%d", i + 1);
 
             threads_.push_back(std::make_shared<std::thread>(std::bind(&ThreadPool::runInThread, this)));
         }
 
-        if (numThreads == 0 && threadInitCallback_)
+        if(numThreads == 0 && threadInitCallback_)
         {
             threadInitCallback_();
         }
@@ -49,7 +50,7 @@ namespace MuduoPlus
             notEmpty_.notify_all();
         }
 
-        for (auto &pos : threads_)
+        for(auto &pos : threads_)
         {
             pos->join();
         }
@@ -63,18 +64,20 @@ namespace MuduoPlus
 
     void ThreadPool::run(const Task& task)
     {
-        if (threads_.empty())
+        if(threads_.empty())
         {
             task();
         }
         else
         {
             LockGuarder(mutex_);
-            while (isFull())
+
+            while(isFull())
             {
                 std::unique_lock<std::mutex> uniLock(mutex_);
                 notFull_.wait(uniLock);
             }
+
             assert(!isFull());
 
             queue_.push_back(task);
@@ -85,23 +88,27 @@ namespace MuduoPlus
     ThreadPool::Task ThreadPool::take()
     {
         LockGuarder(mutex_);
+
         // always use a while-loop, due to spurious wakeup
-        while (queue_.empty() && running_)
+        while(queue_.empty() && running_)
         {
             std::unique_lock<std::mutex> uniLock(mutex_);
             notEmpty_.wait(uniLock);
         }
 
         Task task;
-        if (!queue_.empty())
+
+        if(!queue_.empty())
         {
             task = queue_.front();
             queue_.pop_front();
-            if (maxQueueSize_ > 0)
+
+            if(maxQueueSize_ > 0)
             {
                 notFull_.notify_one();
             }
         }
+
         return task;
     }
 
@@ -115,26 +122,28 @@ namespace MuduoPlus
     {
         try
         {
-            if (threadInitCallback_)
+            if(threadInitCallback_)
             {
                 threadInitCallback_();
             }
-            while (running_)
+
+            while(running_)
             {
                 Task task(take());
-                if (task)
+
+                if(task)
                 {
                     task();
                 }
             }
         }
-        catch (const std::exception& ex)
+        catch(const std::exception& ex)
         {
             fprintf(stderr, "exception caught in ThreadPool %s\n", name_.c_str());
             fprintf(stderr, "reason: %s\n", ex.what());
             abort();
         }
-        catch (...)
+        catch(...)
         {
             fprintf(stderr, "unknown exception caught in ThreadPool %s\n", name_.c_str());
             throw; // rethrow

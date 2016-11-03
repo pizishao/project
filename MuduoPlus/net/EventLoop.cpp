@@ -20,12 +20,12 @@ namespace MuduoPlus
 
     EventLoop::EventLoop()
         : looping_(false),
-        isPollReturn_(false),
-        quit_(false),
-        eventHandling_(false),
-        callingPendingFunctors_(false),
-        threadId_(GetCurThreadID()),        
-        timerQueue_(new TimerQueue(this))     
+          pollReturned(false),
+          quit_(false),
+          eventHandling_(false),
+          callingPendingFunctors_(false),
+          threadId_(GetCurrThreadID()),
+          timerQueue_(new TimerQueue(this))
     {
         /*LOG_DEBUG << "EventLoop created " << this << " in thread " << threadId_;
         if (t_loopInThisThread)
@@ -75,23 +75,24 @@ namespace MuduoPlus
         quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
         //LOG_TRACE << "EventLoop " << this << " start looping";
 
-        while (!quit_)
+        while(!quit_)
         {
             activeChannelHolders_.clear();
-            isPollReturn_ = false;
+            pollReturned = false;
             poller_->poll(pollTimeoutMsec_, activeChannelHolders_);
-            isPollReturn_ = true;
+            pollReturned = true;
             /*if (Logger::logLevel() <= Logger::TRACE)
             {
                 printActiveChannels();
             }*/
-            // TODO sort channel by priority          
+            // TODO sort channel by priority
 
             eventHandling_ = true;
             /*for (ChannelHolderList::iterator it = activeChannelHolders_.begin();
                 it != activeChannelHolders_.end(); ++it)*/
             pollReturnTime_ = Timestamp::now();
-            for (auto &pos : activeChannelHolders_)
+
+            for(auto &pos : activeChannelHolders_)
             {
                 Channel *pChannel = pos.channel_;
                 pChannel->handleEvent(pollReturnTime_);
@@ -110,10 +111,11 @@ namespace MuduoPlus
     void EventLoop::quit()
     {
         quit_ = true;
+
         // There is a chance that loop() just executes while(!quit_) and exits,
         // then EventLoop destructs, then we are accessing an invalid object.
         // Can be fixed using mutex_ in both places.
-        if (!isInLoopThread())
+        if(!isInLoopThread())
         {
             wakeup();
         }
@@ -121,7 +123,7 @@ namespace MuduoPlus
 
     void EventLoop::runInLoop(const Functor& cb)
     {
-        if (isInLoopThread())
+        if(isInLoopThread())
         {
             cb();
         }
@@ -138,7 +140,7 @@ namespace MuduoPlus
             pendingFunctors_.push_back(cb);
         }
 
-        if (!isInLoopThread() || callingPendingFunctors_)
+        if(!isInLoopThread() || callingPendingFunctors_)
         {
             wakeup();
         }
@@ -171,7 +173,7 @@ namespace MuduoPlus
         pollTimeoutMsec_ = msec;
         timeOutCheckStamp_ = Timestamp::now();
 
-        if (!isPollReturn_)
+        if(!pollReturned)
         {
             wakeup();
         }
@@ -190,13 +192,14 @@ namespace MuduoPlus
         assert(channel->ownerLoop() == this);
         assertInLoopThread();
 
-        if (eventHandling_)
+        if(eventHandling_)
         {
 #if DEBUG
             bool bFind = false;
-            for (auto &pos : activeChannelHolders_)
+
+            for(auto &pos : activeChannelHolders_)
             {
-                if (pos.channel_ == channel)
+                if(pos.channel_ == channel)
                 {
                     bFind = true;
                 }
@@ -223,7 +226,7 @@ namespace MuduoPlus
             << " was created in threadId_ = " << threadId_
             << ", current thread id = " << CurrentThread::tid();*/
         LOG_PRINT(LogType_Fatal, "EventLoop::abortNotInLoopThread - EventLoop %p was created in "
-            "threadId_ = %u, current thread id = %u", threadId_, GetCurThreadID());
+            "threadId_ = %u, current thread id = %u", threadId_, GetCurrThreadID());
     }
 
     void EventLoop::wakeup()
@@ -237,7 +240,7 @@ namespace MuduoPlus
         r = write(wakeupFdPair_[0], buf, 1);
 #endif
 
-        if (r < 0 && GetLastErrorCode() != EAGAIN)
+        if(r < 0 && GetLastErrorCode() != EAGAIN)
         {
             assert(false);
         }
@@ -248,7 +251,7 @@ namespace MuduoPlus
         Timestamp nowStamp = Timestamp::now();
         long durationMsec = (long)millisecondDifference(nowStamp, timeOutCheckStamp_);
 
-        if ((long)durationMsec >= pollTimeoutMsec_)
+        if((long)durationMsec >= pollTimeoutMsec_)
         {
             timerQueue_->timeOut();
         }
@@ -261,11 +264,15 @@ namespace MuduoPlus
     {
         unsigned char buf[1024] = { 0 };
 #ifdef WIN32
-        while (recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
+
+        while(recv(wakeupFdPair_[1], (char*)buf, sizeof(buf), 0) > 0)
             ;
+
 #else
-        while (read(wakeupFdPair_[1], (char*)buf, sizeof(buf)) > 0)
+
+        while(read(wakeupFdPair_[1], (char*)buf, sizeof(buf)) > 0)
             ;
+
 #endif
     }
 
@@ -279,7 +286,7 @@ namespace MuduoPlus
             functors.swap(pendingFunctors_);
         }
 
-        for (size_t i = 0; i < functors.size(); i++)
+        for(size_t i = 0; i < functors.size(); i++)
         {
             functors[i]();
         }
@@ -289,8 +296,8 @@ namespace MuduoPlus
 
     void EventLoop::printActiveChannels() const
     {
-        for (ChannelHolderList::const_iterator it = activeChannelHolders_.begin();
-            it != activeChannelHolders_.end(); ++it)
+        for(ChannelHolderList::const_iterator it = activeChannelHolders_.begin();
+                it != activeChannelHolders_.end(); ++it)
         {
             const Channel* ch = it->channel_;
             //LOG_TRACE << "{" << ch->reventsToString() << "} ";

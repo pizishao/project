@@ -8,10 +8,10 @@ namespace MuduoPlus
 {
     EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseLoop, const std::string& nameArg)
         : baseLoop_(baseLoop),
-        name_(nameArg),
-        started_(false),
-        numThreads_(0),
-        next_(0)
+          name_(nameArg),
+          started_(false),
+          numThreads_(0),
+          next_(0)
     {
     }
 
@@ -27,13 +27,14 @@ namespace MuduoPlus
 
         started_ = true;
 
-        for (int i = 0; i < numThreads_; ++i)
+        for(int i = 0; i < numThreads_; ++i)
         {
             auto loopThreadPtr = std::make_shared<EventLoopThread>(cb);
             threads_.push_back(loopThreadPtr);
             loops_.push_back(loopThreadPtr->startLoop());
         }
-        if (numThreads_ == 0 && cb)
+
+        if(numThreads_ == 0 && cb)
         {
             cb(baseLoop_);
         }
@@ -45,16 +46,18 @@ namespace MuduoPlus
         assert(started_);
         EventLoop* loop = baseLoop_;
 
-        if (!loops_.empty())
+        if(!loops_.empty())
         {
             // round-robin
             loop = loops_[next_];
             ++next_;
-            if (static_cast<size_t>(next_) >= loops_.size())
+
+            if(static_cast<size_t>(next_) >= loops_.size())
             {
                 next_ = 0;
             }
         }
+
         return loop;
     }
 
@@ -63,10 +66,11 @@ namespace MuduoPlus
         baseLoop_->assertInLoopThread();
         EventLoop* loop = baseLoop_;
 
-        if (!loops_.empty())
+        if(!loops_.empty())
         {
             loop = loops_[hashCode % loops_.size()];
         }
+
         return loop;
     }
 
@@ -74,7 +78,8 @@ namespace MuduoPlus
     {
         baseLoop_->assertInLoopThread();
         assert(started_);
-        if (loops_.empty())
+
+        if(loops_.empty())
         {
             return std::vector<EventLoop*>(1, baseLoop_);
         }

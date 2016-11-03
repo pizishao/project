@@ -5,7 +5,7 @@
 #include <string>
 #include <assert.h>
 
-#include "define.h"
+#include "base/define.h"
 
 #ifdef WIN32
 
@@ -14,7 +14,7 @@ int     gettimeofday(struct timeval *tp, void *tzp);
 
 #endif
 
-int         GetCurThreadID();
+int         GetCurrThreadID();
 
 int         GetLastErrorCode();
 std::string GetErrorText(int errcode);

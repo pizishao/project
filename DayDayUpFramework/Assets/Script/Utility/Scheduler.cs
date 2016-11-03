@@ -72,6 +72,11 @@ public class Scheduler : UnitySingleton<Scheduler>
             operation, completeDelegate);
     }
 
+    public void WaitWWW(WWW www, Action<string> onComplete)
+    {
+        this.asyncOptNotifier.WaitWWW(www, onComplete);
+    }
+
     /// <summary>
     /// Wait time and execute a task.
     /// </summary>

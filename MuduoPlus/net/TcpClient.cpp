@@ -20,29 +20,29 @@ namespace MuduoPlus
     }
 
     TcpClient::TcpClient(EventLoop* loop,
-        const InetAddress& serverAddr,
-        const std::string& nameArg)
+                         const InetAddress& serverAddr,
+                         const std::string& nameArg)
         : loop_(loop),
-        connector_(new Connector(loop, serverAddr)),
-        name_(nameArg),
-        connectionCallback_(defaultConnectionCallback),
-        messageCallback_(defaultMessageCallback),
-        retry_(false),
-        connect_(true),
-        nextConnId_(1)
+          connector_(new Connector(loop, serverAddr)),
+          name_(nameArg),
+          connectionCallback_(defaultConnectionCallback),
+          messageCallback_(defaultMessageCallback),
+          retry_(false),
+          connect_(true),
+          nextConnId_(1)
     {
         connector_->setNewConnectionCallback(
             std::bind(&TcpClient::newConnection, this, std::placeholders::_1));
 
         // FIXME setConnectFailedCallback
         LOG_PRINT(LogType_Info, "TcpClient::TcpClient[%s] - connector %p",
-            name_.c_str(), connector_.get());
+                  name_.c_str(), connector_.get());
     }
 
     TcpClient::~TcpClient()
     {
         LOG_PRINT(LogType_Info, "TcpClient::~TcpClient[%s] - connector %p",
-            name_.c_str(), connector_.get());
+                  name_.c_str(), connector_.get());
 
         TcpConnectionPtr conn;
         bool unique = false;
@@ -52,14 +52,15 @@ namespace MuduoPlus
             conn = connection_;
         }
 
-        if (conn)
+        if(conn)
         {
             assert(loop_ == conn->getLoop());
             // FIXME: not 100% safe, if we are in different thread
             CloseCallback cb = std::bind(&detail::removeConnection, loop_, std::placeholders::_1);
             loop_->runInLoop(
                 std::bind(&TcpConnection::setCloseCallback, conn, cb));
-            if (unique)
+
+            if(unique)
             {
                 conn->forceClose();
             }
@@ -75,8 +76,8 @@ namespace MuduoPlus
     void TcpClient::connect()
     {
         // FIXME: check state
-        LOG_PRINT(LogType_Info, "TcpClient::connect[%s] - connecting to %s", 
-            name_.c_str(), connector_->serverAddress().toIpPort().c_str());
+        LOG_PRINT(LogType_Info, "TcpClient::connect[%s] - connecting to %s",
+                  name_.c_str(), connector_->serverAddress().toIpPort().c_str());
 
         connect_ = true;
         connector_->start();
@@ -89,7 +90,7 @@ namespace MuduoPlus
         {
             LockGuarder(mutex_);
 
-            if (connection_)
+            if(connection_)
             {
                 connection_->gracefulClose();
             }
@@ -115,10 +116,10 @@ namespace MuduoPlus
         // FIXME poll with zero timeout to double confirm the new connection
         // FIXME use make_shared if necessary
         TcpConnectionPtr conn(new TcpConnection(loop_,
-            connName,
-            sockfd,
-            localAddr,
-            peerAddr));
+                                                connName,
+                                                sockfd,
+                                                localAddr,
+                                                peerAddr));
 
         conn->setConnectionCallback(connectionCallback_);
         conn->setMessageCallback(messageCallback_);
@@ -144,10 +145,11 @@ namespace MuduoPlus
         }
 
         loop_->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
-        if (retry_ && connect_)
+
+        if(retry_ && connect_)
         {
             LOG_PRINT(LogType_Info, "TcpClient::connect[%s] - Reconnecting to %s",
-                name_.c_str(), connector_->serverAddress().toIpPort().c_str());
+                      name_.c_str(), connector_->serverAddress().toIpPort().c_str());
 
             connector_->restart();
         }

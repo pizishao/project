@@ -17,7 +17,7 @@ namespace MuduoPlus
     class Poller;
     class TimerQueue;
 
-    class EventLoop : NonCopyable 
+    class EventLoop : NonCopyable
     {
     public:
         typedef std::function<void()> Functor;
@@ -28,7 +28,10 @@ namespace MuduoPlus
         void loop();
         void quit();
 
-        Timestamp   pollReturnTime() const { return pollReturnTime_; }
+        Timestamp   pollReturnTime() const
+        {
+            return pollReturnTime_;
+        }
 
         void runInLoop(const Functor& cb);
         void queueInLoop(const Functor& cb);
@@ -39,7 +42,10 @@ namespace MuduoPlus
         void    cancel(TimerId timerId);
         void    resetPollTimeOut(int msec);
 
-        bool IsPollReturn() const { return isPollReturn_; }
+        bool IsPollReturn() const
+        {
+            return pollReturned;
+        }
         void wakeup();
         void updateChannel(Channel* channel);
         void removeChannel(Channel* channel);
@@ -47,15 +53,21 @@ namespace MuduoPlus
 
         void assertInLoopThread()
         {
-            if (!isInLoopThread())
+            if(!isInLoopThread())
             {
                 abortNotInLoopThread();
             }
         }
 
-        bool isInLoopThread() const { return threadId_ == GetCurThreadID(); }
+        bool isInLoopThread() const
+        {
+            return threadId_ == GetCurrentThreadId();
+        }
 
-        bool eventHandling() const { return eventHandling_; }
+        bool eventHandling() const
+        {
+            return eventHandling_;
+        }
 
         /*void setContext(const boost::any& context)
         {
@@ -82,11 +94,11 @@ namespace MuduoPlus
 
         typedef std::vector<ChannelHolder>   ChannelHolderList;
 
-        bool                        looping_; 
-        bool                        isPollReturn_;
+        bool                        looping_;
+        bool                        pollReturned;
         bool                        quit_;
-        bool                        eventHandling_; 
-        bool                        callingPendingFunctors_; 
+        bool                        eventHandling_;
+        bool                        callingPendingFunctors_;
         const int                   threadId_;
         int                         pollTimeoutMsec_;
         Timestamp                   timeOutCheckStamp_;

@@ -29,14 +29,20 @@ namespace MuduoPlus
         void restart();  // must be called in loop thread
         void stop();  // can be called in any thread
 
-        const InetAddress& serverAddress() const { return serverAddr_; }
+        const InetAddress& serverAddress() const
+        {
+            return serverAddr_;
+        }
 
     private:
         enum States { kDisconnected, kConnecting, kConnected };
         static const int kMaxRetryDelayMs = 30 * 1000;
         static const int kInitRetryDelayMs = 500;
 
-        void setState(States s) { state_ = s; }
+        void setState(States s)
+        {
+            state_ = s;
+        }
         void startInLoop();
         void stopInLoop();
         void connect();

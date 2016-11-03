@@ -22,22 +22,24 @@ namespace MuduoPlus
     bool Buffer::readFd(int fd)
     {
 #ifdef WIN32
-        while (true)
+
+        while(true)
         {
             char buf[MAX_TO_READ_ONCE] = { 0 };
             int n = SocketOps::secv(fd, buf, MAX_TO_READ_ONCE);
-            if (n > 0)
+
+            if(n > 0)
             {
                 append(buf, n);
 
-                if (n < MAX_TO_READ_ONCE) // no more data
+                if(n < MAX_TO_READ_ONCE)  // no more data
                 {
                     return true;
                 }
 
                 // go on read
             }
-            else if (n == 0) // connection lost
+            else if(n == 0)  // connection lost
             {
                 return false;
             }
@@ -47,8 +49,10 @@ namespace MuduoPlus
                 return ERR_RW_RETRIABLE(errorCode);
             }
         }
+
 #else
-        while (true)
+
+        while(true)
         {
             char extrabuf[MAX_TO_READ_ONCE] = {0};
             struct iovec vec[2];
@@ -61,16 +65,16 @@ namespace MuduoPlus
             const int iovcnt = (writable < sizeof(extrabuf)) ? 2 : 1;
             const ssize_t n = readv(fd, vec, iovcnt);
 
-            if (n < 0)
+            if(n < 0)
             {
                 int errorCode = GetLastErrorCode();
                 return ERR_RW_RETRIABLE(errorCode);
             }
-            else if (n == 0) // connection lost
+            else if(n == 0)  // connection lost
             {
                 return false;
             }
-            else if (static_cast<size_t>(n) <= writable)
+            else if(static_cast<size_t>(n) <= writable)
             {
                 // no more data
                 writerIndex_ += n;
@@ -84,7 +88,8 @@ namespace MuduoPlus
                 // go on read
             }
         }
-#endif                
+
+#endif
     }
 
     /*bool Buffer::sendFd(int fd, int len)

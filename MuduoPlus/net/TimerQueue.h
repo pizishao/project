@@ -34,7 +34,7 @@ namespace MuduoPlus
         typedef std::set<ActiveTimer> ActiveTimerSet;
 
         void                addTimerInLoop(Timer* timer);
-        void                cancelInLoop(TimerId timerId);        
+        void                cancelInLoop(TimerId timerId);
         std::vector<Entry>  getExpired(Timestamp now);
         void                reset(const std::vector<Entry>& expired, Timestamp now);
         bool                insert(Timer* timer);

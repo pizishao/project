@@ -71,7 +71,7 @@ void onConnection(const MuduoPlus::TcpConnectionPtr& conn)
     printf("connection arrived!\n");
     / *LOG_INFO << "EchoServer - " << conn->peerAddress().toIpPort() << " -> "
     << conn->localAddress().toIpPort() << " is "
-    << (conn->connected() ? "UP" : "DOWN");* /    
+    << (conn->connected() ? "UP" : "DOWN");* /
     conn->send("hellowrold", strlen("hellowrold"));
     conn->gracefulClose();
 }
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     int err;
     wVersionRequested = MAKEWORD(2, 2);
     err = WSAStartup(wVersionRequested, &wsaData);
-#endif    
+#endif
 
     MuduoPlus::LogPrinter = LogPrintFunc;
     MuduoPlus::EventLoop loop;
@@ -149,18 +149,20 @@ void LogPrint(MuduoPlus::LogType type, const char *format, ...)
 void onRequest(const HttpRequest& req, HttpResponse* resp)
 {
     std::cout << "Headers " << req.methodString() << " " << req.path() << std::endl;
-    if (!benchmark)
+
+    if(!benchmark)
     {
         const std::map<string, string>& headers = req.headers();
-        for (std::map<string, string>::const_iterator it = headers.begin();
-            it != headers.end();
-            ++it)
+
+        for(std::map<string, string>::const_iterator it = headers.begin();
+                it != headers.end();
+                ++it)
         {
             std::cout << it->first << ": " << it->second << std::endl;
         }
     }
 
-    if (req.path() == "/")
+    if(req.path() == "/")
     {
         resp->setStatusCode(HttpResponse::k200Ok);
         resp->setStatusMessage("OK");
@@ -168,17 +170,17 @@ void onRequest(const HttpRequest& req, HttpResponse* resp)
         resp->addHeader("Server", "Muduo");
         string now = Timestamp::now().toFormattedString();
         resp->setBody("<html><head><title>This is title</title></head>"
-            "<body><h1>Hello</h1>Now is " + now +
-            "</body></html>");
+                      "<body><h1>Hello</h1>Now is " + now +
+                      "</body></html>");
     }
-    else if (req.path() == "/favicon.ico")
+    else if(req.path() == "/favicon.ico")
     {
         resp->setStatusCode(HttpResponse::k200Ok);
         resp->setStatusMessage("OK");
         resp->setContentType("image/png");
         resp->setBody(string(favicon, sizeof favicon));
     }
-    else if (req.path() == "/hello")
+    else if(req.path() == "/hello")
     {
         resp->setStatusCode(HttpResponse::k200Ok);
         resp->setStatusMessage("OK");
@@ -202,16 +204,17 @@ int main(int argc, char* argv[])
     int err;
     wVersionRequested = MAKEWORD(2, 2);
     err = WSAStartup(wVersionRequested, &wsaData);
-#endif 
+#endif
 
     int numThreads = 0;
-    if (argc > 1)
+
+    if(argc > 1)
     {
         benchmark = true;
         //Logger::setLogLevel(Logger::WARN);
         numThreads = atoi(argv[1]);
     }
-    
+
     MuduoPlus::LogPrinter = LogPrint;
 
     EventLoop loop;
@@ -222,7 +225,8 @@ int main(int argc, char* argv[])
     loop.loop();
 }
 
-char favicon[555] = {
+char favicon[555] =
+{
     '\x89', 'P', 'N', 'G', '\xD', '\xA', '\x1A', '\xA',
     '\x0', '\x0', '\x0', '\xD', 'I', 'H', 'D', 'R',
     '\x0', '\x0', '\x0', '\x10', '\x0', '\x0', '\x0', '\x10',

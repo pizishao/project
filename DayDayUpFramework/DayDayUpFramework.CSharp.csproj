@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.3.3f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,12 +57,6 @@
     <Reference Include="UnityEngine.Networking">
       <HintPath>Library\UnityAssemblies\UnityEngine.Networking.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.Networking">
-      <HintPath>Library\UnityAssemblies\UnityEngine.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Library\UnityAssemblies\UnityEngine.UI.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor">
       <HintPath>Library\UnityAssemblies\UnityEditor.dll</HintPath>
     </Reference>
@@ -76,12 +68,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Script\AssetManager\AssetManager.cs" />
+    <Compile Include="Assets\Script\AssetManager\BundleManager.cs" />
+    <Compile Include="Assets\Script\UIWindowManager\UIBase.cs" />
+    <Compile Include="Assets\Script\UIWindowManager\UIWindow.cs" />
+    <Compile Include="Assets\Script\UIWindowManager\UIWindowManager.cs" />
+    <Compile Include="Assets\Script\UIWindowManager\UIWindowStack.cs" />
     <Compile Include="Assets\Script\Utility\AsyncOptNotifier.cs" />
     <Compile Include="Assets\Script\Utility\NextFrameNotifier.cs" />
     <Compile Include="Assets\Script\Utility\Scheduler.cs" />
+    <Compile Include="Assets\Script\Utility\Singleton.cs" />
     <Compile Include="Assets\Script\Utility\ThreadNotifier.cs" />
     <Compile Include="Assets\Script\Utility\TimeNotifier.cs" />
     <Compile Include="Assets\Script\Utility\UnitySingleton.cs" />
+    <Compile Include="Assets\Script\test.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2013\UnityVS.CSharp.targets" />
 </Project>

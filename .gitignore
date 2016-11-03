@@ -17,3 +17,4 @@ Serialize/build/
 Muduo++/build/
 MuduoPlus/build/
 DayDayUpFramework/Temp/UnityVS_obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+*.orig

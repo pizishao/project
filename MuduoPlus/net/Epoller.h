@@ -18,8 +18,8 @@ namespace MuduoPlus
     private:
         static const int kInitEventListSize = 16;
 
-        void fillActiveChannelHolders(int numEvents, ChannelHolderList 
-            &activeChannelHolders) const;
+        void fillActiveChannelHolders(int numEvents, ChannelHolderList
+                                      &activeChannelHolders) const;
 
         typedef std::vector<struct epoll_event> EventList;
 

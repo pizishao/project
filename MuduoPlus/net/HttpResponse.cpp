@@ -14,7 +14,7 @@ namespace MuduoPlus
         output->append(statusMessage_);
         output->append("\r\n");
 
-        if (closeConnection_)
+        if(closeConnection_)
         {
             output->append("Connection: close\r\n");
         }
@@ -25,9 +25,9 @@ namespace MuduoPlus
             output->append("Connection: Keep-Alive\r\n");
         }
 
-        for (std::map<std::string, std::string>::const_iterator it = headers_.begin();
-            it != headers_.end();
-            ++it)
+        for(std::map<std::string, std::string>::const_iterator it = headers_.begin();
+                it != headers_.end();
+                ++it)
         {
             output->append(it->first);
             output->append(": ");

@@ -19,8 +19,8 @@ namespace MuduoPlus
         // TcpClient(EventLoop* loop);
         // TcpClient(EventLoop* loop, const string& host, uint16_t port);
         TcpClient(EventLoop* loop,
-            const InetAddress& serverAddr,
-            const std::string& nameArg);
+                  const InetAddress& serverAddr,
+                  const std::string& nameArg);
         ~TcpClient();  // force out-line dtor, for scoped_ptr members.
 
         void connect();
@@ -33,9 +33,18 @@ namespace MuduoPlus
             return connection_;
         }
 
-        EventLoop* getLoop() const { return loop_; }
-        bool retry() const { return retry_; }
-        void enableRetry() { retry_ = true; }
+        EventLoop* getLoop() const
+        {
+            return loop_;
+        }
+        bool retry() const
+        {
+            return retry_;
+        }
+        void enableRetry()
+        {
+            retry_ = true;
+        }
 
         const std::string& name() const
         {

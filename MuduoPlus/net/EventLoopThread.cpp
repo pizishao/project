@@ -6,17 +6,18 @@ namespace MuduoPlus
 {
     EventLoopThread::EventLoopThread(const ThreadInitCallback& cb)
         : loop_(NULL),
-        exiting_(false),
-        /*threadPtr(std::bind(&EventLoopThread::threadFunc, this), name),*/
-        mutex_(),
-        callback_(cb)
+          exiting_(false),
+          /*threadPtr(std::bind(&EventLoopThread::threadFunc, this), name),*/
+          mutex_(),
+          callback_(cb)
     {
     }
 
     EventLoopThread::~EventLoopThread()
     {
         exiting_ = true;
-        if (loop_ != NULL) // not 100% race-free, eg. threadFunc could be running callback_.
+
+        if(loop_ != NULL)  // not 100% race-free, eg. threadFunc could be running callback_.
         {
             // still a tiny chance to call destructed object, if threadFunc exits just now.
             // but when EventLoopThread destructs, usually programming is exiting anyway.
@@ -33,7 +34,8 @@ namespace MuduoPlus
 
         {
             LockGuarder(mutex_);
-            while (loop_ == NULL)
+
+            while(loop_ == NULL)
             {
                 std::unique_lock<std::mutex> uniLock(mutex_);
                 cond_.wait(uniLock);
@@ -47,7 +49,7 @@ namespace MuduoPlus
     {
         EventLoop loop;
 
-        if (callback_)
+        if(callback_)
         {
             callback_(&loop);
         }

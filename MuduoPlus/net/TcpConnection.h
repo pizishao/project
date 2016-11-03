@@ -17,7 +17,7 @@
 namespace MuduoPlus
 {
     class Channel;
-    class EventLoop; 
+    class EventLoop;
 
     class TcpConnection : NonCopyable,
         public std::enable_shared_from_this<TcpConnection>
@@ -27,18 +27,36 @@ namespace MuduoPlus
         ///
         /// User should not create this object.
         TcpConnection(EventLoop* loop,
-            const std::string& name,
-            int sockfd,
-            const InetAddress& localAddr,
-            const InetAddress& peerAddr);
+                      const std::string& name,
+                      int sockfd,
+                      const InetAddress& localAddr,
+                      const InetAddress& peerAddr);
         ~TcpConnection();
 
-        EventLoop* getLoop() const { return loop_; }
-        const std::string& name() const { return name_; }
-        const InetAddress& localAddress() const { return localAddr_; }
-        const InetAddress& peerAddress() const { return peerAddr_; }
-        bool connected() const { return state_ == kConnected; }
-        bool disconnected() const { return state_ == kDisconnected; }
+        EventLoop* getLoop() const
+        {
+            return loop_;
+        }
+        const std::string& name() const
+        {
+            return name_;
+        }
+        const InetAddress& localAddress() const
+        {
+            return localAddr_;
+        }
+        const InetAddress& peerAddress() const
+        {
+            return peerAddr_;
+        }
+        bool connected() const
+        {
+            return state_ == kConnected;
+        }
+        bool disconnected() const
+        {
+            return state_ == kDisconnected;
+        }
         // return true if success.
         /*bool getTcpInfo(struct tcp_info*) const;
         std::string getTcpInfoString() const;*/
@@ -54,10 +72,19 @@ namespace MuduoPlus
         void setTcpNoDelay(bool on);
         void startRead();
         void stopRead();
-        bool isReading() const { return reading_; }; // NOT thread safe, may race with start/stopReadInLoop 
+        bool isReading() const
+        {
+            return reading_;
+        }; // NOT thread safe, may race with start/stopReadInLoop
 
-        Any&    getContext()        { return context_; }
-        void    setContext(Any val) { context_ = val; }
+        Any&    getContext()
+        {
+            return context_;
+        }
+        void    setContext(Any val)
+        {
+            context_ = val;
+        }
 
         void setConnectionCallback(const ConnectionCallback& cb)
         {
@@ -76,7 +103,8 @@ namespace MuduoPlus
 
         void setHighWaterMarkCallback(const HighWaterMarkCallback& cb, size_t highWaterMark)
         {
-            highWaterMarkCallback_ = cb; highWaterMark_ = highWaterMark;
+            highWaterMarkCallback_ = cb;
+            highWaterMark_ = highWaterMark;
         }
 
         /// Advanced interface
@@ -99,21 +127,24 @@ namespace MuduoPlus
         // called when TcpServer accepts a new connection
         void connectEstablished();   // should be called only once
         // called when TcpServer has removed me from its map
-        void connectDestroyed();  // should be called only once        
+        void connectDestroyed();  // should be called only once
 
     private:
         enum StateE { kDisconnected, kConnecting, kConnected, kDisconnecting };
         void handleRead(Timestamp receiveTime);
         void handleWrite();
         void handleError();
-        void handleFinish();
+        void handleEnd();
         void sendInLoop(const StringPiece& message);
         void sendInLoop(const void* data, int len);
         void shutdownInLoop();
         // void shutdownAndForceCloseInLoop(double seconds);
         void forceCloseInLoop();
         void releaseConnection();
-        void setState(StateE s) { state_ = s; }
+        void setState(StateE s)
+        {
+            state_ = s;
+        }
         const char* stateToString() const;
         void startReadInLoop();
         void stopReadInLoop();
@@ -137,7 +168,7 @@ namespace MuduoPlus
         Buffer inputBuffer_;
         Buffer outputBuffer_; // FIXME: use list<Buffer> as output buffer.
         bool    reading_;
-        Any     context_;        
+        Any     context_;
     };
 
     typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;

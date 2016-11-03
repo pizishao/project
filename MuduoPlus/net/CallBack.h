@@ -16,15 +16,15 @@ namespace MuduoPlus
     typedef std::function<void(const TcpConnectionPtr&)> WriteCompleteCallback;
     typedef std::function<void(const TcpConnectionPtr&, size_t)> HighWaterMarkCallback;
 
-    // the data has been read to (buf, len)
+// the data has been read to (buf, len)
     typedef std::function < void(const TcpConnectionPtr&,
-        Buffer*, Timestamp) > MessageCallback;
+                                 Buffer*, Timestamp) > MessageCallback;
 
     /*typedef std::function < void(int64_t clientHandle,
         Buffer*, Timestamp) > MessageCallback;*/
 
     void defaultConnectionCallback(const TcpConnectionPtr& conn);
     void defaultMessageCallback(const TcpConnectionPtr& conn,
-        Buffer* buffer,
-        Timestamp receiveTime);
+                                Buffer* buffer,
+                                Timestamp receiveTime);
 }

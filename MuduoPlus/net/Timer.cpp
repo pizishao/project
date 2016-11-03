@@ -6,7 +6,7 @@ namespace MuduoPlus
 
     void Timer::restart(Timestamp now)
     {
-        if (repeat_)
+        if(repeat_)
         {
             expiration_ = now.addSeconds(interval_);
         }

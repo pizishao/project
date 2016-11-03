@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "base/define.h"
-#include "Channel.h"
-#include "InetAddress.h"
+#include "net/Channel.h"
+#include "net/InetAddress.h"
 
 namespace MuduoPlus
 {
@@ -16,7 +16,7 @@ namespace MuduoPlus
     {
     public:
         typedef std::function < void(int sockfd,
-            const InetAddress&) > NewConnCallback;
+                                     const InetAddress&) > NewConnCallback;
 
         Acceptor(EventLoop* loop, const InetAddress& listenAddr, bool reuseport);
         ~Acceptor();
@@ -27,7 +27,10 @@ namespace MuduoPlus
         }
 
         void listen();
-        bool listenning() const { return listenning_; }
+        bool listenning() const
+        {
+            return listenning_;
+        }
 
     private:
         void handleRead();

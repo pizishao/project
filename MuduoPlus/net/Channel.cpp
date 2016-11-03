@@ -13,15 +13,15 @@ namespace MuduoPlus
 
     Channel::Channel(EventLoop* loop, int fd)
         : loop_(loop),
-        fd_(fd),
-        interestEvents_(kNoneEvent),
-        trigerEvents_(kNoneEvent)
+          fd_(fd),
+          interestEvents_(kNoneEvent),
+          trigeredEvents_(kNoneEvent)
     {
     }
 
     Channel::~Channel()
     {
-        if (loop_->isInLoopThread())
+        if(loop_->isInLoopThread())
         {
             assert(!loop_->hasChannel(this));
         }
@@ -55,24 +55,24 @@ namespace MuduoPlus
     {
         int events = 0;
 
-        if (interestEvents_ & Channel::kReadEvent)
+        if(interestEvents_ & Channel::kReadEvent)
         {
             events |= POLLIN;
         }
 
-        if (interestEvents_ & Channel::kWriteEvent)
+        if(interestEvents_ & Channel::kWriteEvent)
         {
             events |= POLLOUT;
         }
 
-        if (interestEvents_ & Channel::kErrorEvent)
+        if(interestEvents_ & Channel::kErrorEvent)
         {
             events |= EPOLLRDHUP; /*  epoll_wait will always wait for EPOLLERR¡¢EPOLLHUP event */
         }
 
         return events;
     }
-#endif    
+#endif
 
     void Channel::handleEvent(Timestamp receiveTime)
     {
@@ -81,33 +81,33 @@ namespace MuduoPlus
 
     void Channel::handleEventWithGuard(Timestamp receiveTime)
     {
-        if (trigerEvents_ & kReadEvent)
+        if(trigeredEvents_ & kReadEvent)
         {
-            if (readCallback_)
+            if(readCallback_)
             {
                 readCallback_(receiveTime);
             }
         }
 
-        if (trigerEvents_ & kWriteEvent)
+        if(trigeredEvents_ & kWriteEvent)
         {
-            if (writeCallback_)
+            if(writeCallback_)
             {
                 writeCallback_();
             }
         }
 
-        if (trigerEvents_ & kErrorEvent)
+        if(trigeredEvents_ & kErrorEvent)
         {
-            if (closeCallback_)
+            if(closeCallback_)
             {
                 closeCallback_();
             }
         }
 
-        if (finishCallback_)
+        if(endCallback_)
         {
-            finishCallback_();
+            endCallback_();
         }
     }
 }

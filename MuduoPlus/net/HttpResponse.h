@@ -22,7 +22,7 @@ namespace MuduoPlus
 
         explicit HttpResponse(bool close)
             : statusCode_(kUnknown),
-            closeConnection_(close)
+              closeConnection_(close)
         {
         }
 

@@ -13,13 +13,13 @@ namespace MuduoPlus
     public:
         TimerId()
             : timer_(nullptr),
-            sequence_(0)
+              sequence_(0)
         {
         }
 
         TimerId(Timer* timer, int64_t seq)
             : timer_(timer),
-            sequence_(seq)
+              sequence_(seq)
         {
         }
 

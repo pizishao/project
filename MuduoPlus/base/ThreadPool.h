@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 
-#include "NonCopyable.h"
+#include "base/NonCopyable.h"
 #include "base/types.h"
 
 namespace MuduoPlus
@@ -23,7 +23,10 @@ namespace MuduoPlus
         ~ThreadPool();
 
         // Must be called before start().
-        void setMaxQueueSize(int maxSize) { maxQueueSize_ = maxSize; }
+        void setMaxQueueSize(int maxSize)
+        {
+            maxQueueSize_ = maxSize;
+        }
         void setThreadInitCallback(const Task& cb)
         {
             threadInitCallback_ = cb;

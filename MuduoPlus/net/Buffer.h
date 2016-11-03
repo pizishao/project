@@ -15,16 +15,16 @@
 namespace MuduoPlus
 {
 
-    /// A buffer class modeled after org.jboss.netty.buffer.ChannelBuffer
-    ///
-    /// @code
-    /// +-------------------+------------------+------------------+
-    /// | prependable bytes |  readable bytes  |  writable bytes  |
-    /// |                   |     (CONTENT)    |                  |
-    /// +-------------------+------------------+------------------+
-    /// |                   |                  |                  |
-    /// 0      <=      readerIndex   <=   writerIndex    <=     size
-    /// @endcode
+/// A buffer class modeled after org.jboss.netty.buffer.ChannelBuffer
+///
+/// @code
+/// +-------------------+------------------+------------------+
+/// | prependable bytes |  readable bytes  |  writable bytes  |
+/// |                   |     (CONTENT)    |                  |
+/// +-------------------+------------------+------------------+
+/// |                   |                  |                  |
+/// 0      <=      readerIndex   <=   writerIndex    <=     size
+/// @endcode
     class Buffer : public Copyable
     {
     public:
@@ -33,8 +33,8 @@ namespace MuduoPlus
 
         explicit Buffer(size_t initialSize = kInitialSize)
             : buffer_(kCheapPrepend + initialSize),
-            readerIndex_(kCheapPrepend),
-            writerIndex_(kCheapPrepend)
+              readerIndex_(kCheapPrepend),
+              writerIndex_(kCheapPrepend)
         {
             assert(readableBytes() == 0);
             assert(writableBytes() == initialSize);
@@ -107,7 +107,8 @@ namespace MuduoPlus
         void retrieve(size_t len)
         {
             assert(len <= readableBytes());
-            if (len < readableBytes())
+
+            if(len < readableBytes())
             {
                 readerIndex_ += len;
             }
@@ -186,10 +187,11 @@ namespace MuduoPlus
 
         void ensureWritableBytes(size_t len)
         {
-            if (writableBytes() < len)
+            if(writableBytes() < len)
             {
                 makeSpace(len);
             }
+
             assert(writableBytes() >= len);
         }
 
@@ -391,7 +393,7 @@ namespace MuduoPlus
 
         void makeSpace(size_t len)
         {
-            if (writableBytes() + prependableBytes() < len + kCheapPrepend)
+            if(writableBytes() + prependableBytes() < len + kCheapPrepend)
             {
                 // FIXME: move readable data
                 buffer_.resize(writerIndex_ + len);
@@ -402,8 +404,8 @@ namespace MuduoPlus
                 assert(kCheapPrepend < readerIndex_);
                 size_t readable = readableBytes();
                 std::copy(begin() + readerIndex_,
-                    begin() + writerIndex_,
-                    begin() + kCheapPrepend);
+                          begin() + writerIndex_,
+                          begin() + kCheapPrepend);
                 readerIndex_ = kCheapPrepend;
                 writerIndex_ = readerIndex_ + readable;
                 assert(readable == readableBytes());

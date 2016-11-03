@@ -85,11 +85,18 @@
 
 /*
 #define MUD_ASSERT(exp, format, ...)   \
-    do  \
-    {   \
-        if (!(exp)) \
-        {  \
-            MuduoPlus::LogPrinter(LogType_Error, format, __VA_ARGS__) \
-            assert(false); \
-        }  \
+    do  \
+
+    {   \
+
+        if (!(exp)) \
+
+        {  \
+
+            MuduoPlus::LogPrinter(LogType_Error, format, __VA_ARGS__) \
+
+            assert(false); \
+
+        }  \
+
 } while (0);*/

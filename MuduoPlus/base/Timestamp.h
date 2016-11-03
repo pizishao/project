@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <string>
 
-#include "Copyable.h"
+#include "base/Copyable.h"
 
 namespace MuduoPlus
 {
@@ -30,9 +30,16 @@ namespace MuduoPlus
         std::string toString() const;
         std::string toFormattedString(bool showMicroseconds = true) const;
 
-        bool valid() const { return microSecondsSinceEpoch_ > 0; }
+        bool valid() const
+        {
+            return microSecondsSinceEpoch_ > 0;
+        }
 
-        int64_t microSecondsSinceEpoch() const { return microSecondsSinceEpoch_; }
+        int64_t microSecondsSinceEpoch() const
+        {
+            return microSecondsSinceEpoch_;
+        }
+
         time_t secondsSinceEpoch() const
         {
             return static_cast<time_t>(microSecondsSinceEpoch_ / kMicroSecPerSec);
@@ -95,7 +102,7 @@ namespace MuduoPlus
 
         static Timestamp fromUnixTime(time_t t, int microseconds)
         {
-            return Timestamp(static_cast<int64_t>(t)* kMicroSecPerSec + microseconds);
+            return Timestamp(static_cast<int64_t>(t) * kMicroSecPerSec + microseconds);
         }
 
         static const int kMicroSecPerSec        = 1000 * 1000;
@@ -131,6 +138,6 @@ namespace MuduoPlus
     {
         int64_t diff = high.microSecondsSinceEpoch() - low.microSecondsSinceEpoch();
         return diff;
-    }    
+    }
 }
 

@@ -12,10 +12,10 @@ namespace MuduoPlus
 
     Connector::Connector(EventLoop* loop, const InetAddress& serverAddr)
         : loop_(loop),
-        serverAddr_(serverAddr),
-        connect_(false),
-        state_(kDisconnected),
-        retryDelayMs_(kInitRetryDelayMs)
+          serverAddr_(serverAddr),
+          connect_(false),
+          state_(kDisconnected),
+          retryDelayMs_(kInitRetryDelayMs)
     {
         //LOG_DEBUG << "ctor[" << this << "]";
     }
@@ -36,7 +36,8 @@ namespace MuduoPlus
     {
         loop_->assertInLoopThread();
         assert(state_ == kDisconnected);
-        if (connect_)
+
+        if(connect_)
         {
             connect();
         }
@@ -56,7 +57,8 @@ namespace MuduoPlus
     void Connector::stopInLoop()
     {
         loop_->assertInLoopThread();
-        if (state_ == kConnecting)
+
+        if(state_ == kConnecting)
         {
             setState(kDisconnected);
             int sockfd = removeAndResetChannel();
@@ -70,11 +72,12 @@ namespace MuduoPlus
         SocketOps::setSocketNoneBlocking(sockFd);
 
         int ret = SocketOps::connect(sockFd, &serverAddr_.getSockAddr());
-        if (ret == 0) // connect success immediately
+
+        if(ret == 0)  // connect success immediately
         {
             setState(kConnected);
 
-            if (connect_)
+            if(connect_)
             {
                 newConnectionCallback_(sockFd);
             }
@@ -87,7 +90,7 @@ namespace MuduoPlus
         {
             int errorCode = GetLastErrorCode();
 
-            if (ERR_CONNECT_RETRIABLE(errorCode))
+            if(ERR_CONNECT_RETRIABLE(errorCode))
             {
                 connecting(sockFd);
             }
@@ -142,21 +145,22 @@ namespace MuduoPlus
     {
         LOG_PRINT(LogType_Debug, "Connector::handleWrite %u", state_);
 
-        if (state_ == kConnecting)
+        if(state_ == kConnecting)
         {
             int sockfd = removeAndResetChannel();
             int err = SocketOps::getSocketError(sockfd);
 
-            if (err)           
+            if(err)
             {
                 LOG_PRINT(LogType_Warn, "Connector::handleWrite - SO_ERROR = %u %s",
-                    err, GetErrorText(err).c_str());
+                          err, GetErrorText(err).c_str());
                 retry(sockfd);
             }
             else
             {
                 setState(kConnected);
-                if (connect_)
+
+                if(connect_)
                 {
                     newConnectionCallback_(sockfd);
                 }
@@ -176,7 +180,8 @@ namespace MuduoPlus
     void Connector::handleError()
     {
         LOG_PRINT(LogType_Error, "Connector::handleError state=%u", state_);
-        if (state_ == kConnecting)
+
+        if(state_ == kConnecting)
         {
             int sockfd = removeAndResetChannel();
             int err = SocketOps::getSocketError(sockfd);
@@ -190,13 +195,13 @@ namespace MuduoPlus
         SocketOps::closeSocket(sockfd);
         setState(kDisconnected);
 
-        if (connect_)
+        if(connect_)
         {
-            LOG_PRINT(LogType_Info, "Connector::retry - Retry connecting to %s in %d milliseconds. ", 
-                serverAddr_.toIpPort().c_str(), retryDelayMs_);
+            LOG_PRINT(LogType_Info, "Connector::retry - Retry connecting to %s in %d milliseconds. ",
+                      serverAddr_.toIpPort().c_str(), retryDelayMs_);
 
-            loop_->runAfter(retryDelayMs_ / 1000.0, 
-                std::bind(&Connector::startInLoop, shared_from_this()));
+            loop_->runAfter(retryDelayMs_ / 1000.0,
+                            std::bind(&Connector::startInLoop, shared_from_this()));
 
             retryDelayMs_ = (std::min)(retryDelayMs_ * 2, kMaxRetryDelayMs);
         }
