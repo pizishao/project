@@ -26,43 +26,42 @@ public class UIWindowManager : Singleton<UIWindowManager>
 
         foreach (var window in openWindows)
         {
-            if (window.OriginalLayer > highestLayer)
+            if (window.DynamicLayer > highestLayer)
             {
-                highestLayer = window.OriginalLayer;
+                highestLayer = window.DynamicLayer;
             }
         }
 
         return highestLayer;
     }
 
-    void PushWindow(UIWindow window)
+    public void PushWindow(UIWindow window)
     {
         UIWindowStack stack = null;
-        window.MutableLayer = window.OriginalLayer;
+        window.DynamicLayer = window.OriginalLayer;
+
+        stacks.TryGetValue(window.OriginalLayer, out stack);
 
         if (window.OriginalLayer != WindowLayer.UIMain && window.OriginalLayer != WindowLayer.UIMainView)
         {
             WindowLayer highestLayer = GetHighestLayer();
-            if (highestLayer > window.OriginalLayer)
+            if ((int)highestLayer > (int)window.OriginalLayer)
             {
-                window.MutableLayer = highestLayer;
+                window.DynamicLayer = highestLayer;
                 stacks.TryGetValue(highestLayer, out stack);
             }
-        }
-        else
-        {
-            stacks.TryGetValue(window.OriginalLayer, out stack);
         }
 
         Assert.IsTrue(stack != null);
         stack.PushWindow(window);
+        openWindows.Push(window);
     }
 
     void PopWindow(UIWindow window)
     {
         UIWindowStack stack = null;
 
-        stacks.TryGetValue(window.MutableLayer, out stack);
+        stacks.TryGetValue(window.DynamicLayer, out stack);
         Assert.IsTrue(stack != null);
 
         if (stack != null)

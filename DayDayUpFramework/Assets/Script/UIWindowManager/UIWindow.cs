@@ -168,7 +168,7 @@ public enum WindowLayer
 public class UIWindow : UIBase 
 {
     public WindowLayer OriginalLayer { set; get; }
-    public WindowLayer MutableLayer { set; get; }
+    public WindowLayer DynamicLayer { set; get; }
 
     Canvas attachCanvas;
 
@@ -184,7 +184,7 @@ public class UIWindow : UIBase
 
             if (attachCanvas != null)
             {
-                attachCanvas.sortingOrder = (int)MutableLayer * 100 + value;
+                attachCanvas.sortingOrder = (int)DynamicLayer * 100 + value;
             }
         }
     }

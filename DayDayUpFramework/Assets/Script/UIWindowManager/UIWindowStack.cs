@@ -15,6 +15,8 @@ public class UIWindowStack
         {
             stackWindow.Push(window);
         }
+
+        UpdateSortingOrder();
     }
 
     public void UpdateSortingOrder()
@@ -24,6 +26,7 @@ public class UIWindowStack
         foreach (var window in stackWindow)
         {
             window.IndexInLayer = i;
+            i--;
         }
     }
 }
