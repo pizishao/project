@@ -142,7 +142,7 @@ public class BundleManager
         Bundles.Add(bundleName, bundle);
 
         return bundle;
-    }
+    }    
 
     public void LoadAsset(string assetName, string bundleName, Action<string, AssetBundle> onComplete)
     {
@@ -165,7 +165,7 @@ public class BundleManager
         }
         newRequest.AddDependentBundle(bundle);
 
-        string[] dependencyBundleNames = manifest.GetAllDependencies(assetName);  
+        string[] dependencyBundleNames = manifest.GetAllDependencies(bundleName);  
       
         foreach (var name in dependencyBundleNames)
         {

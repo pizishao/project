@@ -35,26 +35,66 @@ public class UIWindowManager : Singleton<UIWindowManager>
         return highestLayer;
     }
 
-    public void PushWindow(UIWindow window)
+    void LoadWindow<T>(string assetName, string bundleName)
     {
-        UIWindowStack stack = null;
-        window.DynamicLayer = window.OriginalLayer;
 
-        stacks.TryGetValue(window.OriginalLayer, out stack);
+    }
 
-        if (window.OriginalLayer != WindowLayer.UIMain && window.OriginalLayer != WindowLayer.UIMainView)
+    public void PushWindow(string assetName, string bundleName, Action<UIWindow> onComplete)
+    {
+        AssetManager.Instance.LoadAsset<UIWindow>(assetName, bundleName, delegate(string error, UIWindow window)
         {
-            WindowLayer highestLayer = GetHighestLayer();
-            if ((int)highestLayer > (int)window.OriginalLayer)
-            {
-                window.DynamicLayer = highestLayer;
-                stacks.TryGetValue(highestLayer, out stack);
-            }
-        }
+            if (!string.IsNullOrEmpty(error))
+	        {
+		        Debug.LogError(string.Format("load window at {0}:{1} failed!!!", assetName, bundleName));
+                return;
+	        }
 
-        Assert.IsTrue(stack != null);
-        stack.PushWindow(window);
-        openWindows.Push(window);
+            UIWindow newWindow = GameObject.Instantiate<GameObject>(window.gameObject).GetComponent<UIWindow>();
+
+            newWindow.transform.localScale = Vector3.one;
+            newWindow.transform.localRotation = Quaternion.identity;
+            newWindow.transform.localPosition = Vector3.zero;
+
+            UIWindowStack stack = null;
+            newWindow.DynamicLayer = newWindow.OriginalLayer;
+
+            stacks.TryGetValue(newWindow.OriginalLayer, out stack);
+
+            if (newWindow.OriginalLayer != WindowLayer.UIMain && newWindow.OriginalLayer != WindowLayer.UIMainView)
+            {
+                WindowLayer highestLayer = GetHighestLayer();
+                if ((int)highestLayer > (int)newWindow.OriginalLayer)
+                {
+                    newWindow.DynamicLayer = highestLayer;
+                    stacks.TryGetValue(highestLayer, out stack);
+                }
+            }
+
+            Assert.IsTrue(stack != null);
+            stack.PushWindow(newWindow);
+
+            UIWindow pendingWindow = null;
+
+            if (openWindows.Count > 0)
+            {
+                pendingWindow = openWindows.Peek();
+            }
+
+            openWindows.Push(newWindow);
+
+            if (pendingWindow != null)
+            {
+                pendingWindow.OnPause();
+            }
+
+            if (onComplete != null)
+            {
+                onComplete(newWindow);
+            }
+
+            newWindow.OnShow();             
+        });        
     }
 
     void PopWindow(UIWindow window)

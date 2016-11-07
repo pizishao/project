@@ -167,8 +167,36 @@ public enum WindowLayer
 
 public class UIWindow : UIBase 
 {
-    public WindowLayer OriginalLayer { set; get; }
-    public WindowLayer DynamicLayer { set; get; }
+    [SerializeField]
+    WindowLayer originalLayer = WindowLayer.None;
+
+    WindowLayer dynamicLayer = WindowLayer.None;
+
+    public WindowLayer OriginalLayer 
+    {
+        set
+        {
+            originalLayer = value;
+        }
+
+        get
+        {
+            return originalLayer;
+        }
+    }
+
+    public WindowLayer DynamicLayer 
+    {
+        set
+        {
+            dynamicLayer = value;
+        }
+
+        get
+        {
+            return dynamicLayer;
+        }
+    }
 
     Canvas attachCanvas;
 
